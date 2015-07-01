@@ -3,6 +3,9 @@
 
 # Project-specific files
 ._*
+track_plus.exe
+daemon_plus.exe
+win_cursor_plus.exe
 
 # User-specific files
 *.suo
