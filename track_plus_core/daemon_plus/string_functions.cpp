@@ -1,0 +1,47 @@
+#include "string_functions.h"
+
+vector<string> split_string(const string str_in, const string str_char)
+{
+	vector<string> result = vector<string>();
+	string str = "";
+
+	const int i_max = str_in.size();
+	for (int i = 0; i < i_max; ++i)
+	{
+		string char_current = "";
+		char_current += str_in.at(i);
+
+		if (char_current != str_char)
+			str += str_in.at(i);
+		else
+		{
+			result.push_back(str);
+			str = "";
+		}
+	}
+	result.push_back(str);
+	return result;		
+}
+
+string to_string(wstring ws)
+{
+	setlocale(LC_ALL, "");
+	const locale locale("");
+	typedef codecvt<wchar_t, char, mbstate_t> converter_type;
+	const converter_type& converter = use_facet<converter_type>(locale);
+	vector<char> to(ws.length() * converter.max_length());
+	mbstate_t state;
+	const wchar_t* from_next;
+	char* to_next;
+
+	const converter_type::result result =
+		converter.out(state, ws.data(), ws.data() + ws.length(), from_next, &to[0], &to[0] + to.size(), to_next);
+
+	if (result == converter_type::ok || result == converter_type::noconv)
+	{
+		const string s(&to[0], to_next);
+		return s;
+	}
+
+	return 0;
+}

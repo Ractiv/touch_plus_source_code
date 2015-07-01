@@ -1,0 +1,26 @@
+{
+	"main": "index.html",
+	"name": "Touch+ control panel",
+	"description": "Touch+ control panel",
+	"version": "0.5a",
+	"keywords": [ "Touch+", "control panel" ],
+	"window": {
+		"title": "Touch+ control panel",
+		"icon": "ractiv.png",
+		"toolbar": false,
+		"frame": true,
+		"width": 640,
+		"height": 675,
+		"position": "center",
+		"min_width": 640,
+		"min_height": 675,
+		"max_width": 640,
+		"max_height": 675,
+		"resizable": false,
+	    "always-on-top": false,
+	    "show": true 
+	},
+	"webkit": {
+		"plugin": false
+	}
+}

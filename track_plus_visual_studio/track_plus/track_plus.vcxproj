@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\track_plus_core\track_plus\blob_detector_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\blob_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\blob_tracker.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\Camera.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\CameraDS.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\camera_initializer_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\contour_functions.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\curve_fitting.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\dirent.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\filesystem.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\foreground_extractor_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\globals.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\hand_resolver.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\hand_splitter_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\histogram_builder.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\hungarian.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\id_point.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\lmmin.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\lmstruct.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\low_pass_filter.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\math_plus.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\mat_functions.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\mono_processor_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\motion_processor_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\permutation.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\Plane.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\pointer_mapper.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\processes.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\udp.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\warper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\track_plus_core\track_plus\blob_detector_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\blob_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\blob_tracker.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\Camera.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\CameraDS.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\camera_initializer_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\contour_functions.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\curve_fitting.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\c_tracker.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\exponential.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\filesystem.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\foreground_extractor_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\globals.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\hand_resolver.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\hand_splitter_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\histogram_builder.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\low_pass_filter.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\main.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\math_plus.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\mat_functions.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\mono_processor_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\motion_processor_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\permutation.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\Plane.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\pointer_mapper.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\Ray.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EEF4BBD1-490B-4D59-B286-5E7689C004E4}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>track_plus</RootNamespace>
+    <ProjectName>track_plus</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\..\build\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(OPENSSL_DIR)\include;$(ETRON_DIR)\;$(BOOST_INCLUDE);$(TJPEG_DIR)\;$(CURL_DIR)\include;$(ZLIB_DIR)\include;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(SFML_INCLUDE)\;$(DSHOW_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <StringPooling>false</StringPooling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(BOOST_LIB);$(ZLIB_DIR)\lib\win32\release;$(CURL_DIR)\lib\Release;$(ETRON_DIR)\;$(OPENCV_DIR)\lib;$(DSHOW_DIR)\lib;C:\External Storage\Dropbox\Projects\track_plus\track_plus\libusbx-1.0;$(SFML_LIB)\;$(TJPEG_DIR)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>dxguid.lib;ole32.lib;strmiids.lib;uuid.lib;zlibstatic.lib;uvc.lib;curllib.lib;libeay32MD.lib;ssleay32MD.lib;opencv_core249.lib;turbojpeg.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_video249.lib;opencv_flann249.lib;opencv_nonfree249.lib;opencv_features2d249.lib;eSPDI.lib;eSPAEAWBCtrl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(TURBOJPEG_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(SFML_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointModel>Precise</FloatingPointModel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\lib;$(DIRECTSHOW_DIR)\lib;$(TURBOJPEG_DIR)\;$(SFML_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>dxguid.lib;ole32.lib;strmiids.lib;uuid.lib;opencv_core249.lib;turbojpeg.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_video249.lib;opencv_flann249.lib;opencv_nonfree249.lib;opencv_features2d249.lib;opencv_ocl249.lib;opencv_objdetect249.lib;eSPDI.lib;eSPAEAWBCtrl.lib;sfml-network.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
