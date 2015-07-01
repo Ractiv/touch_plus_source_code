@@ -6,6 +6,8 @@
 track_plus.exe
 daemon_plus.exe
 win_cursor_plus.exe
+ipc/
+userdata/
 
 # User-specific files
 *.suo
