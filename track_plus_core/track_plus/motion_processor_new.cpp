@@ -49,7 +49,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 		return false;
 	}
-	
+
 	value_store.set_bool("both_hands_are_moving", false);
 	value_store.set_bool("left_hand_is_moving", false);
 	value_store.set_bool("right_hand_is_moving", false);
@@ -243,20 +243,25 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				{					
 					value_store.set_bool("image_bottom_sides_filled", true);
 
-					// int x_separator_motion_left_median_const = x_separator_motion_left_median;
-					// int x_separator_motion_right_median_const = x_separator_motion_right_median;
+					int x_separator_motion_left_median_const = x_separator_motion_left_median - 10;
+					int x_separator_motion_right_median_const = x_separator_motion_right_median + 10;
+
+					if (x_separator_motion_left_median_const < 0)
+						x_separator_motion_left_median_const = 0;
+					if (x_separator_motion_right_median_const > WIDTH_SMALL_MINUS)
+						x_separator_motion_right_median_const = WIDTH_SMALL_MINUS;
 
 					for (int i = 0; i < WIDTH_SMALL; ++i)
 						for (int j = y_separator_motion_down_median; j < HEIGHT_SMALL; ++j)
 							fill_image_background_static(i, j, image_in);
 
-					/*for (int i = 0; i <= x_separator_motion_left_median_const; ++i)
+					for (int i = 0; i <= x_separator_motion_left_median_const; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							fill_image_background_static(i, j, image_in);
 
 					for (int i = x_separator_motion_right_median_const; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							fill_image_background_static(i, j, image_in);*/
+							fill_image_background_static(i, j, image_in);
 				}
 
 				Mat image_in_thresholded_dilated;
@@ -306,8 +311,9 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 								fill_image_background_static(i, j, image_in);
 				}
 
-				if (value_store.get_bool("both_hands_are_moving"))
+				if (value_store.get_bool("both_hands_are_moving") && value_store.get_bool("set_result", true))
 				{
+					value_store.set_bool("set_result", false);
 					value_store.set_int("target_frame", 1);
 					value_store.set_bool("result", true);
 				}
@@ -387,7 +393,7 @@ bool MotionProcessorNew::compute_y_separator_motion()
 	else
 		(*y_separator_motion_down_vec)[y_separator_motion_down_vec->size() - 1] = y_max;
 
-	if (y_separator_motion_down_vec->size() >= 1)
+	if (y_separator_motion_down_vec->size() >= 5)
 	{
 		sort(y_separator_motion_down_vec->begin(), y_separator_motion_down_vec->end());
 		y_separator_motion_down_median = (*y_separator_motion_down_vec)[y_separator_motion_down_vec->size() / 2];
@@ -401,7 +407,7 @@ bool MotionProcessorNew::compute_y_separator_motion()
 	else
 		(*y_separator_motion_up_vec)[y_separator_motion_up_vec->size() - 1] = y_min;
 
-	if (y_separator_motion_up_vec->size() >= 1)
+	if (y_separator_motion_up_vec->size() >= 5)
 	{
 		sort(y_separator_motion_up_vec->begin(), y_separator_motion_up_vec->end());
 		y_separator_motion_up_median = (*y_separator_motion_up_vec)[y_separator_motion_up_vec->size() / 2];
@@ -456,7 +462,7 @@ bool MotionProcessorNew::compute_x_separator_middle()
 					(*x_separator_middle_vec)[x_separator_middle_vec->size() - 1] = x_separator_middle;
 			}
 
-			if (x_separator_middle_vec->size() >= 1)
+			if (x_separator_middle_vec->size() >= 5)
 			{
 				sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
 				x_separator_middle_median = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
@@ -498,10 +504,11 @@ bool MotionProcessorNew::compute_x_separator_motion_left_right()
 				x_max = blob.x_max;
 		}
 
+	vector<int>* x_separator_motion_left_vec = value_store.get_int_vec("x_separator_motion_left_vec");
+	vector<int>* x_separator_motion_right_vec = value_store.get_int_vec("x_separator_motion_right_vec");
+
 	if (x_min < 9999)
 	{
-		vector<int>* x_separator_motion_left_vec = value_store.get_int_vec("x_separator_motion_left_vec");
-
 		if (x_separator_motion_left_vec->size() < 1000)
 			x_separator_motion_left_vec->push_back(x_min);
 		else
@@ -513,8 +520,6 @@ bool MotionProcessorNew::compute_x_separator_motion_left_right()
 
 	if (x_max > -1)
 	{
-		vector<int>* x_separator_motion_right_vec = value_store.get_int_vec("x_separator_motion_right_vec");
-
 		if (x_separator_motion_right_vec->size() < 1000)
 			x_separator_motion_right_vec->push_back(x_max);
 		else
@@ -524,7 +529,10 @@ bool MotionProcessorNew::compute_x_separator_motion_left_right()
 		x_separator_motion_right_median = (*x_separator_motion_right_vec)[x_separator_motion_right_vec->size() * 0.5];
 	}
 
-	return true;
+	if (x_separator_motion_left_vec->size() >= 5)
+		return true;
+
+	return false;
 }
 
 inline void MotionProcessorNew::fill_image_background_static(const int x, const int y, Mat& image_in)
@@ -597,6 +605,14 @@ void MotionProcessorNew::compute_slope(Mat& image_in_thresholded, string name)
 	Point pt_top = pt_intersection_top_vec[pt_intersection_top_vec.size() * 0.5];
 	Point pt_bottom = pt_intersection_bottom_vec[pt_intersection_bottom_vec.size() * 0.5];
 
+	int intersection_x = name == "left" ? x_separator_motion_left_median : x_separator_motion_right_median;
+
+	Point pt_bottom_final;
+	bool proceed = get_intersection_at_y(pt_top,
+										 Point(intersection_x, y_separator_motion_down_median),
+										 HEIGHT_SMALL_MINUS,
+										 pt_bottom_final);
+
 	value_store.set_point("pt_top_" + name, pt_top);
-	value_store.set_point("pt_bottom_" + name, pt_bottom);
+	value_store.set_point("pt_bottom_" + name, pt_bottom_final);
 }

@@ -35,7 +35,7 @@ extern string child_module_name = "";
 extern string mode = "";
 
 extern bool play = true;
-extern bool enable_imshow = false;
+extern bool enable_imshow = true;
 extern bool record_pose = false;
 extern bool pinch_to_zoom = false;
 

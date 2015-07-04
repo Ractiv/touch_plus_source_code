@@ -28,7 +28,7 @@ using namespace std;
 #define HEIGHT_LARGE_MINUS 479
 #define WIDTH_SMALL        160
 #define HEIGHT_SMALL       120
-#define REFLECTION_Y       90
+#define REFLECTION_Y       70
 #define WIDTH_SMALL_MINUS  159
 #define HEIGHT_SMALL_MINUS 119
 #define WIDTH_MIN          80
