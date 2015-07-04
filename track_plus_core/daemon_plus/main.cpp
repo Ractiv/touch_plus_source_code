@@ -21,7 +21,6 @@
 #include "globals.h"
 #include "ipc.h"
 #include "processes.h"
-#include <VersionHelpers.h>
 
 using namespace std;
 
@@ -40,20 +39,10 @@ void guardian_thread_function()
 			continue;
 		}
 
-		if (process_running("win_cursor_plus.exe") == 0)
-		{
-			COUT << "win_cursor_plus created" << endl;
-
-			if (IsWindows8OrGreater())
-				create_process(executable_path + "\\win_cursor_plus\\win_cursor_plus.exe", "win_cursor_plus.exe", true, true);
-			else
-				create_process(executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe", "win_cursor_plus.exe", true, true);
-		}
-
 		if (process_running("track_plus.exe") == 0)
 		{
 			COUT << "track_plus created" << endl;
-			create_process(executable_path + "\\track_plus.exe", "track_plus.exe", false);
+			create_process(executable_path + "\\track_plus.exe", "track_plus.exe", true);
 			ipc.send_message("menu_plus", "show stage", "");
 		}
 
@@ -67,8 +56,8 @@ void guardian_thread_function()
 	}
 }
 
-// int main()
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+int main()
+// int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
 	char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);
@@ -160,12 +149,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	ipc.map_function("kill", [](const string message_body)
 	{
 		block_guardian = true;
-
-		if (process_running("track_plus.exe") == 1)
-			kill_process("track_plus.exe");
-
-		if (process_running("win_cursor_plus.exe") == 1)
-			kill_process("win_cursor_plus.exe");
+		ipc.send_message("track_plus", "exit", "");
 	});
 
 	ipc.map_function("start", [](const string message_body)
@@ -175,10 +159,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 	ipc.map_function("exit", [](const string message_body)
 	{
-		block_guardian = true;
-		ipc.send_message("menu_plus", "exit", "");
-		ipc.send_message("track_plus", "exit", "");
-		ipc.send_message("win_cursor_plus", "exit", "");
 		exit(0);
 	});
 

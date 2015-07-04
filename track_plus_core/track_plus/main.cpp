@@ -20,6 +20,7 @@
 #include <thread>
 #include "globals.h"
 #include "Camera.h"
+#include "imu.h"
 #include "mat_functions.h"
 #include "camera_initializer_new.h"
 #include "motion_processor_new.h"
@@ -33,6 +34,8 @@
 #include "hand_resolver.h"
 #include "pointer_mapper.h"
 #include "value_store.h"
+
+#include <VersionHelpers.h>
 
 using namespace std;
 using namespace cv;
@@ -57,7 +60,10 @@ Settings settings;
 Mat image_current_frame;
 
 IPC* ipc = NULL;
+
 Camera* camera = NULL;
+
+IMU imu;
 
 MotionProcessorNew motion_processor0;
 MotionProcessorNew motion_processor1;
@@ -110,6 +116,7 @@ int wait_count = 0;
 int accel_val_old = 0;
 int val_diff_counter = 0;
 int val_diff_old = 9999;
+int frame_num = 0;
 //
 
 void wait_for_device()
@@ -198,15 +205,47 @@ void on_first_frame()
 	}
 	data_path_current_module = data_path + "\\" + serial_number;
 
+	int x_accel;
+	int y_accel;
+	int z_accel;
+	camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
+	
+	Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
+
+	if (heading.y > 60)
+		mode = "tool";
+	else
+		mode = "surface";
+
 	ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
-	ipc->open_udp_channel("win_cursor_plus");
 
 	reprojector.load(*ipc);
 	CameraInitializerNew::init(camera);
 	pose_estimator.init();
 
-	ipc->send_message("menu_plus", "show window", "");	
-	ipc->send_message("menu_plus", "show wiggle", "");
+	if (mode == "surface")
+	{
+		if (process_running("win_cursor_plus.exe") == 0)
+		{
+			COUT << "win_cursor_plus created" << endl;
+
+			if (IsWindows8OrGreater())
+				create_process(executable_path + "\\win_cursor_plus\\win_cursor_plus.exe", "win_cursor_plus.exe", true, true);
+			else
+				create_process(executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe", "win_cursor_plus.exe", true, true);
+
+			child_module_name = "win_cursor_plus";
+		}
+
+		ipc->open_udp_channel("win_cursor_plus");
+		ipc->send_message("menu_plus", "show window", "");	
+		ipc->send_message("menu_plus", "show wiggle", "");
+	}
+	else
+	{
+		// ipc->open_udp_channel("unity_demo");
+		ipc->send_message("menu_plus", "hide window", "");
+	}
 
 	ipc->map_function("toggle imshow", [](const string message_body)
 	{
@@ -253,35 +292,21 @@ void compute()
 	if (!updated)
 		return;
 
-	int x;
-	int y;
-	int z;
-	camera->getAccelerometerValues(&x, &y, &z);
-	int accel_val = x + y + z;
-	low_pass_filter.compute(accel_val, 0.05, "accel_val");
+	int x_accel;
+	int y_accel;
+	int z_accel;
+	camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
+	imu.compute(x_accel, y_accel, z_accel);
 
-	bool reset = false;
-
-	int val_diff = abs(accel_val - accel_val_old);
-
-	if (val_diff_counter == 20)
+	if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
 	{
-		if (val_diff_old < 9999 && abs(val_diff - val_diff_old) > 10)
-		{
-			accel_val_old = accel_val;
-			reset = true;
-		}
+		COUT << "exit 1" << endl;
 
-		val_diff_old = val_diff;
-		val_diff_counter = 0;
-	}
-	++val_diff_counter;
+		if (child_module_name != "")
+			ipc->send_message(child_module_name, "exit", "");
 
-	/*if (reset)
-	{
-		hide_cursors();
 		exit(0);
-	}*/
+	}
 
 	if (calibration_step_2)
 	{
@@ -305,7 +330,10 @@ void compute()
 	//----------------------------------------core algorithm----------------------------------------
 
 	Mat image_flipped;
-	flip(image_current_frame, image_flipped, 0);
+	if (mode == "surface")
+		flip(image_current_frame, image_flipped, 0);
+	else
+		image_flipped = image_current_frame.clone();
 
 	Mat image0 = image_flipped(Rect(0, 0, 640, 480));
 	Mat image1 = image_flipped(Rect(640, 0, 640, 480));
@@ -351,83 +379,92 @@ void compute()
 		proceed = proceed0 && proceed1;
 	}
 
-	if (proceed && mono_processor0.compute(hand_splitter0, image_preprocessed0, "0", false))
+	if (mode == "surface")
 	{
-		points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
-		points_ptr = &(points_pool[points_pool_count]);
-
-		++points_pool_count;
-		if (points_pool_count == points_pool_count_max)
-			points_pool_count = 0;
-
-		initialized = true;
-
-		if (!show_point_sent)
+		if (proceed && mono_processor0.compute(hand_splitter0, image_preprocessed0, "0", false))
 		{
-			ipc->send_message("menu_plus", "show point", "");
-			show_point_sent = true;
-		}
+			points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
+			points_ptr = &(points_pool[points_pool_count]);
 
-		if (pose_name == "point" && mono_processor1.compute(hand_splitter1, image_preprocessed1, "1", false))
-		{
-			if (!show_calibration_sent)
+			++points_pool_count;
+			if (points_pool_count == points_pool_count_max)
+				points_pool_count = 0;
+
+			initialized = true;
+
+			if (!show_point_sent)
 			{
-				ipc->send_message("menu_plus", "show calibration", "");
-				show_calibration_sent = true;
+				ipc->send_message("menu_plus", "show point", "");
+				show_point_sent = true;
 			}
 
-			hand_resolver.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1, image0, image1, reprojector);
-			pointer_mapper.compute(hand_resolver, reprojector);
+			if (pose_name == "point" && mono_processor1.compute(hand_splitter1, image_preprocessed1, "1", false))
+			{
+				if (!show_calibration_sent)
+				{
+					ipc->send_message("menu_plus", "show calibration", "");
+					show_calibration_sent = true;
+				}
 
-			if (pointer_mapper.calibrated)
-				show_cursor_index = true;
+				hand_resolver.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1, image0, image1, reprojector);
+				pointer_mapper.compute(hand_resolver, reprojector);
 
-			if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
-				show_cursor_thumb = true;
-			else
+				if (pointer_mapper.calibrated)
+					show_cursor_index = true;
+
+				if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
+					show_cursor_thumb = true;
+				else
+					show_cursor_thumb = false;
+			}
+			else if (pose_name != "point")
+			{
+				show_cursor_index = false;
 				show_cursor_thumb = false;
+			}
 		}
-		else if (pose_name != "point")
-		{
-			show_cursor_index = false;
-			show_cursor_thumb = false;
-		}
-	}
 
-	if (!pinch_to_zoom)
-	{
-		if (show_cursor_index)
+		if (!pinch_to_zoom)
 		{
-			float pt_cursor_index_z = pointer_mapper.dist_cursor_index_plane;
-			low_pass_filter.compute(pt_cursor_index_z, 0.5, "pt_cursor_index_z");
+			if (show_cursor_index)
+			{
+				float pt_cursor_index_z = pointer_mapper.dist_cursor_index_plane;
+				low_pass_filter.compute(pt_cursor_index_z, 0.5, "pt_cursor_index_z");
 
-			ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_cursor_index.x) + "!" +
-													 to_string(pointer_mapper.pt_cursor_index.y) + "!" +
-													 to_string(pt_cursor_index_z) + "!" +
-													 to_string(pointer_mapper.index_down) + "!index");
+				ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_cursor_index.x) + "!" +
+														 to_string(pointer_mapper.pt_cursor_index.y) + "!" +
+														 to_string(pt_cursor_index_z) + "!" +
+														 to_string(pointer_mapper.index_down) + "!index");
+			}
+			else
+				ipc->send_udp_message("win_cursor_plus", "hide_cursor_index");
+
+			ipc->send_udp_message("win_cursor_plus", "hide_cursor_thumb");
 		}
 		else
-			ipc->send_udp_message("win_cursor_plus", "hide_cursor_index");
+		{
+			ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
+													 to_string(pointer_mapper.pt_pinch_to_zoom_index.y) + "!0!1!index");
 
-		ipc->send_udp_message("win_cursor_plus", "hide_cursor_thumb");
+			ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
+													 to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
+		}
+
+		if (increment_keypress_count_old != increment_keypress_count_new)
+			++keypress_count;
+
+		increment_keypress_count_old = increment_keypress_count_new;
+
+		ipc->send_udp_message("win_cursor_plus", "update!" + to_string(frame_num));
 	}
-	else
+	else if (mode == "tool")
 	{
-		ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
-												 to_string(pointer_mapper.pt_pinch_to_zoom_index.y) + "!0!1!index");
-
-		ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
-												 to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
+		enable_imshow = true;
+		imshow("image_small0", image_small0);
+		imshow("image_preprocessed0", image_preprocessed0);
 	}
 
-	static int frame_num = 0;
-	ipc->send_udp_message("win_cursor_plus", "update!" + to_string(frame_num));
 	++frame_num;
-
-	if (increment_keypress_count_old != increment_keypress_count_new)
-		++keypress_count;
-
-	increment_keypress_count_old = increment_keypress_count_new;
 
 	if (enable_imshow)
 		waitKey(1);

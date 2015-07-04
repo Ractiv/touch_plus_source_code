@@ -27,6 +27,8 @@ var IPC = function(selfNameIn)
 		var port = self.udp.Assign();
 		self.SendMessage("track_plus", "open udp channel", port.toString());
 	});
+	
+	self.Update();
 };
 
 IPC.Updated = 0;
@@ -50,17 +52,26 @@ IPC.prototype.Update = function()
 	{
 		var fileNameCurrent = fileNameVec[fileNameVecIndex];
 
-		if (fileNameCurrent.length > self.selfName.length)
+		var fileNameEveryone = "";
+		if (fileNameCurrent.length >= 8)
+			fileNameEveryone = fileNameCurrent.substring(0, 8);
+
+		if (fileNameCurrent.length > self.selfName.length || fileNameEveryone == "everyone")
 		{
 			if (IPC.FileNameProcessedMap[fileNameCurrent] == true)
 				continue;
 			else
 				IPC.FileNameProcessedMap[fileNameCurrent] = true;
 
-			var fileName = fileNameCurrent.substring(0, self.selfName.length);
-			var fileNameID = fileNameCurrent.substring(self.selfName.length, fileNameCurrent.length);
+			var fileName = "";
+			var fileNameID = "";
+			if (fileNameEveryone != "everyone")
+			{
+				fileName = fileNameCurrent.substring(0, self.selfName.length);
+				fileNameID = fileNameCurrent.substring(self.selfName.length, fileNameCurrent.length);
+			}
 			
-			if (fileName == self.selfName)
+			if (fileName == self.selfName || fileNameEveryone == "everyone")
 			{
 				++IPC.Updated;
 

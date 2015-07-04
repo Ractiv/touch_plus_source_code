@@ -27,6 +27,17 @@ void ForegroundExtractorNew::init()
 bool ForegroundExtractorNew::compute(Mat& image_in, Mat& image_smoothed_in,
 									 MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
+	if (mode == "tool")
+	{
+		threshold(image_in, image_foreground, motion_processor.gray_threshold, 254, THRESH_BINARY);
+		blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
+
+		if (visualize && enable_imshow)
+			imshow("image_foreground" + name, image_foreground);
+
+		return true;
+	}
+	
 	Mat image_foreground_smoothed = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	for (int i = 0; i < WIDTH_SMALL; ++i)
 		for (int j = 0; j < HEIGHT_SMALL; ++j)
@@ -77,7 +88,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, Mat& image_smoothed_in,
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.count < motion_processor.noise_size ||
-			blob.width <= 3 || blob.height <= 3 ||
+			// blob.width <= 3 || blob.height <= 3 ||
 			blob.y > motion_processor.y_separator_motion_down_median ||
 			blob.x_max < motion_processor.x_separator_motion_left_median ||
 			blob.x_min > motion_processor.x_separator_motion_right_median)

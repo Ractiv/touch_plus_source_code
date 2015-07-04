@@ -259,25 +259,6 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 			const float hit_dist = compute_hit_dist(pt_target_projected);
 			dist_cursor_target_plane = dist_target_plane - hit_dist;
 
-			if (name == "compute_index")
-			{
-				float dist_cursor_target_plane_new = dist_cursor_target_plane;
-				low_pass_filter->compute(dist_cursor_target_plane_new, 0.5, "dist_cursor_target_plane_new" + name);
-
-				float dist_cursor_target_plane_old = value_store.get_float("dist_cursor_target_plane_old", dist_cursor_target_plane_new);
-
-				low_pass_filter->compute(pt_cursor.x, 1, "pt_cursor_x" + name);
-				low_pass_filter->compute(pt_cursor.y, 1, "pt_cursor_y" + name);
-
-				if (dist_cursor_target_plane_new - dist_cursor_target_plane_old <= -5)
-				{
-					low_pass_filter->compute(pt_cursor.x, 0.1, "pt_cursor_x" + name);
-					low_pass_filter->compute(pt_cursor.y, 0.1, "pt_cursor_y" + name);
-				}
-
-				value_store.set_float("dist_cursor_target_plane_old", dist_cursor_target_plane_new);
-			}
-
 			if (dist_cursor_target_plane < actuation_dist)
 				value_store.set_bool("actuated" + name, true);
 

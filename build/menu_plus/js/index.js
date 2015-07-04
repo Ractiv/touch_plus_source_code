@@ -98,7 +98,7 @@
 
   menu.append(new gui.MenuItem({ type: "normal", label: "Exit", click: function()
   {
-    ipc.SendMessage("daemon_plus", "exit", "");
+    ipc.SendMessage("everyone", "exit", "");
   }}));
 
   tray.menu = menu;
@@ -149,7 +149,7 @@
   ipc.MapFunction("download failed", function(messageBody)
   {
     alert("Download failed, cannot connect to server");
-    ipc.SendMessage("daemon_plus", "exit", "");
+    ipc.SendMessage("everyone", "exit", "");
   });
 
   ipc.MapFunction("download", function(messageBody)

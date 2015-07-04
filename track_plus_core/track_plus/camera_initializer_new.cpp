@@ -112,7 +112,11 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		else if (gray_diff < 0)
 			gray_diff = 0;
 
-		exposure_val = map_val(gray_diff, 0, 25, 1, 10);
+		if (mode == "surface")
+			exposure_val = map_val(gray_diff, 0, 25, 1, 10);
+		else
+			exposure_val = 3;
+
 		camera->setExposureTime(Camera::both, exposure_val);
 
 		float r_val = map_val(gray_diff, 0, 25, 1.5, 2.0);

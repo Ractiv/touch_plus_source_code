@@ -20,8 +20,6 @@
 
 IPC::IPC(const string self_name_in)
 {
-	self_name = self_name_in;
-
 	if (!directory_exists(ipc_path))
 	{
 		create_directory(ipc_path);
@@ -32,6 +30,9 @@ IPC::IPC(const string self_name_in)
 		delete_all_files(ipc_path);
 		COUT << "ipc directory loaded" << endl;
 	}
+
+	self_name = self_name_in;
+	update();
 }
 
 void IPC::update()
@@ -47,19 +48,29 @@ void IPC::update()
 
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);
 	for (string file_name_current : file_name_vec)
-		if (file_name_current.size() > self_name.size())
+	{
+		string file_name_everyone = "";
+		if (file_name_current.size() >= 8)
+			file_name_everyone = file_name_current.substr(0, 8);
+
+		if (file_name_current.size() > self_name.size() || file_name_everyone == "everyone")
 		{
 			if (file_name_processed_map[file_name_current] == true)
 					continue;
 				else
 					file_name_processed_map[file_name_current] = true;
 
-			const string file_name = file_name_current.substr(0, self_name.size());
-			const string file_name_id_str = file_name_current.substr(self_name.size(), file_name_current.size());
-
-			if (file_name == self_name)
+			string file_name = "";
+			string file_name_id_str = "";
+			if (file_name_everyone != "everyone")
 			{
-				Sleep(10);
+				file_name = file_name_current.substr(0, self_name.size());
+				file_name_id_str = file_name_current.substr(self_name.size(), file_name_current.size());
+			}
+
+			if (file_name == self_name || file_name_everyone == "everyone")
+			{
+				Sleep(20);
 				
 				vector<string> lines = read_text_file(ipc_path + "\\" + file_name_current);
 				// delete_file(ipc_path + "\\" + file_name_current);
@@ -82,6 +93,7 @@ void IPC::update()
 				}
 			}
 		}
+	}
 		
 	updated = true;
 }

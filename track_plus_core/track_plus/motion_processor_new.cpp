@@ -20,10 +20,36 @@
 
 bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool visualize)
 {
-	static bool large_dilation = true;
-	static bool dilated0 = false;
-	static bool dilated1 = false;
+	if (mode == "tool")
+	{
+		if (gray_threshold == 255)
+		{
+			vector<uchar> gray_vec;
 
+			const int i_min = WIDTH_SMALL * 0.4;
+			const int i_max = WIDTH_SMALL * 0.6;
+			for (int j = 0; j < HEIGHT_SMALL; ++j)
+				for (int i = i_min; i <= i_max; ++i)
+					gray_vec.push_back(image_in.ptr<uchar>(j, i)[0]);
+
+			sort(gray_vec.begin(), gray_vec.end());
+			const uchar gray = gray_vec[gray_vec.size() * 0.8];
+
+			vector<int>* gray_collection = value_store.push_int("gray_collection", gray);
+			if (gray_collection->size() == 10)
+			{
+				sort(gray_collection->begin(), gray_collection->end());
+				const uchar gray_collection_median = (*gray_collection)[gray_collection->size() / 2];
+				gray_threshold = gray_collection_median + 10;
+				diff_threshold = gray_threshold;
+			}
+		}
+		else
+			return true;
+
+		return false;
+	}
+	
 	value_store.set_bool("both_hands_are_moving", false);
 	value_store.set_bool("left_hand_is_moving", false);
 	value_store.set_bool("right_hand_is_moving", false);
@@ -217,62 +243,29 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				{					
 					value_store.set_bool("image_bottom_sides_filled", true);
 
-					int x_separator_motion_left_median_const = x_separator_motion_left_median;
-					int x_separator_motion_right_median_const = x_separator_motion_right_median;
+					// int x_separator_motion_left_median_const = x_separator_motion_left_median;
+					// int x_separator_motion_right_median_const = x_separator_motion_right_median;
 
 					for (int i = 0; i < WIDTH_SMALL; ++i)
 						for (int j = y_separator_motion_down_median; j < HEIGHT_SMALL; ++j)
 							fill_image_background_static(i, j, image_in);
 
-					for (int i = 0; i <= x_separator_motion_left_median_const; ++i)
+					/*for (int i = 0; i <= x_separator_motion_left_median_const; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							fill_image_background_static(i, j, image_in);
 
 					for (int i = x_separator_motion_right_median_const; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							fill_image_background_static(i, j, image_in);	
+							fill_image_background_static(i, j, image_in);*/
 				}
 
 				Mat image_in_thresholded_dilated;
-
-				if (large_dilation == true)
-				{
-					dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 20);
-					dilated0 = true;
-				}
-				else
-					dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 3);
+				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 5);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
 						if (image_in_thresholded_dilated.ptr<uchar>(j, i)[0] == 0)
 							fill_image_background_static(i, j, image_in);
-
-				Mat image_foreground_dilated;
-
-				if (large_dilation == true)
-				{
-					dilate(image_foreground, image_foreground_dilated, Mat(), Point(-1, -1), 20);
-					dilated1 = true;
-				}
-				else
-					dilate(image_foreground, image_foreground_dilated, Mat(), Point(-1, -1), 3);
-
-				bool fill_image_foreground_dilated = false;
-				for (int i = 0; i < WIDTH_SMALL; ++i)
-					for (int j = 0; j < HEIGHT_SMALL; ++j)
-						if (image_foreground_dilated.ptr<uchar>(j, i)[0] > 0)
-						{
-							fill_image_foreground_dilated = true;
-							i = WIDTH_SMALL;
-							break;
-						}
-
-				if (fill_image_foreground_dilated)
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_foreground_dilated.ptr<uchar>(j, i)[0] == 0)
-								fill_image_background_static(i, j, image_background);
 
 				uchar static_diff_max = 0;
 
@@ -289,7 +282,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				static float diff_threshold_stereo;
 				if (name == motion_processor_primary_name)
 				{
-					diff_threshold = static_diff_max * 0.3;
+					diff_threshold = static_diff_max * 0.2;
 					low_pass_filter->compute(diff_threshold, 0.1, "diff_threshold");
 
 					diff_threshold_stereo = diff_threshold;
@@ -297,38 +290,13 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				else
 					diff_threshold = diff_threshold_stereo;
 
-				vector<int> hit_x_min_vec;
-				vector<int> hit_x_max_vec;
-
-				for (int j = 0; j < HEIGHT_SMALL; ++j)
-				{
-					int hit_x_min = 9999;
-					int hit_x_max = 0;
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						if (image_foreground.ptr<uchar>(j, i)[0] == 254)
-						{
-							if (i < hit_x_min)
-								hit_x_min = i;
-							if (i > hit_x_max)
-								hit_x_max = i;
-						}
-					hit_x_min_vec.push_back(hit_x_min);
-					hit_x_max_vec.push_back(hit_x_max);
-				}
-
-				sort(hit_x_min_vec.begin(), hit_x_min_vec.end());
-				sort(hit_x_max_vec.begin(), hit_x_max_vec.end());
-
-				int hit_x_min_final = hit_x_min_vec[hit_x_min_vec.size() * 0.1];
-				int hit_x_max_final = hit_x_max_vec[hit_x_max_vec.size() * 0.9];
-
 				//triangle fill
 				Point pt_center = Point(x_separator_middle_median, y_separator_motion_up_median);
 				if (pt_center.y >= 5)
 				{
 					Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
-					line(image_flood_fill, pt_center, Point(hit_x_min_final, 0), Scalar(254), 1);
-					line(image_flood_fill, pt_center, Point(hit_x_max_final, 0), Scalar(254), 1);
+					line(image_flood_fill, pt_center, Point(x_separator_motion_left_median, 0), Scalar(254), 1);
+					line(image_flood_fill, pt_center, Point(x_separator_motion_right_median, 0), Scalar(254), 1);
 					floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
 
 					const int j_max = image_flood_fill.rows;
@@ -366,17 +334,13 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 		value_store.set_mat("image_background", image_in);
 	}
-				
+	
 	value_store.set_int("current_frame", value_store.get_int("current_frame") + 1);
 
 	if (value_store.get_bool("image_background_set") == false)
 		value_store.set_mat("image_background", image_in);
 
 	value_store.set_bool("image_background_set", true);
-
-	if (dilated0 && dilated1)
-		large_dilation = false;
-
 	return value_store.get_bool("result");
 }
 

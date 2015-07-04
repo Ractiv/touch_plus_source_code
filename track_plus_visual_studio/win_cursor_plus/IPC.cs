@@ -47,6 +47,8 @@ namespace win_cursor_plus
                 Console.WriteLine("bound to UDP port " + port);
                 return 1;
             });
+
+            Update();
         }
 
         public void Update()
@@ -58,19 +60,29 @@ namespace win_cursor_plus
 
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
             foreach (string fileNameCurrent in fileNameVec)
-                if (fileNameCurrent.Length > selfName.Length)
+            {
+                string fileNameEveryone = "";
+                if (fileNameCurrent.Length >= 8)
+                    fileNameEveryone = fileNameCurrent.Substring(0, 8);
+
+                if (fileNameCurrent.Length > selfName.Length || fileNameEveryone == "everyone")
                 {
                     if (IPC.FileNameProcessedMap.ContainsKey(fileNameCurrent) && IPC.FileNameProcessedMap[fileNameCurrent] == true)
                         continue;
                     else
                         IPC.FileNameProcessedMap[fileNameCurrent] = true;
 
-                    string fileName = fileNameCurrent.Substring(0, selfName.Length);
-                    string fileNameID = fileNameCurrent.Substring(selfName.Length, fileNameCurrent.Length - selfName.Length);
-
-                    if (fileName == selfName)
+                    string fileName = "";
+                    string fileNameID = "";
+                    if (fileNameEveryone != "everyone")
                     {
-                        Thread.Sleep(10);
+                        fileName = fileNameCurrent.Substring(0, selfName.Length);
+                        fileNameID = fileNameCurrent.Substring(selfName.Length, fileNameCurrent.Length - selfName.Length);
+                    }
+
+                    if (fileName == selfName || fileNameEveryone == "everyone")
+                    {
+                        Thread.Sleep(20);
 
                         List<string> lines = FileSystem.ReadTextFile(Globals.IpcPath + "\\" + fileNameCurrent);
                         // FileSystem.DeleteFile(Globals.IpcPath + "\\" + fileNameCurrent);
@@ -94,6 +106,7 @@ namespace win_cursor_plus
                         }
                     }
                 }
+            }
 
             IPC.Updated = true;
         }
