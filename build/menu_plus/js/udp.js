@@ -18,6 +18,9 @@
 
 var UDP = function() { };
 
+UDP.prototype.port = 3333;
+UDP.prototype.address = "127.0.0.1";
+UDP.prototype.socket = null;
 UDP.prototype.callbackSet = false;
 UDP.prototype.udpCallback = null;
 
@@ -26,16 +29,27 @@ UDP.prototype.Assign = function()
 	var self = this;
 
 	var dgram = require("dgram");
-	var server = dgram.createSocket("udp4");
+	self.socket = dgram.createSocket("udp4");
 
-	server.on("message", function (message, remote)
+	self.socket.on("message", function (message, remote)
 	{
 		self.dataReceived(message);
 	});
 
-	var port = 3333;
-	server.bind(port, "127.0.0.1");
-	return port;
+	self.port = 3333;
+	self.socket.bind(self.port, self.address);
+
+	self.socket.on("error", function(err)
+	{
+	  	console.log("Socket error: " + err.message);
+
+	}).on("listening", function()
+	{
+	  	console.log("Successfully bound to socket!");
+		// self.socket.setBroadcast(true);
+	});
+
+	return self.port;
 };
 
 UDP.prototype.dataReceived = function(message)
@@ -52,4 +66,12 @@ UDP.prototype.SetUDPCallback = function(udpCallbackIn)
 
 	self.udpCallback = udpCallbackIn;
 	self.callbackSet = true;
+}
+
+UDP.prototype.SendMessage = function(message)
+{
+	var self = this;
+
+	var buffer = new Buffer(message);
+	self.socket.send(buffer, 0, buffer.length, self.port, self.address);
 }
