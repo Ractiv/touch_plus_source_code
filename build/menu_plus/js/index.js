@@ -99,6 +99,7 @@
   menu.append(new gui.MenuItem({ type: "normal", label: "Exit", click: function()
   {
     ipc.SendMessage("everyone", "exit", "");
+    process.exit(0);
   }}));
 
   tray.menu = menu;

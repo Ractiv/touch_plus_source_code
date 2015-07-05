@@ -216,6 +216,22 @@ void compute_max_image(Mat& image_in, Mat& image_out)
 										    max(image_in.ptr<uchar>(j, i)[1], image_in.ptr<uchar>(j, i)[2]));
 }
 
+void compute_image_active_light_source(Mat& image_regular, Mat& image_channel_diff, Mat& image_out)
+{
+	image_out = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = 0; j < HEIGHT_SMALL; ++j)
+		{
+			const uchar gray0 = (image_regular.ptr<uchar>(j, i)[0] +
+								 image_regular.ptr<uchar>(j, i)[1] +
+								 image_regular.ptr<uchar>(j, i)[2]) / 3;
+
+			const uchar gray1 = image_channel_diff.ptr<uchar>(j, i)[0];
+			const int gray_subtraction = abs(gray0 - gray1);
+			image_out.ptr<uchar>(j, i)[0] = gray_subtraction;
+		}
+}
+
 void print_mat_type(Mat& image_in)
 {
 	int type = image_in.type();

@@ -29,6 +29,8 @@ IPC* ipc_ptr_global = &ipc;
 
 bool block_guardian = false;
 
+UDP udp;
+
 void guardian_thread_function()
 {
 	while (true)

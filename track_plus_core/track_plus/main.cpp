@@ -460,8 +460,18 @@ void compute()
 	else if (mode == "tool")
 	{
 		enable_imshow = true;
-		imshow("image_small0", image_small0);
-		imshow("image_preprocessed0", image_preprocessed0);
+		// imshow("image_small0", image_small0);
+		// imshow("image_preprocessed0", image_preprocessed0);
+		Mat image_active_light_source0;
+		Mat image_active_light_source1;
+		compute_image_active_light_source(image_small0, image_preprocessed0, image_active_light_source0);
+		compute_image_active_light_source(image_small1, image_preprocessed1, image_active_light_source1);
+
+		GaussianBlur(image_active_light_source0, image_active_light_source0, Size(9, 9), 0, 0);
+		GaussianBlur(image_active_light_source1, image_active_light_source1, Size(9, 9), 0, 0);
+
+		imshow("image_led0", image_active_light_source0);
+		imshow("image_led1", image_active_light_source1);
 	}
 
 	++frame_num;
