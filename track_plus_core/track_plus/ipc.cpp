@@ -131,29 +131,58 @@ void IPC::map_function(const string message_head, function<void (const string me
 	command_map[message_head] = callback;
 }
 
-void IPC::open_udp_channel(const string recipient)
+void IPC::open_udp_channel(const string recipient, const int port_num)
 {
 	udp_map[recipient] = &(udp_pool[udp_pool_index]);
 	++udp_pool_index;
-
-	int port_old = 0;
-	int port_new = 0;
-	int* port_new_ptr = &port_new;
-
 	UDP* udp_ptr = udp_map[recipient];
-	get_response(recipient, "open udp channel", "", [udp_ptr, port_new_ptr](const string message_body)
+
+	bool file_found = false;
+
+	vector<string> file_name_vec = list_files_in_directory(ipc_path);
+	for (string file_name_current : file_name_vec)
+		if (file_name_current == "udp_port")
+			file_found = true;
+
+
+	if (!file_found)
 	{
-		const int port = atoi(message_body.c_str());
+		if (port_num == -1)
+		{
+			int port_old = 0;
+			int port_new = 0;
+
+			int* port_new_ptr = &port_new;
+			get_response(recipient, "open udp channel", "", [udp_ptr, port_new_ptr](const string message_body)
+			{
+				const int port = atoi(message_body.c_str());
+				udp_ptr->set_port(port);
+				*port_new_ptr = port;
+
+				COUT << "udp port is " << port << endl;
+			});
+
+			while (port_old == port_new)
+			{
+				Sleep(20);
+				update();
+			}
+		}
+		else
+		{
+			send_message(recipient, "open udp channel", to_string(port_num));
+			const int port = port_num;
+			udp_ptr->set_port(port);
+
+			COUT << "udp port is " << port << endl;
+		}
+	}
+	else
+	{
+		int port = atoi(read_text_file(ipc_path + "\\udp_port")[0].c_str());
 		udp_ptr->set_port(port);
 
 		COUT << "udp port is " << port << endl;
-		*port_new_ptr = port;
-	});
-
-	while (port_old == port_new)
-	{
-		Sleep(20);
-		update();
 	}
 }
 

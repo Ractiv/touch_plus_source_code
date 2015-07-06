@@ -46,9 +46,11 @@ public:
 	IPC(const string self_name_in);
 	void update();
 	void send_message(const string recipient, const string message_head, const string message_body);
+	
 	void get_response(const string recipient, const string message_head, const string message_body, 
 					  function<void (const string message_body)> callback);
+
 	void map_function(const string message_head, function<void (const string message_body)> callback);
-	void open_udp_channel(const string recipient);
+	void open_udp_channel(const string recipient, const int port_num = -1);
 	void send_udp_message(const string recipient, const string message);
 };

@@ -24,19 +24,43 @@ UDP.prototype.socket = null;
 UDP.prototype.callbackSet = false;
 UDP.prototype.udpCallback = null;
 
-UDP.prototype.Assign = function()
+UDP.prototype.Assign = function(portIn)
 {
 	var self = this;
+
+	portIn = typeof portIn !== "undefined" ? portIn : -1;
 
 	var dgram = require("dgram");
 	self.socket = dgram.createSocket("udp4");
 
-	self.socket.on("message", function (message, remote)
-	{
-		self.dataReceived(message);
-	});
+	var fileFound = false;
+	var fileName = "";
 
-	self.port = 3333;
+	var fileNameVec = ListFilesInDirectory(IpcPath);
+	for (var fileNameCurrentIndex in fileNameVec)
+    {
+    	var fileNameCurrent = fileNameVec[fileNameCurrentIndex];
+    	if (fileNameCurrent == "udp_port")
+    	{
+    		fileFound = true;
+    		fileName = fileNameCurrent;
+    		break;
+    	}
+    }
+
+    if (fileFound)
+    {
+    	var udpPortStr = ReadTextFile(IpcPath + "\\udp_port")[0];
+    	self.port = parseInt(udpPortStr);
+    }
+    else
+    {
+    	if (portIn == -1)
+			self.port = 3333;
+		else
+			self.port = portIn;
+    }
+
 	self.socket.bind(self.port, self.address);
 
 	self.socket.on("error", function(err)
@@ -47,6 +71,11 @@ UDP.prototype.Assign = function()
 	{
 	  	console.log("Successfully bound to socket!");
 		// self.socket.setBroadcast(true);
+	});
+
+	self.socket.on("message", function (message, remote)
+	{
+		self.dataReceived(message);
 	});
 
 	return self.port;

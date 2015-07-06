@@ -22,31 +22,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 {
 	if (mode == "tool")
 	{
-		if (gray_threshold == 255)
-		{
-			vector<uchar> gray_vec;
-
-			const int i_min = WIDTH_SMALL * 0.4;
-			const int i_max = WIDTH_SMALL * 0.6;
-			for (int j = 0; j < HEIGHT_SMALL; ++j)
-				for (int i = i_min; i <= i_max; ++i)
-					gray_vec.push_back(image_in.ptr<uchar>(j, i)[0]);
-
-			sort(gray_vec.begin(), gray_vec.end());
-			const uchar gray = gray_vec[gray_vec.size() * 0.8];
-
-			vector<int>* gray_collection = value_store.push_int("gray_collection", gray);
-			if (gray_collection->size() == 10)
-			{
-				sort(gray_collection->begin(), gray_collection->end());
-				const uchar gray_collection_median = (*gray_collection)[gray_collection->size() / 2];
-				gray_threshold = gray_collection_median + 10;
-				diff_threshold = gray_threshold;
-			}
-		}
-		else
-			return true;
-
 		return false;
 	}
 
@@ -60,7 +35,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	if (value_store.get_bool("image_background_set") &&
-		value_store.get_int("current_frame") >= value_store.get_int("target_frame", 5))
+		value_store.get_int("current_frame") >= value_store.get_int("target_frame", 2))
 	{
 		value_store.set_int("current_frame", 0);
 
@@ -325,8 +300,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 					imshow("image_background_static" + name, image_background_static);
 					// imshow("image_foreground_motion_processor_new" + name, image_foreground);
 				}
-
-				imshow("image_background_static" + name, image_background_static);
 			}
 		}
 		else

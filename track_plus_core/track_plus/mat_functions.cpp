@@ -189,7 +189,7 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 	mat_functions_low_pass_filter.compute(gray_min, 0.1, "gray_min" + name);
 	mat_functions_low_pass_filter.compute(gray_max, 0.1, "gray_max" + name);
 
-	if (normalize && mode == "surface")
+	if (normalize /*&& mode == "surface"*/)
 		for (int i = 0; i < image_width_const; ++i)
 			for (int j = 0; j < image_height_const; ++j)
 			{
@@ -216,7 +216,7 @@ void compute_max_image(Mat& image_in, Mat& image_out)
 										    max(image_in.ptr<uchar>(j, i)[1], image_in.ptr<uchar>(j, i)[2]));
 }
 
-void compute_image_active_light_source(Mat& image_regular, Mat& image_channel_diff, Mat& image_out)
+void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out)
 {
 	image_out = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	for (int i = 0; i < WIDTH_SMALL; ++i)

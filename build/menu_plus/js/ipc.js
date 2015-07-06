@@ -24,8 +24,19 @@ var IPC = function(selfNameIn)
 
 	self.MapFunction("open udp channel", function(messageBody)
 	{
-		var port = self.udp.Assign();
-		self.SendMessage("track_plus", "open udp channel", port.toString());
+		if (messageBody == "")
+		{
+			var port = self.udp.Assign();
+			self.SendMessage("track_plus", "open udp channel", port.toString());
+			console.log("bound to UDP port" + port);
+		}
+		else
+		{
+			var port = parseInt(messageBody);
+			self.udp.Assign(port);
+			console.log("bound to UDP port " + port);
+		}
+
 	});
 	
 	self.Update();

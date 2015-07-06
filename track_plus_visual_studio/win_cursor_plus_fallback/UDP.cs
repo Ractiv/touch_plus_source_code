@@ -36,20 +36,18 @@ namespace win_cursor_plus_fallback
         private bool callbackSet = false;
         private Func<string, int> udpCallback;
 
-        public int Assign()
+        public int Assign(int portIn = -1)
         {
             //Setup the socket and message buffer
             udpSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
             bool fileFound = false;
-            string fileName = "";
 
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
             foreach (string fileNameCurrent in fileNameVec)
                 if (fileNameCurrent == "udp_port")
                 {
                     fileFound = true;
-                    fileName = "fileNameCurrent";
                     break;
                 }
 
@@ -57,12 +55,17 @@ namespace win_cursor_plus_fallback
 
             if (fileFound)
             {
-                string udpPortStr = FileSystem.ReadTextFile(Globals.IpcPath + "\\" + "udp_port")[0];
+                string udpPortStr = FileSystem.ReadTextFile(Globals.IpcPath + "\\udp_port")[0];
                 int.TryParse(udpPortStr, out portCurrent);
                 endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portCurrent);
             }
             else
-                endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 0);
+            {
+                if (portIn == -1)
+                    endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 0);
+                else
+                    endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portIn);
+            }
 
             udpSock.Bind(endPoint);
             int.TryParse(udpSock.LocalEndPoint.ToString().Split(':')[1], out portCurrent);

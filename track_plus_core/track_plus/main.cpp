@@ -258,7 +258,7 @@ void on_first_frame()
 	}
 	else
 	{
-		// ipc->open_udp_channel("unity_demo");
+		ipc->open_udp_channel("unity_demo", 3333);
 		ipc->send_message("menu_plus", "hide window", "");
 	}
 
@@ -475,18 +475,27 @@ void compute()
 	else if (mode == "tool")
 	{
 		enable_imshow = true;
+		
 		// imshow("image_small0", image_small0);
 		// imshow("image_preprocessed0", image_preprocessed0);
-		Mat image_active_light_source0;
-		Mat image_active_light_source1;
-		compute_image_active_light_source(image_small0, image_preprocessed0, image_active_light_source0);
-		compute_image_active_light_source(image_small1, image_preprocessed1, image_active_light_source1);
 
-		GaussianBlur(image_active_light_source0, image_active_light_source0, Size(9, 9), 0, 0);
-		GaussianBlur(image_active_light_source1, image_active_light_source1, Size(9, 9), 0, 0);
+		Mat image_active_light0;
+		Mat image_active_light1;
+		compute_active_light_image(image_small0, image_preprocessed0, image_active_light0);
+		compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
 
-		imshow("image_led0", image_active_light_source0);
-		imshow("image_led1", image_active_light_source1);
+		imshow("image_active_light0", image_active_light0);
+		imshow("image_active_light1", image_active_light1);
+
+		Mat image_thresholded;
+		threshold(image_active_light0, image_thresholded, 150, 254, THRESH_BINARY);
+
+		BlobDetectorNew* blob_detector = value_store.get_blob_detector("blob_detector");
+		blob_detector->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+		imshow("image_thresholded", image_thresholded);
+
+		// ipc->send_udp_message("unity_demo", "hello_world");
 	}
 
 	++frame_num;
@@ -616,6 +625,8 @@ void guardian_thread_function()
 			wait_for_device_bool = true;
 
 			COUT << "restarting" << endl;
+
+			break;
 		}
 
 		if (increment_wait_count)

@@ -42,9 +42,19 @@ namespace win_cursor_plus
 
             MapFunction("open udp channel", delegate(string messageBody)
             {
-                int port = udp.Assign();
-                SendMessage("track_plus", "open udp channel", port.ToString());
-                Console.WriteLine("bound to UDP port " + port);
+                if (messageBody == "")
+                {
+                    int port = udp.Assign();
+                    SendMessage("track_plus", "open udp channel", port.ToString());
+                    Console.WriteLine("bound to UDP port " + port);
+                }
+                else
+                {
+                    int port;
+                    int.TryParse(messageBody, out port);
+                    udp.Assign(port);
+                    Console.WriteLine("bound to UDP port " + port);
+                }
                 return 1;
             });
 
