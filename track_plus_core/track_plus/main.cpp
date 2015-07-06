@@ -34,6 +34,7 @@
 #include "hand_resolver.h"
 #include "pointer_mapper.h"
 #include "value_store.h"
+#include "c_tracker.h"
 
 #include <VersionHelpers.h>
 
@@ -54,6 +55,18 @@ struct Settings
 };
 
 //----------------------------------------instances----------------------------------------
+
+Scalar Colors[] = { Scalar(255, 0, 0),
+					Scalar(0, 255, 0),
+					Scalar(0, 0, 255),
+					Scalar(255, 255, 0),
+					Scalar(0, 255, 255),
+					Scalar(255, 0, 255),
+					Scalar(255, 127, 255),
+					Scalar(127, 0, 255),
+					Scalar(127, 0, 127) };
+
+CTracker tracker(0.2, 0.5, 60.0, 10, 10);
 
 Settings settings;
 
@@ -493,7 +506,29 @@ void compute()
 		BlobDetectorNew* blob_detector = value_store.get_blob_detector("blob_detector");
 		blob_detector->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-		imshow("image_thresholded", image_thresholded);
+		Mat image_visualization;
+		cvtColor(image_thresholded, image_visualization, CV_GRAY2BGR);
+
+		vector<Point2f> points_to_track;
+		for (BlobNew& blob : *(blob_detector->blobs))
+			points_to_track.push_back(Point2f(blob.x, blob.y));
+
+		if(points_to_track.size() > 0)
+		{
+			tracker.Update(points_to_track);
+
+			for (int i = 0; i < tracker.tracks.size(); ++i)
+				if (tracker.tracks[i]->trace.size() > 1)
+					for(int j = 0; j < tracker.tracks[i]->trace.size() - 1; ++j)
+						line(image_visualization,
+							 tracker.tracks[i]->trace[j],
+						  	 tracker.tracks[i]->trace[j+1],
+						 	 Colors[tracker.tracks[i]->track_id % 9],
+							 2,
+							 CV_AA);
+		}
+
+		imshow("image_visualization", image_visualization);
 
 		// ipc->send_udp_message("unity_demo", "hello_world");
 	}
