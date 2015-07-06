@@ -149,7 +149,7 @@
     <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\active_light_source_processor.h">
+    <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\tool_tracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -283,7 +283,7 @@
     <ClCompile Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\active_light_source_processor.cpp">
+    <ClCompile Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\tool_tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
