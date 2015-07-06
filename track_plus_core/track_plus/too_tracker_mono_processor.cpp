@@ -1,6 +1,6 @@
-#include "tool_tracker.h"
+#include "tool_tracker_mono_processor.h"
 
-void ToolTracker::compute(Mat& image_in)
+void ToolTrackerMonoProcessor::compute(Mat& image_in, const string name)
 {
 	static Scalar Colors[] = { Scalar(255, 0, 0),
 		                       Scalar(0, 255, 0),
@@ -52,7 +52,5 @@ void ToolTracker::compute(Mat& image_in)
 		}
 	}
 
-	COUT << track_id_max << endl;
-
-	imshow("image_visualization", image_visualization);	
+	imshow("image_visualization" + name, image_visualization);	
 }
