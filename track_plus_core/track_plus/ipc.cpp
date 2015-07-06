@@ -133,11 +133,8 @@ void IPC::map_function(const string message_head, function<void (const string me
 
 void IPC::open_udp_channel(const string recipient)
 {
-	if (udp_map.count(recipient) == 0)
-	{
-		udp_map[recipient] = &(udp_pool[udp_pool_index]);
-		++udp_pool_index;
-	}
+	udp_map[recipient] = &(udp_pool[udp_pool_index]);
+	++udp_pool_index;
 
 	int port_old = 0;
 	int port_new = 0;

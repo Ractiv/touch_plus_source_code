@@ -20,17 +20,6 @@
 
 IPC::IPC(const string self_name_in)
 {
-	if (!directory_exists(ipc_path))
-	{
-		create_directory(ipc_path);
-		COUT << "ipc directory created" << endl;
-	}
-	else
-	{
-		delete_all_files(ipc_path);
-		COUT << "ipc directory loaded" << endl;
-	}
-
 	self_name = self_name_in;
 	update();
 }
@@ -71,7 +60,7 @@ void IPC::update()
 			if (file_name == self_name || file_name_everyone == "everyone")
 			{
 				Sleep(20);
-				
+
 				vector<string> lines = read_text_file(ipc_path + "\\" + file_name_current);
 				// delete_file(ipc_path + "\\" + file_name_current);
 				vector<string> message_vec = split_string(lines[0], "!");
@@ -121,7 +110,7 @@ void IPC::send_message(const string recipient, const string message_head, const 
 
 	const string path_old = ipc_path + "\\s" + self_name + to_string(sent_count);
 	const string path_new = ipc_path + "\\" + recipient + to_string(file_count);
-	
+
 	write_string_to_file(path_old, message_head + "!" + message_body);
 	rename_file(path_old, path_new);
 
@@ -144,11 +133,8 @@ void IPC::map_function(const string message_head, function<void (const string me
 
 void IPC::open_udp_channel(const string recipient)
 {
-	if (udp_map.count(recipient) == 0)
-	{
-		udp_map[recipient] = &(udp_pool[udp_pool_index]);
-		++udp_pool_index;
-	}
+	udp_map[recipient] = &(udp_pool[udp_pool_index]);
+	++udp_pool_index;
 
 	int port_old = 0;
 	int port_new = 0;

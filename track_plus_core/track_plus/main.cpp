@@ -193,8 +193,27 @@ void load_settings()
 
 void on_first_frame()
 {
+	bool serial_verfied = false;
 	serial_number = camera->getSerialNumber();
-	if (serial_number.size() != 10)
+
+	if (serial_number.size() == 10)
+	{
+		string char_string = "";
+		int char_count = 0;
+		for (char& c : serial_number)
+		{
+			char_string += c;
+
+			++char_count;
+			if (char_count == 4)
+				break;
+		}
+
+		if (char_string == "0101")
+			serial_verfied = true;
+	}
+
+	if (!serial_verfied)
 	{
 		hide_cursors();
 
@@ -203,6 +222,7 @@ void on_first_frame()
 
 		wait_for_device();
 	}
+
 	data_path_current_module = data_path + "\\" + serial_number;
 
 	int x_accel;
@@ -225,17 +245,12 @@ void on_first_frame()
 
 	if (mode == "surface")
 	{
-		if (process_running("win_cursor_plus.exe") == 0)
-		{
-			COUT << "win_cursor_plus created" << endl;
+		child_module_name = "win_cursor_plus";
 
-			if (IsWindows8OrGreater())
-				create_process(executable_path + "\\win_cursor_plus\\win_cursor_plus.exe", "win_cursor_plus.exe", true, true);
-			else
-				create_process(executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe", "win_cursor_plus.exe", true, true);
-
-			child_module_name = "win_cursor_plus";
-		}
+		if (IsWindows8OrGreater())
+			child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
+		else
+			child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
 
 		ipc->open_udp_channel("win_cursor_plus");
 		ipc->send_message("menu_plus", "show window", "");	
@@ -595,7 +610,7 @@ void guardian_thread_function()
 {
 	while (true)
 	{
-		if (wait_count >= 1000)
+		if (wait_count >= 2)
 		{
 			hide_cursors();
 			wait_for_device_bool = true;
@@ -606,7 +621,10 @@ void guardian_thread_function()
 		if (increment_wait_count)
 			++wait_count;
 
-		Sleep(1);
+		if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
+			create_process(child_module_path, child_module_name + ".exe", true, true);
+
+		Sleep(500);
 	}
 }
 

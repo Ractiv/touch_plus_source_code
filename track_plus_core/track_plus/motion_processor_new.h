@@ -30,6 +30,8 @@ class MotionProcessorNew
 public:
 	int noise_size = 0;
 
+	int vector_completion_size = 5;
+
 	int y_separator_motion_down_median = -1;
 	int y_separator_motion_up_median = -1;
 	int x_separator_middle = -1;

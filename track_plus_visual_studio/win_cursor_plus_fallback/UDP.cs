@@ -40,17 +40,42 @@ namespace win_cursor_plus_fallback
         {
             //Setup the socket and message buffer
             udpSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 0);
+
+            bool fileFound = false;
+            string fileName = "";
+
+            List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
+            foreach (string fileNameCurrent in fileNameVec)
+                if (fileNameCurrent == "udp_port")
+                {
+                    fileFound = true;
+                    fileName = "fileNameCurrent";
+                    break;
+                }
+
+            int portCurrent;
+
+            if (fileFound)
+            {
+                string udpPortStr = FileSystem.ReadTextFile(Globals.IpcPath + "\\" + "udp_port")[0];
+                int.TryParse(udpPortStr, out portCurrent);
+                endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), portCurrent);
+            }
+            else
+                endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 0);
+
             udpSock.Bind(endPoint);
+            int.TryParse(udpSock.LocalEndPoint.ToString().Split(':')[1], out portCurrent);
+            FileSystem.WriteStringToFile(Globals.IpcPath + "\\" + "udp_port", portCurrent.ToString());
+
             buffer = new byte[1024];
-         
+
             //Start listening for a new message.
             udpSock.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint, DoReceiveFrom, udpSock);
 
-            int portCurrent = int.Parse(udpSock.LocalEndPoint.ToString().Split(':')[1]);
             return portCurrent;
         }
-         
+
         private void DoReceiveFrom(IAsyncResult iar)
         {
             try
@@ -60,7 +85,7 @@ namespace win_cursor_plus_fallback
                 int msgLen = recvSock.EndReceiveFrom(iar, ref endPoint);
                 char[] localMsg = new char[msgLen];
                 Array.Copy(buffer, localMsg, msgLen);
-         
+
                 //Start listening for a new message.
                 udpSock.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref endPoint, DoReceiveFrom, udpSock);
 
