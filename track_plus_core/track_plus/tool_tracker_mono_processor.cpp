@@ -12,17 +12,11 @@ void ToolTrackerMonoProcessor::compute(Mat& image_in, const string name)
 							   Scalar(127, 0, 255),
 							   Scalar(127, 0, 127) };
 
-	static CTracker tracker = CTracker(0.2, 0.5, 9999, 0, 10);
-
-	static ValueStore value_store;
-
 	Mat image_thresholded;
 	threshold(image_in, image_thresholded, 150, 254, THRESH_BINARY);
 
 	BlobDetectorNew* blob_detector = value_store.get_blob_detector("blob_detector");
 	blob_detector->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-	static int track_id_max = -1;
 
 	Mat image_visualization;
 	cvtColor(image_thresholded, image_visualization, CV_GRAY2BGR);
