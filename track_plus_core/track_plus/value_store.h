@@ -93,4 +93,5 @@ public:
 	LowPassFilter* get_low_pass_filter(string name);
 
 	bool has_point2f(string name);
+	bool has_mat(string name);
 };

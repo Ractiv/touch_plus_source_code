@@ -308,3 +308,8 @@ bool ValueStore::has_point2f(string name)
 {
 	return float_map.count(name + "x") > 0;
 }
+
+bool ValueStore::has_mat(string name)
+{
+	return mat_map.count(name) > 0;
+}

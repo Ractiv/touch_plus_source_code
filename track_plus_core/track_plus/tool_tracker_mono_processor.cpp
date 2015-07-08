@@ -42,7 +42,11 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 	BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
 	blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-	if (blob_detector_image_subtraction->blobs->size() > 50 || blob_detector_image_subtraction->blobs->size() == 0)
+	const int width_result = blob_detector_image_subtraction->x_max_result - blob_detector_image_subtraction->x_min_result;
+	const int height_result = blob_detector_image_subtraction->y_max_result - blob_detector_image_subtraction->y_min_result;
+	const int area_result = width_result * height_result;
+
+	if (blob_detector_image_subtraction->blobs->size() > 50 || blob_detector_image_subtraction->blobs->size() == 0 || area_result > 8000)
 		return;
 
 	vector<int> x_vec;
@@ -94,9 +98,26 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 	sort(dist_vec.begin(), dist_vec.end());
 	float radius = dist_vec[dist_vec.size() * 0.8] * 1.5;
 
+	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
+	low_pass_filter->compute(radius, 0.5, "radius");
+
+	Mat image_active_light_subtraction = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = 0; j < HEIGHT_SMALL; ++j)
+			if (image_background_static.ptr<uchar>(j, i)[0] == 255)
+				image_active_light_subtraction.ptr<uchar>(j, i)[0] = image_active_light_in.ptr<uchar>(j, i)[0];
+			else
+			{
+				int diff = image_active_light_in.ptr<uchar>(j, i)[0] - image_background_static.ptr<uchar>(j, i)[0];
+				if (diff < 0)
+					diff = 0;
+
+				image_active_light_subtraction.ptr<uchar>(j, i)[0] = diff;
+			}
+
 	Mat image_thresholded;
-	threshold(image_active_light_in, image_thresholded, 200, 254, THRESH_BINARY);
-	dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 2);
+	threshold(image_active_light_subtraction, image_thresholded, 200, 254, THRESH_BINARY);
+	dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 1);
 
 	BlobDetectorNew* blob_detector_image_thresholded = value_store.get_blob_detector("blob_detector_image_thresholded");
 	blob_detector_image_thresholded->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
@@ -107,6 +128,11 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 	Mat image_circle = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	circle(image_circle, pt_motion_center, radius, Scalar(254), 1);
 	floodFill(image_circle, pt_motion_center, Scalar(254));
+
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = 0; j < HEIGHT_SMALL; ++j)
+			if (image_circle.ptr<uchar>(j, i)[0] == 0)
+				fill_image_background_static(i, j, image_active_light_in);
 
 	BlobDetectorNew* blob_detector_image_circle = value_store.get_blob_detector("blob_detector_image_circle");
 	blob_detector_image_circle->compute_location(image_circle, 254, pt_motion_center.x, pt_motion_center.y, true);
@@ -361,4 +387,14 @@ ToolTrackerMonoFrame ToolTrackerMonoProcessor::get_cached_frame(const int past_f
 		index = cache_num + 1 + index;
 
 	return frame_vec[index];
+}
+
+inline void ToolTrackerMonoProcessor::fill_image_background_static(const int x, const int y, Mat& image_in)
+{
+	uchar* pix_ptr = &(image_background_static.ptr<uchar>(y, x)[0]);
+
+	if (*pix_ptr == 255)
+		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
+	else
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.25);
 }

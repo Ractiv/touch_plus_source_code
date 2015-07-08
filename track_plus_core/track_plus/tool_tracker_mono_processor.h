@@ -94,6 +94,8 @@ public:
 	CTracker tracker = CTracker(0.2, 0.5, 9999, 0, 10);
 	ValueStore value_store;
 
+	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
+
 	const int cache_num = 10;
 	const int scan_num = 2;
 	const int permutation_k = 6;
@@ -103,6 +105,8 @@ public:
 
 	void compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name);
 	ToolTrackerMonoFrame get_cached_frame(const int past_frame_num);
+	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
+
 
 private:
 	struct compare_blob_dist_to_pt
