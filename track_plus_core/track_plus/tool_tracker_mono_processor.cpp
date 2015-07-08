@@ -146,15 +146,9 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 				break;
 			}
 
-	vector<Point>* model = value_store.get_point_vec("model");
-
 	if (blob_vec.size() == 4)
 	{
-		model->clear();
-
 		sort(blob_vec.begin(), blob_vec.end(), compare_blob_angle(pt_motion_center));
-		for (BlobNew* blob : blob_vec)
-			model->push_back(Point(blob->x, blob->y));
 
 		BlobNew* blob_old = NULL;
 		for (BlobNew* blob_new : blob_vec)
@@ -165,116 +159,6 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 			blob_old = blob_new;
 		}
 		line(image_thresholded, Point(blob_vec[0]->x, blob_vec[0]->y), Point(blob_old->x, blob_old->y), Scalar(127), 2);
-	}
-	else if (model->size() == 4 && blob_vec.size() < 4)
-	{
-		/*vector<Point> pt_vec;
-		for (BlobNew* blob : blob_vec)
-			pt_vec.push_back(Point(blob->x, blob->y));
-
-		if (blob_detector_image_thresholded->blobs->size() > permutation_k)
-		{
-			vector<Point> circle_vec;
-			midpoint_circle(pt_motion_center.x, pt_motion_center.y, radius, circle_vec);
-
-			for (BlobNew& blob : (*(blob_detector_image_thresholded->blobs)))
-			{
-				float dist_min = 9999;
-				for (Point& pt : circle_vec)
-				{
-					float dist = get_distance(blob.x, blob.y, pt.x, pt.y);
-					if (dist < dist_min)
-						dist_min = dist;
-				}
-
-				blob.dist = dist_min;
-			}
-
-			blob_detector_image_thresholded->sort_blobs_by_dist();
-			for (BlobNew& blob : *blob_detector_image_thresholded->blobs)
-			{
-				bool found = false;
-				for (BlobNew* blob_compare : blob_vec)
-					if (&blob == blob_compare)
-					{
-						found = true;
-						break;
-					}
-
-				if (found)
-					continue;
-
-				pt_vec.push_back(Point(blob.x, blob.y));
-				if (pt_vec.size() == permutation_k)
-					break;
-			}
-		}
-		else
-			for (BlobNew& blob : *blob_detector_image_thresholded->blobs)
-			{
-				bool found = false;
-				for (BlobNew* blob_compare : blob_vec)
-					if (&blob == blob_compare)
-					{
-						found = true;
-						break;
-					}
-
-				if (found)
-					continue;
-
-				pt_vec.push_back(Point(blob.x, blob.y));
-				if (pt_vec.size() == permutation_k)
-					break;
-			}
-
-		Point pt0_dist_min;
-		Point pt1_dist_min;
-		Point pt2_dist_min;
-		Point pt3_dist_min;
-		float dist_min = 9999;
-
-		compute_permutations(permutation_k, 4);
-		for (vector<int> rows : permutations)
-		{
-			const int index0 = rows[0];
-			const int index1 = rows[1];
-			const int index2 = rows[2];
-			const int index3 = rows[3];
-
-			Point pt0 = pt_vec[index0];
-			Point pt1 = pt_vec[index1];
-			Point pt2 = pt_vec[index2];
-			Point pt3 = pt_vec[index3];
-
-			const int x_min = std::min(pt0.x, std::min(pt1.x, std::min(pt2.x, pt3.x)));
-			const int x_max = std::max(pt0.x, std::max(pt1.x, std::max(pt2.x, pt3.x)));
-			const int y_min = std::min(pt0.y, std::min(pt1.y, std::min(pt2.y, pt3.y)));
-			const int y_max = std::max(pt0.y, std::max(pt1.y, std::max(pt2.y, pt3.y)));
-
-			if (x_min < pt_motion_center.x && x_max > pt_motion_center.x && y_min < pt_motion_center.y && y_max > pt_motion_center.y)
-			{
-				const float dist0 = get_distance(pt0, (*model)[0]);
-				const float dist1 = get_distance(pt1, (*model)[1]);
-				const float dist2 = get_distance(pt2, (*model)[2]);
-				const float dist3 = get_distance(pt3, (*model)[3]);
-				const float dist_sum = dist0 + dist1 + dist2 + dist3;
-
-				if (dist_sum < dist_min)
-				{
-					dist_min = dist_sum;
-					pt0_dist_min = pt0;
-					pt1_dist_min = pt1;
-					pt2_dist_min = pt2;
-					pt3_dist_min = pt3;
-				}
-			}
-		}
-
-		line(image_thresholded, pt0_dist_min, pt1_dist_min, Scalar(127), 2);
-		line(image_thresholded, pt1_dist_min, pt2_dist_min, Scalar(127), 2);
-		line(image_thresholded, pt2_dist_min, pt3_dist_min, Scalar(127), 2);
-		line(image_thresholded, pt3_dist_min, pt0_dist_min, Scalar(127), 2);*/
 	}
 
 	circle(image_thresholded, pt_motion_center, radius, Scalar(127), 2);
