@@ -30,6 +30,8 @@ using namespace std;
 class CTrack
 {
 public:
+	int size_total = 1;
+	float distance_travelled = 1;
 	vector<Point2f> trace;
 	static size_t NextTrackID;
 	size_t track_id;

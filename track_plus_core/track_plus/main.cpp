@@ -479,8 +479,8 @@ void compute()
 	{
 		enable_imshow = true;
 		
-		// imshow("image_small0", image_small0);
-		// imshow("image_preprocessed0", image_preprocessed0);
+		imshow("image_small0", image_small0);
+		imshow("image_preprocessed0", image_preprocessed0);
 
 		Mat image_active_light0;
 		Mat image_active_light1;
@@ -488,10 +488,10 @@ void compute()
 		compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
 
 		tool_tracker_mono_processor0.compute(image_active_light0, "0");
-		tool_tracker_mono_processor1.compute(image_active_light1, "1");
+		// tool_tracker_mono_processor1.compute(image_active_light1, "1");
 
-		imshow("image_active_light0", image_active_light0);
-		imshow("image_active_light1", image_active_light1);
+		// imshow("image_active_light0", image_active_light0);
+		// imshow("image_active_light1", image_active_light1);
 
 		// ipc->send_udp_message("unity_demo", "hello_world");
 	}
