@@ -18,9 +18,135 @@
 
 #include "tool_tracker_mono_processor.h"
 
-void ToolTrackerMonoProcessor::compute(Mat& image_in, const string name)
+void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name)
 {
-	bool proceed = false;
+	Mat image_preprocessed_old = value_store.get_mat("image_preprocessed_old", true);
+	Mat image_subtraction = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+	int diff_max = 0;
+
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = 0; j < HEIGHT_SMALL; ++j)
+		{
+			int diff = abs(image_preprocessed_in.ptr<uchar>(j, i)[0] - image_preprocessed_old.ptr<uchar>(j, i)[0]);
+			if (diff > diff_max)
+				diff_max = diff;
+
+			image_subtraction.ptr<uchar>(j, i)[0] = diff;
+		}
+
+	value_store.set_mat("image_preprocessed_old", image_preprocessed_in);
+
+	threshold(image_subtraction, image_subtraction, diff_max * 0.25, 254, THRESH_BINARY);
+
+	BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
+	blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+	if (blob_detector_image_subtraction->blobs->size() > 50 || blob_detector_image_subtraction->blobs->size() == 0)
+		return;
+
+	vector<int> x_vec;
+	vector<int> y_vec;
+	for (BlobNew& blob : (*(blob_detector_image_subtraction->blobs)))
+		for (Point& pt : blob.data)
+		{
+			x_vec.push_back(pt.x);
+			y_vec.push_back(pt.y);
+		}
+
+	int x_mean = 0;
+	for (int& x : x_vec)
+		x_mean += x;
+
+	int y_mean = 0;
+	for (int& y : y_vec)
+		y_mean += y;
+
+	x_mean /= x_vec.size();
+	y_mean /= y_vec.size();
+
+	Point pt_motion_center = Point(x_mean, y_mean);
+
+	vector<float> dist_vec;
+	for (BlobNew& blob : (*(blob_detector_image_subtraction->blobs)))
+		for (Point& pt : blob.data)
+		{
+			float dist = get_distance(pt, pt_motion_center);
+			dist_vec.push_back(dist);
+		}
+
+	sort(dist_vec.begin(), dist_vec.end());
+	float radius = dist_vec[dist_vec.size() * 0.8];
+
+	Mat image_thresholded;
+	threshold(image_active_light_in, image_thresholded, 200, 254, THRESH_BINARY);
+	dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 1);
+
+	BlobDetectorNew* blob_detector_image_thresholded = value_store.get_blob_detector("blob_detector_image_thresholded");
+	blob_detector_image_thresholded->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+	if (blob_detector_image_thresholded->blobs->size() == 0)
+		return;
+
+	Mat image_circle = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	circle(image_circle, pt_motion_center, radius, Scalar(254), 1);
+	floodFill(image_circle, pt_motion_center, Scalar(254));
+
+	BlobDetectorNew* blob_detector_image_circle = value_store.get_blob_detector("blob_detector_image_circle");
+	blob_detector_image_circle->compute_location(image_circle, 254, pt_motion_center.x, pt_motion_center.y, true);
+
+	vector<BlobNew*> blob_vec;
+	for (BlobNew& blob : *blob_detector_image_thresholded->blobs)
+		for (Point& pt : blob_detector_image_circle->blob_max_size->data)
+			if (blob.image_atlas.ptr<uchar>(pt.y, pt.x)[0] == blob.atlas_id)
+			{
+				blob_vec.push_back(&blob);
+				break;
+			}
+
+	if (blob_vec.size() == 4)
+	{
+		sort(blob_vec.begin(), blob_vec.end(), compare_blob_angle(pt_motion_center));
+
+		BlobNew* blob_old = NULL;
+		for (BlobNew* blob_new : blob_vec)
+		{
+			if (blob_old != NULL)
+				line(image_thresholded, Point(blob_new->x, blob_new->y), Point(blob_old->x, blob_old->y), Scalar(127), 2);
+
+			blob_old = blob_new;
+		}
+		line(image_thresholded, Point(blob_vec[0]->x, blob_vec[0]->y), Point(blob_old->x, blob_old->y), Scalar(127), 2);
+	}
+
+/*	else if (blob_vec.size() < 4)
+	{
+		vector<Point> circle_vec;
+		midpoint_circle(pt_motion_center.x, pt_motion_center.y, radius, circle_vec);
+
+		for (BlobNew& blob : (*(blob_detector_image_thresholded->blobs)))
+		{
+			float dist_min = 9999;
+			for (Point& pt : circle_vec)
+			{
+				float dist = get_distance(blob.x, blob.y, pt.x, pt.y);
+				if (dist < dist_min)
+					dist_min = dist;
+			}
+
+			blob.dist = dist_min;
+		}
+
+		blob_detector_image_thresholded->sort_blobs_by_dist();
+
+		for (BlobNew&)
+	}*/
+
+	circle(image_thresholded, pt_motion_center, radius, Scalar(127), 2);
+	imshow("image_thresholded", image_thresholded);
+
+
+	/*bool proceed = false;
 	BlobDetectorNew* blob_detector = value_store.get_blob_detector("blob_detector");
 
 	{
@@ -77,7 +203,7 @@ void ToolTrackerMonoProcessor::compute(Mat& image_in, const string name)
 		proceed = true;
 		imshow("image_subtraction", image_subtraction);
 		value_store.set_mat("image_thresholded_old", image_thresholded);
-	}
+	}*/
 
 	/*if (proceed)
 	{

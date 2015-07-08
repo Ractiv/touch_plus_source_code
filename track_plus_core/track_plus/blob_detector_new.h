@@ -43,6 +43,7 @@ public:
 	void compute_all(Mat& image_in);
 	void sort_blobs_by_count();
 	void sort_blobs_by_angle(Point& pivot);
+	void sort_blobs_by_dist();
 	void sort_blobs_by_x();
 	void sort_blobs_by_y_max();
 	void sort_blobs_by_x_min();
@@ -72,6 +73,14 @@ private:
 			float theta1 = get_angle(blob1.x, blob1.y, pivot.x, pivot.y);
 
 			return theta0 > theta1;
+		}
+	};
+
+	struct compare_blob_dist
+	{
+		bool operator() (const BlobNew& blob0, const BlobNew& blob1)
+		{
+			return blob0.dist < blob1.dist;
 		}
 	};
 

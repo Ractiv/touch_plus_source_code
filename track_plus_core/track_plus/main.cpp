@@ -478,16 +478,13 @@ void compute()
 	else if (mode == "tool")
 	{
 		enable_imshow = true;
-		
-		imshow("image_small0", image_small0);
-		imshow("image_preprocessed0", image_preprocessed0);
 
 		Mat image_active_light0;
 		Mat image_active_light1;
 		compute_active_light_image(image_small0, image_preprocessed0, image_active_light0);
 		compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
 
-		tool_tracker_mono_processor0.compute(image_active_light0, "0");
+		tool_tracker_mono_processor0.compute(image_active_light0, image_preprocessed0, "0");
 		// tool_tracker_mono_processor1.compute(image_active_light1, "1");
 
 		// imshow("image_active_light0", image_active_light0);

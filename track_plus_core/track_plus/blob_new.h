@@ -56,6 +56,8 @@ public:
 	int index;
 	int id = -1;
 
+	float dist = 0;
+
 	int* id_ptr = NULL;
 
 	bool active = true;

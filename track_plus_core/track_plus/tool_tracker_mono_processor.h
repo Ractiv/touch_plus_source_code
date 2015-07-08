@@ -21,6 +21,7 @@
 #include "value_store.h"
 #include "c_tracker.h"
 #include "permutation.h"
+#include "contour_functions.h"
 
 struct Trace2D
 {
@@ -99,7 +100,7 @@ public:
 
 	vector<ToolTrackerMonoFrame> frame_vec;
 
-	void compute(Mat& image_in, const string name);
+	void compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name);
 	ToolTrackerMonoFrame get_cached_frame(const int past_frame_num);
 
 private:

@@ -307,6 +307,11 @@ void BlobDetectorNew::sort_blobs_by_angle(Point& pivot)
 	sort(blobs->begin(), blobs->end(), compare_blob_angle(pivot));
 }
 
+void BlobDetectorNew::sort_blobs_by_dist()
+{
+	sort(blobs->begin(), blobs->end(), compare_blob_dist());
+}
+
 void BlobDetectorNew::sort_blobs_by_x()
 {
 	sort(blobs->begin(), blobs->end(), compare_blob_x());
