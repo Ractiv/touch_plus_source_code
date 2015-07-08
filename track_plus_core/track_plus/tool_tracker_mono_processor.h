@@ -96,6 +96,7 @@ public:
 
 	const int cache_num = 10;
 	const int scan_num = 2;
+	const int permutation_k = 6;
 	int track_id_max = -1;
 
 	vector<ToolTrackerMonoFrame> frame_vec;

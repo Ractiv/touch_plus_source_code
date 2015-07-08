@@ -66,6 +66,22 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 	y_mean /= y_vec.size();
 
 	Point pt_motion_center = Point(x_mean, y_mean);
+	Point pt_motion_center_old = value_store.get_point("pt_motion_center_old", pt_motion_center);
+
+	pt_motion_center.x = (pt_motion_center.x - pt_motion_center_old.x) * 0.25 + pt_motion_center.x;
+	pt_motion_center.y = (pt_motion_center.y - pt_motion_center_old.y) * 0.25 + pt_motion_center.y;
+
+	if (pt_motion_center.x < 0)
+		pt_motion_center.x = 0;
+	if (pt_motion_center.x > WIDTH_SMALL_MINUS)
+		pt_motion_center.x = WIDTH_SMALL_MINUS;
+
+	if (pt_motion_center.y < 0)
+		pt_motion_center.y = 0;
+	if (pt_motion_center.y > HEIGHT_SMALL_MINUS)
+		pt_motion_center.y = HEIGHT_SMALL_MINUS;
+
+	value_store.set_point("pt_motion_center_old", pt_motion_center);
 
 	vector<float> dist_vec;
 	for (BlobNew& blob : (*(blob_detector_image_subtraction->blobs)))
@@ -76,11 +92,11 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 		}
 
 	sort(dist_vec.begin(), dist_vec.end());
-	float radius = dist_vec[dist_vec.size() * 0.8];
+	float radius = dist_vec[dist_vec.size() * 0.8] * 1.5;
 
 	Mat image_thresholded;
 	threshold(image_active_light_in, image_thresholded, 200, 254, THRESH_BINARY);
-	dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 1);
+	dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 2);
 
 	BlobDetectorNew* blob_detector_image_thresholded = value_store.get_blob_detector("blob_detector_image_thresholded");
 	blob_detector_image_thresholded->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
@@ -104,9 +120,15 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 				break;
 			}
 
+	vector<Point>* model = value_store.get_point_vec("model");
+
 	if (blob_vec.size() == 4)
 	{
+		model->clear();
+
 		sort(blob_vec.begin(), blob_vec.end(), compare_blob_angle(pt_motion_center));
+		for (BlobNew* blob : blob_vec)
+			model->push_back(Point(blob->x, blob->y));
 
 		BlobNew* blob_old = NULL;
 		for (BlobNew* blob_new : blob_vec)
@@ -118,152 +140,73 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 		}
 		line(image_thresholded, Point(blob_vec[0]->x, blob_vec[0]->y), Point(blob_old->x, blob_old->y), Scalar(127), 2);
 	}
-
-/*	else if (blob_vec.size() < 4)
+	else if (model->size() == 4 && blob_vec.size() < 4)
 	{
-		vector<Point> circle_vec;
-		midpoint_circle(pt_motion_center.x, pt_motion_center.y, radius, circle_vec);
+		/*vector<Point> pt_vec;
+		for (BlobNew* blob : blob_vec)
+			pt_vec.push_back(Point(blob->x, blob->y));
 
-		for (BlobNew& blob : (*(blob_detector_image_thresholded->blobs)))
+		if (blob_detector_image_thresholded->blobs->size() > permutation_k)
 		{
-			float dist_min = 9999;
-			for (Point& pt : circle_vec)
+			vector<Point> circle_vec;
+			midpoint_circle(pt_motion_center.x, pt_motion_center.y, radius, circle_vec);
+
+			for (BlobNew& blob : (*(blob_detector_image_thresholded->blobs)))
 			{
-				float dist = get_distance(blob.x, blob.y, pt.x, pt.y);
-				if (dist < dist_min)
-					dist_min = dist;
-			}
-
-			blob.dist = dist_min;
-		}
-
-		blob_detector_image_thresholded->sort_blobs_by_dist();
-
-		for (BlobNew&)
-	}*/
-
-	circle(image_thresholded, pt_motion_center, radius, Scalar(127), 2);
-	imshow("image_thresholded", image_thresholded);
-
-
-	/*bool proceed = false;
-	BlobDetectorNew* blob_detector = value_store.get_blob_detector("blob_detector");
-
-	{
-		Mat image_fade = value_store.get_mat("image_fade", true);
-		for (int i = 0; i < WIDTH_SMALL; ++i)
-			for (int j = 0; j < HEIGHT_SMALL; ++j)
-			{
-				image_fade.ptr<uchar>(j, i)[0] =
-					(image_in.ptr<uchar>(j, i)[0] - image_fade.ptr<uchar>(j, i)[0]) * 0.05 + image_fade.ptr<uchar>(j, i)[0];
-
-				if (image_in.ptr<uchar>(j, i)[0] >= 200)
-					image_fade.ptr<uchar>(j, i)[0] = 254;
-			}
-
-	    Mat image_thresholded;
-		threshold(image_fade, image_thresholded, 200, 254, THRESH_BINARY);
-		dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 1);
-
-		Mat image_thresholded_old = value_store.get_mat("image_thresholded_old", true);
-		Mat image_subtraction = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
-		for (int i = 0; i < WIDTH_SMALL; ++i)
-			for (int j = 0; j < HEIGHT_SMALL; ++j)
-				if (image_thresholded.ptr<uchar>(j, i)[0] > 0 && image_thresholded_old.ptr<uchar>(j, i)[0] == 0)
-					image_subtraction.ptr<uchar>(j, i)[0] = 254;
-
-		if (value_store.get_bool("first_frame", true))
-			value_store.set_mat("image_thresholded_old", image_thresholded);
-
-		value_store.get_bool("first_frame", false);
-
-		blob_detector->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-		if (blob_detector->blobs->size() < 4 || blob_detector->blobs->size() >= 8)
-			return;
-
-		int area_result = (blob_detector->x_max_result - blob_detector->x_min_result) *
-						  (blob_detector->y_max_result - blob_detector->y_min_result);
-
-		int count_result = 0;
-		for (BlobNew& blob : (*(blob_detector->blobs)))
-			count_result += blob.count;
-
-		// if (count_result < 50)
-			// return;
-
-		LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
-		low_pass_filter->compute(area_result, 0.1, "area_result");
-		low_pass_filter->compute(count_result, 0.1, "area_result");
-
-		// if (area_result > 2000 || count_result > 1500)
-			// return;
-
-		proceed = true;
-		imshow("image_subtraction", image_subtraction);
-		value_store.set_mat("image_thresholded_old", image_thresholded);
-	}*/
-
-	/*if (proceed)
-	{
-		Mat image_thresholded;
-		threshold(image_in, image_thresholded, 150, 254, THRESH_BINARY);
-		dilate(image_thresholded, image_thresholded, Mat(), Point(-1, -1), 1);
-
-		BlobDetectorNew* blob_detector0 = value_store.get_blob_detector("blob_detector0");
-		blob_detector0->compute(image_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-		if (blob_detector0->blobs->size() == 0)
-			return;
-
-		vector<BlobNew*> blob_vec;
-
-		for (BlobNew& blob : (*(blob_detector->blobs)))
-		{
-			float dist_min = 9999;
-			BlobNew* blob_dist_min = NULL;
-
-			for (BlobNew& blob0 : (*(blob_detector0->blobs)))
-				for (Point& pt0 : blob0.data)
+				float dist_min = 9999;
+				for (Point& pt : circle_vec)
 				{
-					float dist = blob.compute_min_dist(pt0);
+					float dist = get_distance(blob.x, blob.y, pt.x, pt.y);
 					if (dist < dist_min)
-					{
 						dist_min = dist;
-						blob_dist_min = &blob0;
-					}
 				}
 
-			blob_vec.push_back(blob_dist_min);
-		}
+				blob.dist = dist_min;
+			}
 
-		for (BlobNew* blob : blob_vec)
-			blob->fill(image_thresholded, 64);
-
-		vector<int> x_vec;
-		vector<int> y_vec;
-
-		for (BlobNew* blob0 : blob_vec)
-			for (Point& pt0 : blob0->data)
-				for (BlobNew* blob1 : blob_vec)
-					for (Point& pt1 : blob1->data)
+			blob_detector_image_thresholded->sort_blobs_by_dist();
+			for (BlobNew& blob : *blob_detector_image_thresholded->blobs)
+			{
+				bool found = false;
+				for (BlobNew* blob_compare : blob_vec)
+					if (&blob == blob_compare)
 					{
-						int x_middle = (pt0.x + pt1.x) / 2;
-						int y_middle = (pt0.y + pt1.y) / 2;
-						x_vec.push_back(x_middle);
-						y_vec.push_back(y_middle);
+						found = true;
+						break;
 					}
 
-		sort(x_vec.begin(), x_vec.end());
-		sort(y_vec.begin(), y_vec.end());
-		Point pt_center_of_gravity = Point(x_vec[x_vec.size() / 2], y_vec[y_vec.size() / 2]);
+				if (found)
+					continue;
 
-		vector<Rect2D> rect_vec;
+				pt_vec.push_back(Point(blob.x, blob.y));
+				if (pt_vec.size() == permutation_k)
+					break;
+			}
+		}
+		else
+			for (BlobNew& blob : *blob_detector_image_thresholded->blobs)
+			{
+				bool found = false;
+				for (BlobNew* blob_compare : blob_vec)
+					if (&blob == blob_compare)
+					{
+						found = true;
+						break;
+					}
 
-		int permutation_k = blob_detector0->blobs->size();
-		if (permutation_k > 6)
-			permutation_k = 6;
+				if (found)
+					continue;
+
+				pt_vec.push_back(Point(blob.x, blob.y));
+				if (pt_vec.size() == permutation_k)
+					break;
+			}
+
+		Point pt0_dist_min;
+		Point pt1_dist_min;
+		Point pt2_dist_min;
+		Point pt3_dist_min;
+		float dist_min = 9999;
 
 		compute_permutations(permutation_k, 4);
 		for (vector<int> rows : permutations)
@@ -273,40 +216,43 @@ void ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 			const int index2 = rows[2];
 			const int index3 = rows[3];
 
-			BlobNew* blob0 = &((*(blob_detector0->blobs))[index0]);
-			BlobNew* blob1 = &((*(blob_detector0->blobs))[index1]);
-			BlobNew* blob2 = &((*(blob_detector0->blobs))[index2]);
-			BlobNew* blob3 = &((*(blob_detector0->blobs))[index3]);
+			Point pt0 = pt_vec[index0];
+			Point pt1 = pt_vec[index1];
+			Point pt2 = pt_vec[index2];
+			Point pt3 = pt_vec[index3];
 
-			Point pt0 = Point(blob0->x, blob0->y);
-			Point pt1 = Point(blob1->x, blob1->y);
-			Point pt2 = Point(blob2->x, blob2->y);
-			Point pt3 = Point(blob3->x, blob3->y);
+			const int x_min = std::min(pt0.x, std::min(pt1.x, std::min(pt2.x, pt3.x)));
+			const int x_max = std::max(pt0.x, std::max(pt1.x, std::max(pt2.x, pt3.x)));
+			const int y_min = std::min(pt0.y, std::min(pt1.y, std::min(pt2.y, pt3.y)));
+			const int y_max = std::max(pt0.y, std::max(pt1.y, std::max(pt2.y, pt3.y)));
 
-			int x_min = std::min(pt0.x, std::min(pt1.x, std::min(pt2.x, pt3.x)));
-			int x_max = std::max(pt0.x, std::max(pt1.x, std::max(pt2.x, pt3.x)));
-			int y_min = std::min(pt0.y, std::min(pt1.y, std::min(pt2.y, pt3.y)));
-			int y_max = std::max(pt0.y, std::max(pt1.y, std::max(pt2.y, pt3.y)));
-
-			if (x_min < pt_center_of_gravity.x && x_max > pt_center_of_gravity.x &&
-				y_min < pt_center_of_gravity.y && y_max > pt_center_of_gravity.y)
+			if (x_min < pt_motion_center.x && x_max > pt_motion_center.x && y_min < pt_motion_center.y && y_max > pt_motion_center.y)
 			{
-				float dist0 = get_distance(pt0, pt_center_of_gravity);
-				float dist1 = get_distance(pt1, pt_center_of_gravity);
-				float dist2 = get_distance(pt2, pt_center_of_gravity);
-				float dist3 = get_distance(pt3, pt_center_of_gravity);
+				const float dist0 = get_distance(pt0, (*model)[0]);
+				const float dist1 = get_distance(pt1, (*model)[1]);
+				const float dist2 = get_distance(pt2, (*model)[2]);
+				const float dist3 = get_distance(pt3, (*model)[3]);
+				const float dist_sum = dist0 + dist1 + dist2 + dist3;
 
-				float dist_min = std::min(dist0, std::min(dist1, std::min(dist2, dist3)));
-				float dist_max = std::max(dist0, std::max(dist1, std::max(dist2, dist3)));
-				float dist_ratio = dist_max / dist_min;
-
-				rect_vec.push_back(Rect2D(pt0, pt1, pt2, pt3, dist_ratio));
+				if (dist_sum < dist_min)
+				{
+					dist_min = dist_sum;
+					pt0_dist_min = pt0;
+					pt1_dist_min = pt1;
+					pt2_dist_min = pt2;
+					pt3_dist_min = pt3;
+				}
 			}
 		}
 
-		circle(image_thresholded, pt_center_of_gravity, 5, Scalar(127), 2);
-		imshow("image_thresholded", image_thresholded);
-	}*/
+		line(image_thresholded, pt0_dist_min, pt1_dist_min, Scalar(127), 2);
+		line(image_thresholded, pt1_dist_min, pt2_dist_min, Scalar(127), 2);
+		line(image_thresholded, pt2_dist_min, pt3_dist_min, Scalar(127), 2);
+		line(image_thresholded, pt3_dist_min, pt0_dist_min, Scalar(127), 2);*/
+	}
+
+	circle(image_thresholded, pt_motion_center, radius, Scalar(127), 2);
+	imshow("image_thresholded" + name, image_thresholded);
 
 	/*static Scalar Colors[] = { Scalar(255, 0, 0),
 		                       Scalar(0, 255, 0),
