@@ -24,12 +24,45 @@ public class Main : MonoBehaviour
 {
     IPC ipc;
 
+    GameObject cube0, cube1, cube2, cube3, cube4;
+
+    float x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, xCenter, yCenter, zCenter;
+
 	void Start ()
 	{
+		cube0 = GameObject.Find("Cube 0");
+        cube1 = GameObject.Find("Cube 1");
+        cube2 = GameObject.Find("Cube 2");
+        cube3 = GameObject.Find("Cube 3");
+        cube4 = GameObject.Find("Cube 4");
+
 		ipc = new IPC("unity_demo");
 		ipc.SetUDPCallback(delegate(string message)
         {
         	print(message);
+
+            string[] data = message.Split('!');
+
+            float.TryParse(data[0], out x0);
+            float.TryParse(data[1], out y0);
+            float.TryParse(data[2], out z0);
+
+            float.TryParse(data[3], out x1);
+            float.TryParse(data[4], out y1);
+            float.TryParse(data[5], out z1);
+
+            float.TryParse(data[6], out x2);
+            float.TryParse(data[7], out y2);
+            float.TryParse(data[8], out z2);
+
+            float.TryParse(data[9], out x3);
+            float.TryParse(data[10], out y3);
+            float.TryParse(data[11], out z3);
+
+            float.TryParse(data[12], out xCenter);
+            float.TryParse(data[13], out yCenter);
+            float.TryParse(data[14], out zCenter);
+
         	return 1;
         });
 	}
@@ -37,5 +70,11 @@ public class Main : MonoBehaviour
 	void Update ()
 	{
 		ipc.Update();
+
+        cube0.transform.position = new Vector3(x0 / 100, y0 / 100, z0 / 100);
+        cube1.transform.position = new Vector3(x1 / 100, y1 / 100, z1 / 100);
+        cube2.transform.position = new Vector3(x2 / 100, y2 / 100, z2 / 100);
+        cube3.transform.position = new Vector3(x3 / 100, y3 / 100, z3 / 100);
+        cube4.transform.position = new Vector3(xCenter / 100, yCenter / 100, zCenter / 100);
 	}
 }
