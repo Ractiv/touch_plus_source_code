@@ -18,33 +18,23 @@
 
 #include "tool_stereo_processor.h"
 
-bool ToolStereoProessor::compute(ToolTrackerMonoProcessor& tool_tarcker_mono_processor0,
-							     ToolTrackerMonoProcessor& tool_tarcker_mono_processor1)
+bool ToolStereoProcessor::compute(ToolMonoProcessor& tool_mono_processor0,
+							      ToolMonoProcessor& tool_mono_processor1)
 {
-	int x_diff = tool_tarcker_mono_processor0.pt_led_center.x - tool_tarcker_mono_processor1.pt_led_center.x;
-	int y_diff = tool_tarcker_mono_processor0.pt_led_center.y - tool_tarcker_mono_processor1.pt_led_center.y;
+	int x_diff = tool_mono_processor0.pt_led_center.x - tool_mono_processor1.pt_led_center.x;
+	int y_diff = tool_mono_processor0.pt_led_center.y - tool_mono_processor1.pt_led_center.y;
 
 	vector<OverlappingBlobPair> overlapping_blob_pair_vec;
 
 	int index0 = 0;
 	int index1 = 0;
 
-	for (BlobNew* blob0 : tool_tarcker_mono_processor0.blob_vec)
+	for (BlobNew* blob0 : tool_mono_processor0.blob_vec)
 	{
 		index1 = 0;
-		for (BlobNew* blob1 : tool_tarcker_mono_processor1.blob_vec)
+		for (BlobNew* blob1 : tool_mono_processor1.blob_vec)
 		{
-			/*int overlap_count = 0;
-			for (Point& pt1 : blob1->data)
-			{
-				int x_offsetted = pt1.x + x_diff;
-				int y_offsetted = pt1.y + y_diff;
-
-				if (blob0->image_atlas.ptr<ushort>(y_offsetted, x_offsetted)[0] == blob0->atlas_id)
-					++overlap_count;
-			}*/
-
-			int overlap_count = blob0->compute_overlap(*blob1, -x_diff, -y_diff, 10);
+			int overlap_count = blob0->compute_overlap(*blob1, -x_diff, -y_diff, 5);
 
 			overlapping_blob_pair_vec.push_back(OverlappingBlobPair(blob0, blob1, overlap_count, index0, index1));
 			++index1;

@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\id_point.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\tool_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmmin.h" />
@@ -59,7 +60,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\warper.h" />
     <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\tool_tracker_mono_processor.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\tool_mono_processor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_detector_new.cpp" />
@@ -81,6 +82,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
@@ -107,7 +109,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
     <ClCompile Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\tool_tracker_mono_processor.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\tool_mono_processor.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEF4BBD1-490B-4D59-B286-5E7689C004E4}</ProjectGuid>

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "tool_tracker_mono_processor.h"
+#include "tool_mono_processor.h"
 
 struct OverlappingBlobPair
 {
@@ -38,12 +38,12 @@ struct OverlappingBlobPair
 	}
 };
 
-class ToolStereoProessor
+class ToolStereoProcessor
 {
 public:
 	vector<OverlappingBlobPair> matches;
 	
-	bool compute(ToolTrackerMonoProcessor& tool_tarcker_mono_processor0, ToolTrackerMonoProcessor& tool_tarcker_mono_processor1);
+	bool compute(ToolMonoProcessor& tool_mono_processor0, ToolMonoProcessor& tool_mono_processor1);
 
 private:
 	struct compare_overlap_count

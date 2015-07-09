@@ -20,7 +20,7 @@
 
 #include "value_store.h"
 
-class ToolTrackerMonoProcessor
+class ToolMonoProcessor
 {
 public:
 	vector<BlobNew*> blob_vec;

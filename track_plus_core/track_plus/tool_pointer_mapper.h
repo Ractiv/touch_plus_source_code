@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Touch+ Software
  * Copyright (C) 2015
  *
@@ -16,26 +16,22 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-using UnityEngine;
-using System.Collections;
-using Assets;
+#pragma once
 
-public class Main : MonoBehaviour
+#include "reprojector.h"
+#include "tool_stereo_processor.h"
+#include "tool_resolver.h"
+
+class ToolPointerMapper
 {
-    IPC ipc;
+public:
+	Point3f pt0;
+	Point3f pt1;
+	Point3f pt2;
+	Point3f pt3;
+	Point3f pt_center;
 
-	void Start ()
-	{
-		ipc = new IPC("unity_demo");
-		ipc.SetUDPCallback(delegate(string message)
-        {
-        	print(message);
-        	return 1;
-        });
-	}
-	
-	void Update ()
-	{
-		ipc.Update();
-	}
-}
+	ToolResolver tool_resolver;
+
+	void compute(Reprojector& reprojector, ToolStereoProcessor& tool_stereo_processor, Mat& image_in0, Mat& image_in1);
+};

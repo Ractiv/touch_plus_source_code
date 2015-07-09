@@ -18,55 +18,13 @@
 
 #include "tool_resolver.h"
 
-void ToolResolver::compute(Mat& image_in, ToolTrackerMonoProcessor& tool_tracker_mono_processor)
+Point2f ToolResolver::compute(Mat& image_in, int x_min, int x_max, int y_min, int y_max)
 {
-	Point2f pt0_temp = compute_blob(image_in, tool_tracker_mono_processor.x_min0 * 4 - 10,
-											  tool_tracker_mono_processor.x_max0 * 4 + 10,
-											  tool_tracker_mono_processor.y_min0 * 4 - 10,
-											  tool_tracker_mono_processor.y_max0 * 4 + 10);
+	x_min = x_min * 4 - 10;
+	x_max = x_max * 4 + 10;
+	y_min = y_min * 4 - 10;
+	y_max = y_max * 4 + 10;
 
-	Point2f pt1_temp = compute_blob(image_in, tool_tracker_mono_processor.x_min1 * 4 - 10,
-											  tool_tracker_mono_processor.x_max1 * 4 + 10,
-											  tool_tracker_mono_processor.y_min1 * 4 - 10,
-											  tool_tracker_mono_processor.y_max1 * 4 + 10);
-
-	Point2f pt2_temp = compute_blob(image_in, tool_tracker_mono_processor.x_min2 * 4 - 10,
-											  tool_tracker_mono_processor.x_max2 * 4 + 10,
-											  tool_tracker_mono_processor.y_min2 * 4 - 10,
-											  tool_tracker_mono_processor.y_max2 * 4 + 10);
-
-	Point2f pt3_temp = compute_blob(image_in, tool_tracker_mono_processor.x_min3 * 4 - 10,
-											  tool_tracker_mono_processor.x_max3 * 4 + 10,
-											  tool_tracker_mono_processor.y_min3 * 4 - 10,
-											  tool_tracker_mono_processor.y_max3 * 4 + 10);
-
-	vector<float> x_vec;
-	vector<float> y_vec;
-	pt_vec = { pt0_temp, pt1_temp, pt2_temp, pt3_temp };
-
-	for (Point2f& pt_0 : pt_vec)
-		for (Point2f& pt_1 : pt_vec)
-		{
-			x_vec.push_back((pt_0.x + pt_1.x) / 2);
-			y_vec.push_back((pt_0.y + pt_1.y) / 2);
-		}
-
-	sort(x_vec.begin(), x_vec.end());
-	sort(y_vec.begin(), y_vec.end());
-
-	pt_center = Point2f(x_vec[x_vec.size() / 2], y_vec[y_vec.size() / 2]);
-
-	/*circle(image_in, pt0, 20, Scalar(127, 127, 127), 4);
-	circle(image_in, pt1, 20, Scalar(127, 127, 127), 4);
-	circle(image_in, pt2, 20, Scalar(127, 127, 127), 4);
-	circle(image_in, pt3, 20, Scalar(127, 127, 127), 4);
-	circle(image_in, pt_center, 20, Scalar(127, 127, 127), 4);
-
-	imshow("image_in", image_in);*/
-}
-
-Point2f ToolResolver::compute_blob(Mat& image_in, int x_min, int x_max, int y_min, int y_max)
-{
 	if (x_min < 0)
 		x_min = 0;
 	if (x_max > WIDTH_LARGE_MINUS)

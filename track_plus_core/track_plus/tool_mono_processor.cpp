@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-#include "tool_tracker_mono_processor.h"
+#include "tool_mono_processor.h"
 
-bool ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name)
+bool ToolMonoProcessor::compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name)
 {
 	Mat image_preprocessed_old = value_store.get_mat("image_preprocessed_old", true);
 	Mat image_subtraction = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -227,7 +227,7 @@ bool ToolTrackerMonoProcessor::compute(Mat& image_active_light_in, Mat& image_pr
 	return true;
 }
 
-inline void ToolTrackerMonoProcessor::fill_image_background_static(const int x, const int y, Mat& image_in)
+inline void ToolMonoProcessor::fill_image_background_static(const int x, const int y, Mat& image_in)
 {
 	uchar* pix_ptr = &(image_background_static.ptr<uchar>(y, x)[0]);
 

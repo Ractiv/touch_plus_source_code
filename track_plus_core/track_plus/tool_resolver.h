@@ -18,15 +18,11 @@
 
 #pragma once
 
-#include "tool_tracker_mono_processor.h"
+#include "tool_mono_processor.h"
 #include "mat_functions.h"
 
 class ToolResolver
 {
 public:
-	vector<Point2f> pt_vec;
-	Point2f pt_center;
-
-	void compute(Mat& image_in, ToolTrackerMonoProcessor& tool_tracker_mono_processor);
-	Point2f compute_blob(Mat& image_in, int x_min, int x_max, int y_min, int y_max);
+	Point2f compute(Mat& image_in, int x_min, int x_max, int y_min, int y_max);
 };
