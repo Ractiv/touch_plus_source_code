@@ -23,15 +23,45 @@
 class ToolTrackerMonoProcessor
 {
 public:
+	vector<BlobNew*> blob_vec;
+
+	Point pt_motion_center;
+	Point pt_led_center;
+	Point pt_led0;
+	Point pt_led1;
+	Point pt_led2;
+	Point pt_led3;
+
+	float radius;
+
+	int x_min0;
+	int x_max0;
+	int y_min0;
+	int y_max0;
+
+	int x_min1;
+	int x_max1;
+	int y_min1;
+	int y_max1;
+
+	int x_min2;
+	int x_max2;
+	int y_min2;
+	int y_max2;
+
+	int x_min3;
+	int x_max3;
+	int y_min3;
+	int y_max3;
+
 	ValueStore value_store;
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
-	void compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name);
+	bool compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name);
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 
 
 private:
-
 	struct compare_blob_angle
 	{
 		Point pivot;

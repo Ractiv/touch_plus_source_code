@@ -34,6 +34,8 @@
 #include "hand_resolver.h"
 #include "pointer_mapper.h"
 #include "tool_tracker_mono_processor.h"
+#include "tool_resolver.h"
+#include "tool_stereo_processor.h"
 
 #include <VersionHelpers.h>
 
@@ -91,6 +93,11 @@ ValueStore value_store;
 
 ToolTrackerMonoProcessor tool_tracker_mono_processor0;
 ToolTrackerMonoProcessor tool_tracker_mono_processor1;
+
+ToolResolver tool_resolver0;
+ToolResolver tool_resolver1;
+
+ToolStereoProessor tool_stereo_processor;
 
 const int points_pool_count_max = 1000;
 vector<Point> points_pool[points_pool_count_max];
@@ -351,7 +358,8 @@ void compute()
 	if (mode == "surface")
 		flip(image_current_frame, image_flipped, 0);
 	else
-		image_flipped = image_current_frame.clone();
+		flip(image_current_frame, image_flipped, 0);
+		// image_flipped = image_current_frame.clone();
 
 	Mat image0 = image_flipped(Rect(0, 0, 640, 480));
 	Mat image1 = image_flipped(Rect(640, 0, 640, 480));
@@ -484,8 +492,55 @@ void compute()
 		compute_active_light_image(image_small0, image_preprocessed0, image_active_light0);
 		compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
 
-		tool_tracker_mono_processor0.compute(image_active_light0, image_preprocessed0, "0");
-		tool_tracker_mono_processor1.compute(image_active_light1, image_preprocessed1, "1");
+		proceed0 = tool_tracker_mono_processor0.compute(image_active_light0, image_preprocessed0, "0");
+		proceed1 = tool_tracker_mono_processor1.compute(image_active_light1, image_preprocessed1, "1");
+		proceed = proceed0 && proceed1;
+
+		if (proceed)
+		{
+			proceed0 = tool_stereo_processor.compute(tool_tracker_mono_processor0, tool_tracker_mono_processor1);
+			proceed1 = tool_stereo_processor.matches.size() >= 4;
+			proceed = proceed0 && proceed1;
+
+			if (proceed)
+			{
+				tool_resolver0.compute(image0, tool_tracker_mono_processor0);
+				tool_resolver1.compute(image1, tool_tracker_mono_processor1);
+
+				Point3f pt0 = reprojector.reproject_to_3d(tool_resolver0.pt_vec[tool_stereo_processor.matches[0].index0].x,
+														  tool_resolver0.pt_vec[tool_stereo_processor.matches[0].index0].y,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[0].index1].x,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[0].index1].y);
+
+				Point3f pt1 = reprojector.reproject_to_3d(tool_resolver0.pt_vec[tool_stereo_processor.matches[1].index0].x,
+														  tool_resolver0.pt_vec[tool_stereo_processor.matches[1].index0].y,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[1].index1].x,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[1].index1].y);
+
+				Point3f pt2 = reprojector.reproject_to_3d(tool_resolver0.pt_vec[tool_stereo_processor.matches[2].index0].x,
+														  tool_resolver0.pt_vec[tool_stereo_processor.matches[2].index0].y,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[2].index1].x,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[2].index1].y);
+
+				Point3f pt3 = reprojector.reproject_to_3d(tool_resolver0.pt_vec[tool_stereo_processor.matches[3].index0].x,
+														  tool_resolver0.pt_vec[tool_stereo_processor.matches[3].index0].y,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[3].index1].x,
+														  tool_resolver1.pt_vec[tool_stereo_processor.matches[3].index1].y);
+
+				Point3f pt_center = reprojector.reproject_to_3d(tool_resolver0.pt_center.x, tool_resolver0.pt_center.y,
+																tool_resolver1.pt_center.x, tool_resolver1.pt_center.y);
+
+				Mat image_visualization_large = Mat::zeros(480, 640, CV_8UC1);
+
+				circle(image_visualization_large, Point(pt0.x + 320, pt0.y + 240), pow(pt0.z / 100, 2), Scalar(254), 4);
+				circle(image_visualization_large, Point(pt1.x + 320, pt1.y + 240), pow(pt1.z / 100, 2), Scalar(254), 4);
+				circle(image_visualization_large, Point(pt2.x + 320, pt2.y + 240), pow(pt2.z / 100, 2), Scalar(254), 4);
+				circle(image_visualization_large, Point(pt3.x + 320, pt3.y + 240), pow(pt3.z / 100, 2), Scalar(254), 4);
+				circle(image_visualization_large, Point(pt_center.x + 320, pt_center.y + 240), pow(pt_center.z / 100, 2), Scalar(254), 4);
+
+				imshow("image_visualization_large", image_visualization_large);
+			}
+		}
 
 		// imshow("image_active_light0", image_active_light0);
 		// imshow("image_active_light1", image_active_light1);

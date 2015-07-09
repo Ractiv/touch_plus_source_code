@@ -218,9 +218,12 @@ void compute_max_image(Mat& image_in, Mat& image_out)
 
 void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out)
 {
-	image_out = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	for (int i = 0; i < WIDTH_SMALL; ++i)
-		for (int j = 0; j < HEIGHT_SMALL; ++j)
+	const int image_width_const = image_regular.cols;
+	const int image_height_const = image_regular.rows;
+
+	image_out = Mat(image_height_const, image_width_const, CV_8UC1);
+	for (int i = 0; i < image_width_const; ++i)
+		for (int j = 0; j < image_height_const; ++j)
 		{
 			const uchar gray0 = (image_regular.ptr<uchar>(j, i)[0] +
 								 image_regular.ptr<uchar>(j, i)[1] +

@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\id_point.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\tool_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmmin.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmstruct.h" />
@@ -53,6 +54,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\tool_stereo_processor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\udp.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\warper.h" />
@@ -79,6 +81,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
     <ClCompile Include="..\..\track_plus_core\track_plus\low_pass_filter.cpp" />
@@ -99,6 +102,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\tool_stereo_processor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
