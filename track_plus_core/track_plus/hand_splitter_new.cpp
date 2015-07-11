@@ -20,7 +20,7 @@
 
 bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name)
 {
-	if (mode == "tool")
+	if (mode == "tool" || true)
 	{
 		motion_processor.x_separator_middle = WIDTH_SMALL / 2;
 	}

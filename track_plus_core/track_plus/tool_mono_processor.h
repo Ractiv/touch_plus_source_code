@@ -22,7 +22,7 @@
 
 class ToolMonoProcessor
 {
-public:
+public:	
 	vector<BlobNew*> blob_vec;
 
 	Point pt_motion_center;

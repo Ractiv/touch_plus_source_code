@@ -62,6 +62,8 @@ extern bool play;
 extern bool enable_imshow;
 extern bool record_pose;
 extern bool pinch_to_zoom;
+extern bool has_plate;
+extern bool has_pen;
 
 extern int actuate_dist_raw;
 extern int actuate_dist;

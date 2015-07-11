@@ -105,11 +105,19 @@ void ToolPointerMapper::compute(Reprojector& reprojector, ToolStereoProcessor& t
 
 	pt_center = reprojector.reproject_to_3d(center0.x, center0.y, center1.x, center1.y);
 
-	// Mat image_visualization_large = Mat::zeros(480, 640, CV_8UC1);
-	// circle(image_visualization_large, Point(pt0.x + 320, pt0.y + 240), pow(pt0.z / 100, 2), Scalar(254), 4);
-	// circle(image_visualization_large, Point(pt1.x + 320, pt1.y + 240), pow(pt1.z / 100, 2), Scalar(254), 4);
-	// circle(image_visualization_large, Point(pt2.x + 320, pt2.y + 240), pow(pt2.z / 100, 2), Scalar(254), 4);
-	// circle(image_visualization_large, Point(pt3.x + 320, pt3.y + 240), pow(pt3.z / 100, 2), Scalar(254), 4);
-	// circle(image_visualization_large, Point(pt_center.x + 320, pt_center.y + 240), pow(pt_center.z / 100, 2), Scalar(254), 4);
-	// imshow("image_visualization_large", image_visualization_large);
+	Mat image_visualization_large = Mat::zeros(480, 640, CV_8UC3);
+
+	circle(image_visualization_large, Point(pt0.x + 320, pt0.y + 240), pow(pt0.z / 100, 2), Scalar(127, 127, 127), 4);
+	circle(image_visualization_large, Point(pt1.x + 320, pt1.y + 240), pow(pt1.z / 100, 2), Scalar(127, 127, 127), 4);
+	circle(image_visualization_large, Point(pt2.x + 320, pt2.y + 240), pow(pt2.z / 100, 2), Scalar(127, 127, 127), 4);
+	circle(image_visualization_large, Point(pt3.x + 320, pt3.y + 240), pow(pt3.z / 100, 2), Scalar(127, 127, 127), 4);
+	circle(image_visualization_large, Point(pt_center.x + 320, pt_center.y + 240), pow(pt_center.z / 100, 2), Scalar(127, 127, 127), 4);
+
+	putText(image_visualization_large, "0", cvPoint(pt0.x + 320, pt0.y + 240), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255, 255, 255), 1, CV_AA);
+	putText(image_visualization_large, "1", cvPoint(pt1.x + 320, pt1.y + 240), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255, 255, 255), 1, CV_AA);
+	putText(image_visualization_large, "2", cvPoint(pt2.x + 320, pt2.y + 240), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255, 255, 255), 1, CV_AA);
+	putText(image_visualization_large, "3", cvPoint(pt3.x + 320, pt3.y + 240), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255, 255, 255), 1, CV_AA);
+	putText(image_visualization_large, "center", cvPoint(pt_center.x + 320, pt_center.y + 240), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255, 255, 255), 1, CV_AA);
+
+	imshow("image_visualization_large", image_visualization_large);
 }

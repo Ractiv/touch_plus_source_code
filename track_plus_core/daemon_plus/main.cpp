@@ -59,7 +59,7 @@ void guardian_thread_function()
 }
 
 int main()
-// int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+//int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
 	char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);

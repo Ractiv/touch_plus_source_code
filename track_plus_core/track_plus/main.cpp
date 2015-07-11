@@ -241,9 +241,9 @@ void on_first_frame()
 	
 	Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
 
-	if (heading.y > 60)
-		mode = "tool";
-	else
+	// if (heading.y > 60)
+		// mode = "tool";
+	// else
 		mode = "surface";
 
 	ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
@@ -435,7 +435,14 @@ void compute()
 				pointer_mapper.compute(hand_resolver, reprojector);
 
 				if (pointer_mapper.calibrated)
+				{
+					if (enable_imshow)
+					{
+						enable_imshow = false;
+						destroyAllWindows();
+					}
 					show_cursor_index = true;
+				}
 
 				if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
 					show_cursor_thumb = true;

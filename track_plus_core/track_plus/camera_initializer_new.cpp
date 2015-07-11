@@ -123,9 +123,6 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 
-		// if (exposure_val < 5)
-			// preset2(camera);
-
 		COUT << "exposure is " << exposure_val << endl;
 		return true;		
 	}

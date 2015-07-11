@@ -47,7 +47,7 @@ bool ToolMonoProcessor::compute(Mat& image_active_light_in, Mat& image_preproces
 	const int area_result = width_result * height_result;
 
 	bool proceed = true;
-	if (blob_detector_image_subtraction->blobs->size() > 50 || blob_detector_image_subtraction->blobs->size() == 0 || area_result > 8000)
+	if (blob_detector_image_subtraction->blobs->size() > 50 || blob_detector_image_subtraction->blobs->size() == 0/*|| area_result > 8000*/)
 		proceed = false;
 
 	if (proceed)

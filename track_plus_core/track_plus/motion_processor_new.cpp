@@ -137,7 +137,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						float gray_max = gray_vec[gray_vec.size() * 0.9];
 						float gray_median = gray_vec[gray_vec.size() * 0.5];
 
-						gray_threshold = gray_median - 30;
+						gray_threshold = gray_median - 15;
 						low_pass_filter->compute(gray_threshold, 0.1, "gray_threshold");
 
 						gray_threshold_stereo = gray_threshold;

@@ -30,13 +30,14 @@ public class Main : MonoBehaviour
 
 	void Start ()
 	{
+  	 	ipc = new IPC("unity_demo");
+
 		cube0 = GameObject.Find("Cube 0");
         cube1 = GameObject.Find("Cube 1");
         cube2 = GameObject.Find("Cube 2");
         cube3 = GameObject.Find("Cube 3");
         cube4 = GameObject.Find("Cube 4");
 
-		ipc = new IPC("unity_demo");
 		ipc.SetUDPCallback(delegate(string message)
         {
         	print(message);
@@ -71,10 +72,10 @@ public class Main : MonoBehaviour
 	{
 		ipc.Update();
 
-        cube0.transform.position = new Vector3(x0 / 100, y0 / 100, z0 / 100);
-        cube1.transform.position = new Vector3(x1 / 100, y1 / 100, z1 / 100);
-        cube2.transform.position = new Vector3(x2 / 100, y2 / 100, z2 / 100);
-        cube3.transform.position = new Vector3(x3 / 100, y3 / 100, z3 / 100);
-        cube4.transform.position = new Vector3(xCenter / 100, yCenter / 100, zCenter / 100);
+        cube0.transform.position = new Vector3(x0 / 100, -y0 / 100, -z0 / 100 + 6);
+        cube1.transform.position = new Vector3(x1 / 100, -y1 / 100, -z1 / 100 + 6);
+        cube2.transform.position = new Vector3(x2 / 100, -y2 / 100, -z2 / 100 + 6);
+        cube3.transform.position = new Vector3(x3 / 100, -y3 / 100, -z3 / 100 + 6);
+        cube4.transform.position = new Vector3(xCenter / 100, -yCenter / 100, -zCenter / 100 + 6);
 	}
 }

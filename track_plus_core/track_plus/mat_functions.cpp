@@ -230,7 +230,10 @@ void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat
 								 image_regular.ptr<uchar>(j, i)[2]) / 3;
 
 			const uchar gray1 = image_channel_diff.ptr<uchar>(j, i)[0];
-			const int gray_subtraction = abs(gray0 - gray1);
+			int gray_subtraction = abs(gray0 - gray1);
+			if (gray_subtraction == 255)
+				gray_subtraction = 254;
+
 			image_out.ptr<uchar>(j, i)[0] = gray_subtraction;
 		}
 }
