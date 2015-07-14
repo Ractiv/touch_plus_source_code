@@ -59,24 +59,4 @@ public:
 
 	bool compute(Mat& image_active_light_in, Mat& image_preprocessed_in, const string name);
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
-
-
-private:
-	struct compare_blob_angle
-	{
-		Point pivot;
-
-		compare_blob_angle(Point& pivot_in)
-		{
-			pivot = pivot_in;
-		}
-
-		bool operator() (const BlobNew* blob0, const BlobNew* blob1)
-		{
-			float theta0 = get_angle(blob0->x, blob0->y, pivot.x, pivot.y);
-			float theta1 = get_angle(blob1->x, blob1->y, pivot.x, pivot.y);
-
-			return theta0 > theta1;
-		}
-	};
 };

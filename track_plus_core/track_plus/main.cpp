@@ -28,6 +28,7 @@
 #include "ipc.h"
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
+#include "stereo_processor.h"
 #include "pose_estimator.h"
 #include "pose_estimator_new.h"
 #include "reprojector.h"
@@ -79,6 +80,8 @@ HandSplitterNew hand_splitter1;
 MonoProcessorNew mono_processor0;
 MonoProcessorNew mono_processor1;
 
+StereoProcessor stereo_processor;
+
 PoseEstimator pose_estimator;
 
 HandResolver hand_resolver;
@@ -103,7 +106,6 @@ vector<Point> points_pool[points_pool_count_max];
 int points_pool_count = 0;
 vector<Point>* points_ptr = NULL;
 
-bool updated = false;
 bool exposure_adjusted = false;
 bool initialized = false;
 bool calibrating = true;
@@ -148,7 +150,12 @@ void wait_for_device()
 		static int camera_count_old = camera_count_new;
 
 		if (camera_count_new != camera_count_old)
+		{
+			if (child_module_name != "")
+				ipc->send_message(child_module_name, "exit", "");
+
 			exit(0);
+		}
 
 		camera_count_old = camera_count_new;
 		Sleep(500);
@@ -170,7 +177,6 @@ void hide_cursors()
 void update(Mat& image_in)
 {
 	image_current_frame = image_in;
-	updated = true;
 	wait_count = 0;
 }
 
@@ -313,9 +319,6 @@ void compute()
 		return;
 	}
 
-	if (!updated)
-		return;
-
 	int x_accel;
 	int y_accel;
 	int z_accel;
@@ -404,10 +407,17 @@ void compute()
 		proceed = proceed0 && proceed1;
 	}
 
-	if (mode == "surface")
+	if (mode == "surface" && proceed)
 	{
-		if (proceed && mono_processor0.compute(hand_splitter0, image_preprocessed0, "0", false))
+		proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+		proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
+		proceed = false;
+		proceed = proceed0 && proceed1;
+
+		if (proceed)
 		{
+			// stereo_processor.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1);
+
 			points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
 			points_ptr = &(points_pool[points_pool_count]);
 
@@ -423,7 +433,7 @@ void compute()
 				show_point_sent = true;
 			}
 
-			if (pose_name == "point" && mono_processor1.compute(hand_splitter1, image_preprocessed1, "1", false))
+			if (pose_name == "point")
 			{
 				if (!show_calibration_sent)
 				{
@@ -449,10 +459,15 @@ void compute()
 				else
 					show_cursor_thumb = false;
 			}
-			else if (pose_name != "point")
+			else
 			{
-				show_cursor_index = false;
-				show_cursor_thumb = false;
+				pointer_mapper.reset();
+
+				if (pose_name != "point")
+				{
+					show_cursor_index = false;
+					show_cursor_thumb = false;
+				}
 			}
 		}
 
@@ -460,12 +475,9 @@ void compute()
 		{
 			if (show_cursor_index)
 			{
-				float pt_cursor_index_z = pointer_mapper.dist_cursor_index_plane;
-				low_pass_filter.compute(pt_cursor_index_z, 0.5, "pt_cursor_index_z");
-
 				ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_cursor_index.x) + "!" +
 														 to_string(pointer_mapper.pt_cursor_index.y) + "!" +
-														 to_string(pt_cursor_index_z) + "!" +
+														 to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
 														 to_string(pointer_mapper.index_down) + "!index");
 			}
 			else
@@ -489,7 +501,7 @@ void compute()
 
 		ipc->send_udp_message("win_cursor_plus", "update!" + to_string(frame_num));
 	}
-	else if (mode == "tool")
+	else if (mode == "tool" && proceed)
 	{
 		enable_imshow = true;
 
@@ -538,8 +550,6 @@ void compute()
 
 	if (enable_imshow)
 		waitKey(1);
-
-	updated = false;
 }
 
 void pose_estimator_thread_function()
@@ -688,6 +698,9 @@ int main()
 	ipc = new IPC("track_plus");
 	ipc->map_function("exit", [](const string message_body)
 	{
+		if (child_module_name != "")
+			ipc->send_message(child_module_name, "exit", "");
+
 		exit(0);
 	});
 
@@ -699,7 +712,7 @@ int main()
 		compute();
 
 		if (settings.power_saving_mode != "1")
-			Sleep(1);
+			Sleep(15);
 		else
 			Sleep(50);
 	}

@@ -18,7 +18,7 @@
 
 #include "mono_processor_new.h"
 
-bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, Mat& image_preprocessed, const string name, bool visualize)
+bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize, bool secondary)
 {
 	pt_index = Point(-1, -1);
 	pt_thumb = Point(-1, -1);
@@ -34,7 +34,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, Mat& image_prepro
 	}
 
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
 	{
@@ -395,6 +395,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, Mat& image_prepro
 
 	blob_detector_image_hand.sort_blobs_by_angle(pivot);
 
+	if (secondary)
+		return true;
+
 	//--------------------------------------------------------------------------------------------------------------------------------
 
 	const int dest_x = 80;
@@ -423,24 +426,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, Mat& image_prepro
 	}
 
 	blob_detector_image_hand_rotated.sort_blobs_by_x();
-
-	//--------------------------------------------------------------------------------------------------------------------------------
-
-	/*if (name == "0")
-	{
-		Mat image_preprocessed_rotated = rotate_image(image_preprocessed, -angle_final, pt_palm, 0);
-		image_preprocessed_rotated = translate_image(image_preprocessed_rotated, dest_diff_x, dest_diff_y);
-
-		image_hand_textured = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-		const int y_threshold = pt_palm_rotated.y - palm_radius;
-
-		for (int i = 0; i < WIDTH_SMALL; ++i)
-			for (int j = 0; j < HEIGHT_SMALL; ++j)
-				if (image_hand_rotated_raw.ptr<uchar>(j, i)[0] > 0 && j > y_threshold)
-					image_hand_textured.ptr<uchar>(j, i)[0] = image_preprocessed_rotated.ptr<uchar>(j, i)[0];
-
-		// imshow("image_hand_textured", image_hand_textured);
-	}*/
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 

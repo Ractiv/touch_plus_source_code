@@ -30,6 +30,7 @@ class PointerMapper
 public:
 	bool active = false;
 	bool calibrated = false;
+	bool do_reset = false;
 
 	bool thumb_down = false;
 	bool index_down = false;
@@ -84,4 +85,5 @@ public:
 							  Point2f& pt_cursor, float& dist_cursor_target_plane, const float actuation_dist, string name);
 
 	void compute_pinch_to_zoom(HandResolver& hand_resolver);
+	void reset();
 };

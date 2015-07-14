@@ -17,26 +17,3 @@
  */
 
 #pragma once
-
-#include "motion_processor_new.h"
-#include "foreground_extractor_new.h"
-
-struct Uchar3D
-{
-	uchar uchar0;
-	uchar uchar1;
-	uchar uchar2;
-};
-
-class HandSplitterNew
-{
-public:
-	vector<BlobNew> primary_hand_blobs;
-
-	int x_min_result = 0;
-	int x_max_result = 0;
-	int y_min_result = 0;
-	int y_max_result = 0;
-
-	bool compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name);
-};

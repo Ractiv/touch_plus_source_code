@@ -34,13 +34,11 @@ public:
 
 	BlobDetectorNew blob_detector_image_subtraction;
 
-	LowPassFilter low_pass_filter;
+	Point2f pt_precise_index0 = Point(-1, -1);
+	Point2f pt_precise_index1 = Point(-1, -1);
 
-	Point2f pt_precise_index0;
-	Point2f pt_precise_index1;
-
-	Point2f pt_precise_thumb0;
-	Point2f pt_precise_thumb1;
+	Point2f pt_precise_thumb0 = Point(-1, -1);
+	Point2f pt_precise_thumb1 = Point(-1, -1);
 
 	void compute(MonoProcessorNew& mono_processor0,     MonoProcessorNew& mono_processor1,
 				 MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1,

@@ -24,6 +24,7 @@
 #include "permutation.h"
 #include "id_point.h"
 #include "value_store.h"
+#include "compare_structs.h"
 
 class MonoProcessorNew
 {
@@ -35,11 +36,9 @@ public:
 
 	LowPassFilter low_pass_filter;
 
-	Mat image_active_hand;
-	Mat image_hand_textured;
-
 	Point pt_palm;
 	Point pt_palm_rotated;
+
 	Point pt_index;
 	Point pt_thumb;
 
@@ -51,7 +50,7 @@ public:
 
 	vector<Point> points_unwrapped_result;
 
-	bool compute(HandSplitterNew& hand_splitter, Mat& image_preprocessed, const string name, bool visualize);
+	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize, bool secondary = false);
 	void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_in);
 	void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);
 	void compute_extension_line(Point pt_start, Point pt_end, const uchar length, vector<Point>& line_points, const bool reverse);
@@ -118,56 +117,6 @@ private:
 		bool operator() (const Point& pt0, const Point& pt1)
 		{
 			return (pt0.y < pt1.y);
-		}
-	};
-
-	struct compare_blob_angle
-	{
-		Point anchor;
-
-		compare_blob_angle(Point& anchor_in)
-		{
-			anchor = anchor_in;
-		}
-
-		bool operator() (const BlobNew* blob0, const BlobNew* blob1)
-		{
-			float theta0 = get_angle(blob0->x, blob0->y, anchor.x, anchor.y);
-			float theta1 = get_angle(blob1->x, blob1->y, anchor.x, anchor.y);
-
-			return theta0 > theta1;
-		}
-	};
-
-	struct compare_blob_x
-	{
-		bool operator() (const BlobNew* blob0, const BlobNew* blob1)
-		{
-			return blob0->pt_y_max.x < blob1->pt_y_max.x;
-		}
-	};
-
-	struct compare_blob_y
-	{
-		bool operator() (const BlobNew* blob0, const BlobNew* blob1)
-		{
-			return blob0->pt_y_max.y > blob1->pt_y_max.y;
-		}
-	};
-
-	struct compare_blob_y_max
-	{
-		bool operator() (const BlobNew& blob0, const BlobNew& blob1)
-		{
-			return (blob0.y_max > blob1.y_max);
-		}
-	};
-
-	struct compare_blob_count
-	{
-		bool operator() (const BlobNew* blob0, const BlobNew* blob1)
-		{
-			return (blob0->count > blob1->count);
 		}
 	};
 

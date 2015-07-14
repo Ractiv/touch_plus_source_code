@@ -267,8 +267,8 @@ namespace win_cursor_plus
                         cursorImageIndex.Opacity += 0.2;
 
                     int cursorSize = (int)(zCursorIndex * 5 * (float)windowWidth / (float)screenWidth);
-                    if (cursorSize > 200)
-                        cursorSize = 200;
+                    if (cursorSize > 150)
+                        cursorSize = 150;
                     else if (cursorSize < 50)
                         cursorSize = 50;
 
@@ -276,6 +276,15 @@ namespace win_cursor_plus
 
                     int xPosRemapped = (int)map_val(xCursorIndex, 0, screenWidth, 0, windowWidth);
                     int yPosRemapped = (int)map_val(yCursorIndex, 0, screenHeight, 0, windowHeight);
+
+                    if (xPosRemapped < 0)
+                        xPosRemapped = 0;
+                    else if (xPosRemapped > screenWidth)
+                        xPosRemapped = screenWidth;
+                    if (yPosRemapped < 0)
+                        yPosRemapped = 0;
+                    else if (yPosRemapped > screenHeight)
+                        yPosRemapped = screenHeight;
 
                     Canvas.SetLeft(cursorImageIndex, xPosRemapped - (cursorSize / 2));
                     Canvas.SetTop(cursorImageIndex, yPosRemapped - (cursorSize / 2));
@@ -294,8 +303,8 @@ namespace win_cursor_plus
                         cursorImageThumb.Opacity += 0.2;
 
                     int cursorSize = (int)(zCursorThumb * 5 * (float)windowWidth / (float)screenWidth);
-                    if (cursorSize > 200)
-                        cursorSize = 200;
+                    if (cursorSize > 150)
+                        cursorSize = 150;
                     else if (cursorSize < 50)
                         cursorSize = 50;
 
@@ -303,6 +312,15 @@ namespace win_cursor_plus
 
                     int xPosRemapped = (int)map_val(xCursorThumb, 0, screenWidth, 0, windowWidth);
                     int yPosRemapped = (int)map_val(yCursorThumb, 0, screenHeight, 0, windowHeight);
+
+                    if (xPosRemapped < 0)
+                        xPosRemapped = 0;
+                    else if (xPosRemapped > screenWidth)
+                        xPosRemapped = screenWidth;
+                    if (yPosRemapped < 0)
+                        yPosRemapped = 0;
+                    else if (yPosRemapped > screenHeight)
+                        yPosRemapped = screenHeight;
 
                     Canvas.SetLeft(cursorImageThumb, xPosRemapped - (cursorSize / 2));
                     Canvas.SetTop(cursorImageThumb, yPosRemapped - (cursorSize / 2));

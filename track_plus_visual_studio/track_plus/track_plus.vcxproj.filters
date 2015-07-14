@@ -41,9 +41,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\blob_new.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\blob_tracker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,6 +158,15 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\compare_structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp">
@@ -182,9 +188,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_new.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\blob_tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\c_tracker.cpp">
@@ -302,6 +305,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

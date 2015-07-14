@@ -229,6 +229,12 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 {
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter" + name);
 
+	if (do_reset)
+	{
+		do_reset = false;
+		low_pass_filter->reset();
+	}
+
 	if (pt_target0.x != -1 && pt_target1.x != -1)
 	{
 		active = true;
@@ -245,9 +251,9 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 			if (value_store.has_point2f("pt_cursor" + name))
 			{
                 Point2f temp = value_store.get_point2f("pt_cursor" + name);
-                float alpha = get_distance(pt_cursor, temp) / 500;
-	            if (alpha < 0.1)
-	            	alpha = 0.1;
+                float alpha = get_distance(pt_cursor, temp) / 1000;
+	            if (alpha < 0.05)
+	            	alpha = 0.05;
 	            else if (alpha > 1)
 	            	alpha = 1;
 
@@ -256,16 +262,25 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 	        }
 	        value_store.set_point2f("pt_cursor" + name, pt_cursor);
 
-			const float hit_dist = compute_hit_dist(pt_target_projected);
-			dist_cursor_target_plane = dist_target_plane - hit_dist;
+			float hit_dist = compute_hit_dist(pt_target_projected);
 
-			if (dist_cursor_target_plane < actuation_dist)
+			dist_cursor_target_plane = dist_target_plane - hit_dist;
+			low_pass_filter->compute(dist_cursor_target_plane, 0.1, "dist_cursor_target_plane");
+
+			float hit_dist_processed = hit_dist;
+			float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
+			hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.25);
+			value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
+
+			float dist_cursor_target_plane_processed = dist_target_plane - hit_dist_processed;
+
+			if (dist_cursor_target_plane_processed < actuation_dist + 3)
 				value_store.set_bool("actuated" + name, true);
 
 			if (value_store.get_bool("actuated" + name))
-				if (dist_cursor_target_plane < actuation_dist + 3)
+				if (dist_cursor_target_plane_processed < actuation_dist + 3)
 					target_down = true;
-				else if (dist_cursor_target_plane > actuation_dist + 5)
+				else if (dist_cursor_target_plane_processed > actuation_dist + 5)
 				{
 					target_down = false;
 					value_store.set_bool("actuated" + name, false);
@@ -344,4 +359,9 @@ void PointerMapper::compute_pinch_to_zoom(HandResolver& hand_resolver)
 		pinch_to_zoom = false;
 
 	value_store.set_bool("thumb_actuated_old", value_store.get_bool("thumb_actuated"));
+}
+
+void PointerMapper::reset()
+{
+	do_reset = true;
 }

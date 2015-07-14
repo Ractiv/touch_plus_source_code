@@ -16,10 +16,10 @@
   <ItemGroup>
     <ClInclude Include="..\..\track_plus_core\track_plus\blob_detector_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\blob_new.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\blob_tracker.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\Camera.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\CameraDS.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\camera_initializer_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\compare_structs.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\contour_functions.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\curve_fitting.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h" />
@@ -34,6 +34,8 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\id_point.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\tool_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
@@ -65,7 +67,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_detector_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_new.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\blob_tracker.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\Camera.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\CameraDS.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\camera_initializer_new.cpp" />
@@ -82,6 +83,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />

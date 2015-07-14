@@ -111,7 +111,7 @@ int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_
 				const int j_shifted = j + y_diff_in;
 				const int i_shifted = i + x_diff_in;
 
-				if (j_shifted > HEIGHT_SMALL_MINUS || i_shifted > WIDTH_SMALL_MINUS)
+				if (j_shifted > HEIGHT_SMALL_MINUS || i_shifted > WIDTH_SMALL_MINUS || j_shifted < 0 || i_shifted < 0)
 					continue;
 
 				if (image_dilated1.ptr<uchar>(j_shifted, i_shifted)[0] == 254)
