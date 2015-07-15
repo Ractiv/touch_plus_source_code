@@ -139,6 +139,8 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 						gray_threshold = gray_median - 30;
 						low_pass_filter->compute(gray_threshold, 0.1, "gray_threshold");
+						if (gray_threshold > 100)
+							gray_threshold = 100;
 
 						gray_threshold_stereo = gray_threshold;
 					}
@@ -149,7 +151,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				Mat image_in_thresholded;
 				threshold(image_in, image_in_thresholded, gray_threshold, 254, THRESH_BINARY);
 
-				if (value_store.get_int("compute_slope_count") <= 10)
+				/*if (value_store.get_int("compute_slope_count") <= 10)
 				{
 					compute_slope(image_in_thresholded, "left");
 					compute_slope(image_in_thresholded, "right");
@@ -212,7 +214,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						imshow("image_borders" + name, image_borders);
 
 					value_store.set_int("compute_slope_count", value_store.get_int("compute_slope_count") + 1);
-				}
+				}*/
 
 				if (value_store.get_bool("image_bottom_sides_filled") == false && y_separator_motion_down_median != -1)
 				{					
@@ -240,7 +242,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				}
 
 				Mat image_in_thresholded_dilated;
-				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 5);
+				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 7);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)

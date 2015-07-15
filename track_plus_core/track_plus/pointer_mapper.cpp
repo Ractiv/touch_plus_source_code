@@ -269,7 +269,7 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 
 			float hit_dist_processed = hit_dist;
 			float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
-			hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.25);
+			hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.1);
 			value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
 
 			float dist_cursor_target_plane_processed = dist_target_plane - hit_dist_processed;
@@ -278,13 +278,15 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 				value_store.set_bool("actuated" + name, true);
 
 			if (value_store.get_bool("actuated" + name))
-				if (dist_cursor_target_plane_processed < actuation_dist + 3)
-					target_down = true;
-				else if (dist_cursor_target_plane_processed > actuation_dist + 5)
+			{
+				target_down = true;
+				
+				if (dist_cursor_target_plane_processed > actuation_dist + 10)
 				{
 					target_down = false;
 					value_store.set_bool("actuated" + name, false);
 				}
+			}
 		}
 	}
 	else

@@ -66,15 +66,16 @@ bool ToolStereoProcessor::compute(ToolMonoProcessor& tool_mono_processor0,
 	if (matches.size() == 0)
 		return false;
 
-	Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	Mat image_visualization_tool_stereo_processor = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	for (OverlappingBlobPair& pair : matches)
 	{
-		pair.blob0->fill(image_visualization, 254);
-		pair.blob1->fill(image_visualization, 127);
-		line(image_visualization, Point(pair.blob0->x, pair.blob0->y), Point(pair.blob1->x, pair.blob1->y), Scalar(64), 2);
+		pair.blob0->fill(image_visualization_tool_stereo_processor, 254);
+		pair.blob1->fill(image_visualization_tool_stereo_processor, 127);
+		line(image_visualization_tool_stereo_processor, Point(pair.blob0->x, pair.blob0->y),
+														Point(pair.blob1->x, pair.blob1->y), Scalar(64), 2);
 	}
 
-	imshow("image_visualization", image_visualization);
+	imshow("image_visualization_tool_stereo_processor", image_visualization_tool_stereo_processor);
 	return true;
 }

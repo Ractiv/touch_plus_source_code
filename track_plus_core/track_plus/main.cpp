@@ -117,6 +117,7 @@ bool show_calibration_sent = false;
 bool show_cursor_index = false;
 bool show_cursor_thumb = false;
 bool wait_for_device_bool = false;
+bool updated = true;
 
 int calibration_key_codes[4] { 56, 187, 161, 77 };
 int calibration_step = 4;
@@ -178,6 +179,7 @@ void update(Mat& image_in)
 {
 	image_current_frame = image_in;
 	wait_count = 0;
+	updated = true;
 }
 
 void init_paths()
@@ -298,6 +300,8 @@ void on_first_frame()
 
 void compute()
 {
+	updated = false;
+
 	ipc->update();
 
 	if (wait_for_device_bool)
@@ -396,7 +400,7 @@ void compute()
 	if (proceed)
 	{
 		proceed0 = foreground_extractor0.compute(image_preprocessed0, image_preprocessed_smoothed0, motion_processor0, "0", true);
-		proceed1 = foreground_extractor1.compute(image_preprocessed1, image_preprocessed_smoothed1, motion_processor1, "1", false);
+		proceed1 = foreground_extractor1.compute(image_preprocessed1, image_preprocessed_smoothed1, motion_processor1, "1", true);
 		proceed = proceed0 && proceed1;
 	}
 
@@ -709,10 +713,16 @@ int main()
 
 	while (true)
 	{
+		if (!updated)
+		{
+			Sleep(1);
+			continue;
+		}
+
 		compute();
 
 		if (settings.power_saving_mode != "1")
-			Sleep(15);
+			Sleep(1);
 		else
 			Sleep(50);
 	}

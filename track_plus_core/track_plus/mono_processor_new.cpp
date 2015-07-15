@@ -599,11 +599,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		low_pass_filter.compute(angle_raw, 0.5, "angle_raw");
 
-		// Mat image_visualization = rotate_image(image_hand, -angle_raw, pt_palm, 0);
-		// image_visualization = translate_image(image_visualization, dest_diff_x, dest_diff_y);
-
-		// imshow("image_visualization", image_visualization);
-
 		vector<Point> convex_points_rotated;
 		int x_max = 0;
 		int y_max = 0;
