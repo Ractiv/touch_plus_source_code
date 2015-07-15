@@ -89,9 +89,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, Mat& image_smoothed_in,
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.count < motion_processor.noise_size ||
 			// (blob.width <= 3 || blob.height <= 3) ||
-			blob.y > motion_processor.y_separator_motion_down_median ||
-			blob.x_max < motion_processor.x_separator_motion_left_median ||
-			blob.x_min > motion_processor.x_separator_motion_right_median)
+			blob.y > motion_processor.y_separator_motion_down_median)
+			// blob.x_max < motion_processor.x_separator_motion_left_median ||
+			// blob.x_min > motion_processor.x_separator_motion_right_median)
 		{
 			blob.active = false;
 			blob.fill(image_foreground, 0);

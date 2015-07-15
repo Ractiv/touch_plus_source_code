@@ -21,13 +21,17 @@
 bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool visualize)
 {
 	if (mode == "tool")
-	{
 		return false;
-	}
 
-	value_store.set_bool("both_hands_are_moving", false);
 	value_store.set_bool("left_hand_is_moving", false);
 	value_store.set_bool("right_hand_is_moving", false);
+
+	static bool set_both_hands_are_moving = false;
+
+	if (name == "1" && set_both_hands_are_moving)
+		value_store.set_bool("both_hands_are_moving", true);
+	else
+		value_store.set_bool("both_hands_are_moving", false);
 
 	Mat image_background = value_store.get_mat("image_background");
 	Mat image_foreground = value_store.get_mat("image_foreground", true);
@@ -139,9 +143,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 						gray_threshold = gray_median - 30;
 						low_pass_filter->compute(gray_threshold, 0.1, "gray_threshold");
-						if (gray_threshold > 100)
-							gray_threshold = 100;
-
 						gray_threshold_stereo = gray_threshold;
 					}
 				}
@@ -150,6 +151,122 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 				Mat image_in_thresholded;
 				threshold(image_in, image_in_thresholded, gray_threshold, 254, THRESH_BINARY);
+
+				const int push_count_max = 10;
+				if (value_store.get_int("push_count") < push_count_max)
+				{
+					if (value_store.get_bool("both_hands_are_moving"))
+					{
+						vector<int>* x_vec = value_store.get_int_vec("x_vec");
+						vector<int>* y_vec = value_store.get_int_vec("y_vec");
+
+						for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+							for (Point& pt : blob.data)
+							{
+								x_vec->push_back(pt.x);
+								y_vec->push_back(pt.y);
+							}
+
+						value_store.set_int("push_count", value_store.get_int("push_count") + 1);
+					}
+				}
+				else if (value_store.get_int("push_count") == push_count_max)
+				{
+					vector<int>* x_vec = value_store.get_int_vec("x_vec");
+					vector<int>* y_vec = value_store.get_int_vec("y_vec");
+
+					sort(x_vec->begin(), x_vec->end());
+					sort(y_vec->begin(), y_vec->end());
+
+					Point pt0 = Point((*x_vec)[x_vec->size() * 0.25], (*y_vec)[y_vec->size() * 0.1]);
+					Point pt1 = Point((*x_vec)[x_vec->size() * 0.1], (*y_vec)[y_vec->size() * 0.9]);
+
+					int x_diff0 = pt0.x - x_separator_motion_left_median;		
+					pt0.x -= x_diff0;
+					pt1.x -= x_diff0;
+
+					Point pt2 = Point((*x_vec)[x_vec->size() * 0.75], (*y_vec)[y_vec->size() * 0.1]);
+					Point pt3 = Point((*x_vec)[x_vec->size() * 0.9], (*y_vec)[y_vec->size() * 0.9]);
+
+					int x_diff1 = x_separator_motion_right_median - pt2.x;
+					pt2.x += x_diff1;
+					pt3.x += x_diff1;
+
+					x_vec->clear();
+					y_vec->clear();
+
+					Point pt_top0;
+					Point pt_top1;
+					Point pt_bottom0;
+					Point pt_bottom1;
+
+					bool bi0 = get_intersection_at_y(pt0, pt1, 0, pt_top0);
+					bool bi1 = get_intersection_at_y(pt2, pt3, 0, pt_top1);
+					bool bi2 = get_intersection_at_y(pt0, pt1, HEIGHT_SMALL, pt_bottom0);
+					bool bi3 = get_intersection_at_y(pt2, pt3, HEIGHT_SMALL, pt_bottom1);
+					bool bi4 = pt_top0.x > 0;
+					bool bi5 = pt_top1.x < WIDTH_SMALL_MINUS;
+					bool bi6 = x_separator_motion_left_median > 0;
+					bool bi7 = x_separator_motion_right_median < WIDTH_SMALL_MINUS;
+
+					if (bi0 && bi1 && bi2 && bi3 && bi4 && bi5 && bi6 && bi7)
+					{
+						Mat image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+						line(image_borders, pt_top0, pt_bottom0, Scalar(254), 1);
+						line(image_borders, pt_top1, pt_bottom1, Scalar(254), 1);
+
+						floodFill(image_borders, Point(0, 0), Scalar(254));
+						floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
+
+						line(image_borders, Point(x_separator_motion_left_median, 0), 
+										    Point(x_separator_motion_left_median, 9999), Scalar(254), 1);
+
+						line(image_borders, Point(x_separator_motion_right_median, 0), 
+									        Point(x_separator_motion_right_median, 9999), Scalar(254), 1);
+
+						floodFill(image_borders, Point(x_separator_motion_left_median - 1, HEIGHT_SMALL_MINUS), Scalar(254));
+						floodFill(image_borders, Point(x_separator_motion_right_median + 1, HEIGHT_SMALL_MINUS), Scalar(254));
+
+						line(image_borders, Point(0, y_separator_motion_down_median),
+										    Point(9999, y_separator_motion_down_median), Scalar(254), 1);
+
+						floodFill(image_borders,
+								  Point((x_separator_motion_left_median + x_separator_motion_right_median) / 2, HEIGHT_SMALL_MINUS),
+								  Scalar(254));
+
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								if (image_borders.ptr<uchar>(j, i)[0] > 0)
+									fill_image_background_static(i, j, image_in);
+
+						value_store.set_bool("slopes_computed", true);
+
+						/*Mat image_visualization_motion_processor = image_in.clone();
+
+						circle(image_visualization_motion_processor, pt_top0, 5, Scalar(255), 2);
+						circle(image_visualization_motion_processor, pt_bottom0, 5, Scalar(127), 2);
+
+						circle(image_visualization_motion_processor, pt_top1, 5, Scalar(255), 2);
+						circle(image_visualization_motion_processor, pt_bottom1, 5, Scalar(127), 2);
+
+						line(image_visualization_motion_processor, pt_top0, pt_bottom0, Scalar(254), 1);
+						line(image_visualization_motion_processor, pt_top1, pt_bottom1, Scalar(254), 1);
+
+						line(image_visualization_motion_processor, Point(x_separator_motion_left_median, 0), 
+																   Point(x_separator_motion_left_median, 9999), Scalar(254), 1);
+
+						line(image_visualization_motion_processor, Point(x_separator_motion_right_median, 0), 
+																   Point(x_separator_motion_right_median, 9999), Scalar(254), 1);
+
+						line(image_visualization_motion_processor, Point(0, y_separator_motion_down_median),
+										                           Point(9999, y_separator_motion_down_median), Scalar(254), 1);
+
+						imshow("image_visualization_motion_processor" + name, image_visualization_motion_processor);*/
+					}
+
+					value_store.set_int("push_count", 9999);
+				}
 
 				/*if (value_store.get_int("compute_slope_count") <= 10)
 				{
@@ -169,6 +286,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						{
 							pt_top_left_vec->push_back(pt_top);
 							pt_bottom_left_vec->push_back(pt_bottom);
+
 							sort(pt_top_left_vec->begin(), pt_top_left_vec->end(), compare_point_x());
 							sort(pt_bottom_left_vec->begin(), pt_bottom_left_vec->end(), compare_point_x());
 						}
@@ -182,6 +300,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						{
 							pt_top_right_vec->push_back(pt_top);
 							pt_bottom_right_vec->push_back(pt_bottom);
+
 							sort(pt_top_right_vec->begin(), pt_top_right_vec->end(), compare_point_x());
 							sort(pt_bottom_right_vec->begin(), pt_bottom_right_vec->end(), compare_point_x());
 						}
@@ -193,6 +312,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 					{
 						Point pt_top = (*pt_top_left_vec)[pt_top_left_vec->size() / 2];
 						Point pt_bottom = (*pt_bottom_left_vec)[pt_bottom_left_vec->size() / 2];
+
 						line(image_borders, pt_top, pt_bottom, Scalar(254), 1);
 						floodFill(image_borders, Point(0, 0), Scalar(254));
 					}
@@ -201,6 +321,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 					{
 						Point pt_top = (*pt_top_right_vec)[pt_top_right_vec->size() / 2];
 						Point pt_bottom = (*pt_bottom_right_vec)[pt_bottom_right_vec->size() / 2];
+
 						line(image_borders, pt_top, pt_bottom, Scalar(254), 1);
 						floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
 					}
@@ -215,31 +336,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 					value_store.set_int("compute_slope_count", value_store.get_int("compute_slope_count") + 1);
 				}*/
-
-				if (value_store.get_bool("image_bottom_sides_filled") == false && y_separator_motion_down_median != -1)
-				{					
-					value_store.set_bool("image_bottom_sides_filled", true);
-
-					int x_separator_motion_left_median_const = x_separator_motion_left_median;
-					int x_separator_motion_right_median_const = x_separator_motion_right_median;
-
-					if (x_separator_motion_left_median_const < 0)
-						x_separator_motion_left_median_const = 0;
-					if (x_separator_motion_right_median_const > WIDTH_SMALL_MINUS)
-						x_separator_motion_right_median_const = WIDTH_SMALL_MINUS;
-
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = y_separator_motion_down_median; j < HEIGHT_SMALL; ++j)
-							fill_image_background_static(i, j, image_in);
-
-					for (int i = 0; i <= x_separator_motion_left_median_const; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							fill_image_background_static(i, j, image_in);
-
-					for (int i = x_separator_motion_right_median_const; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							fill_image_background_static(i, j, image_in);
-				}
 
 				Mat image_in_thresholded_dilated;
 				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 7);
@@ -288,7 +384,9 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 								fill_image_background_static(i, j, image_in);
 				}
 
-				if (value_store.get_bool("both_hands_are_moving") && value_store.get_bool("set_result", true))
+				if (value_store.get_bool("both_hands_are_moving") &&
+					value_store.get_bool("set_result", true) &&
+					value_store.get_bool("slopes_computed"))
 				{
 					value_store.set_bool("set_result", false);
 					value_store.set_int("target_frame", 1);
@@ -302,6 +400,8 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 					imshow("image_background_static" + name, image_background_static);
 					// imshow("image_foreground_motion_processor_new" + name, image_foreground);
 				}
+
+				imshow("image_background_static" + name, image_background_static);
 			}
 		}
 		else
@@ -324,6 +424,12 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 		value_store.set_mat("image_background", image_in);
 
 	value_store.set_bool("image_background_set", true);
+
+	if (name == "0" && value_store.get_bool("both_hands_are_moving"))
+		set_both_hands_are_moving = true;
+	else
+		set_both_hands_are_moving = false;
+
 	return value_store.get_bool("result");
 }
 
@@ -483,26 +589,23 @@ bool MotionProcessorNew::compute_x_separator_motion_left_right()
 					x_max = blob.x_max;
 			}
 
-		if (x_min < 9999)
+		if (x_min < 9999 && x_max > -1)
 		{
 			if (x_separator_motion_left_vec->size() < 1000)
 				x_separator_motion_left_vec->push_back(x_min);
 			else
-				(*x_separator_motion_left_vec)[x_separator_motion_left_vec->size() - 1] = x_min;
+				(*x_separator_motion_left_vec)[0] = x_min;
 
-			sort(x_separator_motion_left_vec->begin(), x_separator_motion_left_vec->end());
-			x_separator_motion_left_median = (*x_separator_motion_left_vec)[x_separator_motion_left_vec->size() * 0.5];
-		}
-
-		if (x_max > -1)
-		{
 			if (x_separator_motion_right_vec->size() < 1000)
 				x_separator_motion_right_vec->push_back(x_max);
 			else
-				(*x_separator_motion_right_vec)[x_separator_motion_right_vec->size() - 1] = x_max;
+				(*x_separator_motion_right_vec)[0] = x_max;
+
+			sort(x_separator_motion_left_vec->begin(), x_separator_motion_left_vec->end());
+			x_separator_motion_left_median = (*x_separator_motion_left_vec)[x_separator_motion_left_vec->size() * 0.9];
 
 			sort(x_separator_motion_right_vec->begin(), x_separator_motion_right_vec->end());
-			x_separator_motion_right_median = (*x_separator_motion_right_vec)[x_separator_motion_right_vec->size() * 0.5];
+			x_separator_motion_right_median = (*x_separator_motion_right_vec)[x_separator_motion_right_vec->size() * 0.3];
 		}
 	}
 
