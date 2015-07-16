@@ -16,7 +16,10 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		index1 = 0;
 		for (BlobNew& blob1 :  *mono_processor1.blob_detector_image_hand.blobs)
 		{
-			int overlap_count = blob0.compute_overlap(blob1, -x_diff, -y_diff, 5);
+			int overlap_count = blob0.compute_overlap(blob1, -x_diff, -y_diff, 10);
+			int y_diff_current = blob0.y_max - blob1.y_max;
+
+			overlap_count += 50 / (abs(y_diff_current - y_diff) + 1);
 
 			overlapping_blob_pair_vec.push_back(OverlappingBlobPair(&blob0, &blob1, overlap_count, index0, index1));
 			++index1;
@@ -54,8 +57,10 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 	{
 		pair.blob0->fill(image_visualization_stereo_processor, 254);
 		pair.blob1->fill(image_visualization_stereo_processor, 127);
-		line(image_visualization_stereo_processor, Point(pair.blob0->x, pair.blob0->y), Point(pair.blob1->x, pair.blob1->y), Scalar(64), 2);
 	}
+
+	for (OverlappingBlobPair& pair : matches)
+		line(image_visualization_stereo_processor, pair.blob0->pt_y_max, pair.blob1->pt_y_max, Scalar(64), 2);
 
 	imshow("image_visualization_stereo_processor", image_visualization_stereo_processor);
 	return true;

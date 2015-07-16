@@ -180,15 +180,15 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						float gray_max_right = gray_vec_right[gray_vec_right.size() * 0.9];
 						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
 
-						gray_threshold = gray_median - 20;
+						gray_threshold = gray_median - 10;
 						low_pass_filter->compute(gray_threshold, 0.1, "gray_threshold");
 						gray_threshold_stereo = gray_threshold;
 
-						gray_threshold_left = gray_median_left - 20;
+						gray_threshold_left = gray_median_left - 10;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
 
-						gray_threshold_right = gray_median_right - 20;
+						gray_threshold_right = gray_median_right - 10;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
 					}
@@ -341,7 +341,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 				if (name == motion_processor_primary_name)
 				{
-					diff_threshold = static_diff_max * 0.2;
+					diff_threshold = static_diff_max * 0.3;
 					low_pass_filter->compute(diff_threshold, 0.1, "diff_threshold");
 					diff_threshold_stereo = diff_threshold;
 				}

@@ -382,6 +382,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			else
 				image_hand.ptr<uchar>(pt.y, pt.x)[0] = 254;
 
+	GaussianBlur(image_hand, image_hand, Size(3, 3), 0, 0);
+	threshold(image_hand, image_hand, 170, 254, THRESH_BINARY);
+
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	blob_detector_image_hand.compute(image_hand, 254, hand_splitter.x_min_result, hand_splitter.x_max_result,

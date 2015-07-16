@@ -22,7 +22,6 @@
 #include "motion_processor_new.h"
 #include "mat_functions.h"
 #include "reprojector.h"
-#include "math_plus.h"
 
 class HandResolver
 {
@@ -46,23 +45,5 @@ public:
 				 Reprojector& reprojector);
 
 	Point2f increase_resolution(Point& pt_in, Mat& image_in, Mat& image_background_in, uchar diff_threshold, uchar gray_threshold,
-								Reprojector& reprojector, uchar side);
-
-private:
-	struct compare_dist_to_pt
-	{
-		Point pivot;
-
-		compare_dist_to_pt(Point& pivot_in)
-		{
-			pivot = pivot_in;
-		}
-
-		bool operator() (Point& pt0, Point& pt1)
-		{
-			const float dist0 = get_distance(pt0, pivot);
-			const float dist1 = get_distance(pt1, pivot);
-			return dist0 < dist1;
-		}
-	};
+								Reprojector& reprojector);
 };

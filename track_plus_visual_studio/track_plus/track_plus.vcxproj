@@ -35,6 +35,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\point_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\tool_resolver.h" />
@@ -83,6 +84,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp" />

@@ -26,22 +26,22 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 	pt_precise_index0 = Point2f(-1, -1);
 	if (mono_processor0.pt_index.x != -1)
 		pt_precise_index0 = increase_resolution(mono_processor0.pt_index, image0, motion_processor0.image_background_static,
-											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector, 0);
+											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector);
 
 	pt_precise_index1 = Point2f(-1, -1);
 	if (mono_processor1.pt_index.x != -1)
 		pt_precise_index1 = increase_resolution(mono_processor1.pt_index, image1, motion_processor1.image_background_static,
-											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector, 1);
+											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector);
 
 	pt_precise_thumb0 = Point2f(-1, -1);
 	if (mono_processor0.pt_thumb.x != -1)
 		pt_precise_thumb0 = increase_resolution(mono_processor0.pt_thumb, image0, motion_processor0.image_background_static,
-											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector, 0);
+											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector);
 
 	pt_precise_thumb1 = Point2f(-1, -1);
 	if (mono_processor1.pt_thumb.x != -1)
 		pt_precise_thumb1 = increase_resolution(mono_processor1.pt_thumb, image1, motion_processor1.image_background_static,
-											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector, 1);
+											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector);
 
 	if (pt_precise_index0.x == -1 || pt_precise_index1.x == -1)
 	{
@@ -69,7 +69,7 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 }
 
 Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& image_background_in, uchar diff_threshold, uchar gray_threshold,
-										  Reprojector& reprojector, uchar side)
+										  Reprojector& reprojector)
 {
 	Point pt_large = pt_in * 4;
 
@@ -151,18 +151,12 @@ Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& imag
 	if (blob_detector_image_subtraction.blobs->size() == 0)
 		return Point(-1, -1);
 
-	// vector<Point>* data_ptr = &(blob_detector_image_subtraction.blob_max_size->data);
-	// sort(data_ptr->begin(), data_ptr->end(), compare_dist_to_pt(pt_large));
-
 	float x_mean = 0;
 	float y_mean = 0;
 	int count = 0;
 
 	for (Point& pt : blob_detector_image_subtraction.blob_max_size->data)
 	{
-		// if (count >= 100)
-			// break;
-		
 		x_mean += pt.x;
 		y_mean += pt.y;
 		++count;
