@@ -30,7 +30,7 @@ class MotionProcessorNew
 public:
 	int noise_size = 0;
 
-	int vector_completion_size = 10;
+	int vector_completion_size = 5;
 
 	int y_separator_motion_down_median = -1;
 	int y_separator_motion_up_median = -1;
@@ -40,6 +40,8 @@ public:
 	int x_separator_motion_right_median = WIDTH_SMALL;
 
 	uchar gray_threshold = 255;
+	uchar gray_threshold_left = 255;
+	uchar gray_threshold_right = 255;
 	uchar diff_threshold = 255;
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
@@ -50,7 +52,6 @@ public:
 	bool compute_y_separator_motion();
 	bool compute_x_separator_middle();
 	bool compute_x_separator_motion_left_right();
-	void compute_slope(Mat& image_in_thresholded, string name);
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 
 private:

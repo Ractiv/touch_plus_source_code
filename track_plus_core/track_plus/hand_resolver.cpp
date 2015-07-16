@@ -74,9 +74,9 @@ Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& imag
 	Point pt_large = pt_in * 4;
 
 	int x0 = pt_large.x - window_width_half;
-	int y0 = pt_large.y - window_width_half;
+	int y0 = pt_large.y - window_height_half;
 	int x1 = pt_large.x + window_width_half;
-	int y1 = pt_large.y + window_width_half;
+	int y1 = pt_large.y + window_height_half;
 
 	if (x0 < 0)
 		x0 = 0;
