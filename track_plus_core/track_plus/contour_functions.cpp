@@ -187,7 +187,7 @@ void compute_unwrap2(vector<Point>& points, Point& pivot, vector<Point>& points_
 	int index = 0;
 	int x_current = 0;
 	Point pt_old = Point(-1, -1);
-	points_unwrapped = vector<Point>(points_size);
+	points_unwrapped = vector<Point>(points_size - 1);
 
 	for (Point& pt : points)
 	{
@@ -201,7 +201,7 @@ void compute_unwrap2(vector<Point>& points, Point& pivot, vector<Point>& points_
 		if (index > 0)
 		{
 			Point pt_current = Point(x_current, dist);
-			points_unwrapped[index] = pt_current;
+			points_unwrapped[index - 1] = pt_current;
 			x_current += get_distance(pt_old, pt);
 		}
 

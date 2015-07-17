@@ -302,7 +302,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						line(image_visualization_motion_processor, Point(0, y_separator_motion_down_median),
 										                           Point(9999, y_separator_motion_down_median), Scalar(254), 1);
 
-						imshow("image_visualization_motion_processor" + name, image_visualization_motion_processor);
+						// imshow("image_visualization_motion_processor" + name, image_visualization_motion_processor);
 					}
 
 					value_store.set_int("push_count", 9999);

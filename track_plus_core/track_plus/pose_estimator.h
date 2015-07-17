@@ -23,6 +23,7 @@
 #include "filesystem.h"
 #include "math_plus.h"
 #include "mat_functions.h"
+#include "value_store.h"
 #include "opencv2\opencv.hpp"
 #include <unordered_map>
 
@@ -37,6 +38,8 @@ public:
 	vector<Point> points_current;
 	vector<vector<Point>> points_collection;
 	vector<string> names_collection;
+
+	ValueStore value_store;
 
 	void init();
 	void compute(vector<Point>& points_in);

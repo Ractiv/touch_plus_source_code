@@ -153,16 +153,38 @@ namespace win_cursor_plus
                             if (xyStr[4] == "index")
                             {
                                 xCursorIndex = x * screenWidth / 1000;
+                                if (xCursorIndex < 0)
+                                    xCursorIndex = 0;
+                                else if (xCursorIndex > screenWidth)
+                                    xCursorIndex = screenWidth;
+
                                 yCursorIndex = y * screenHeight / 1000;
+                                if (yCursorIndex < 0)
+                                    yCursorIndex = 0;
+                                else if (yCursorIndex > screenHeight)
+                                    yCursorIndex = screenHeight;
+
                                 zCursorIndex = z;
+
                                 showCursorIndex = true;
                                 cursorIndexDown = down == 1;
                             }
                             else if (xyStr[4] == "thumb")
                             {
                                 xCursorThumb = x * screenWidth / 1000;
+                                if (xCursorThumb < 0)
+                                    xCursorThumb = 0;
+                                else if (xCursorThumb > screenWidth)
+                                    xCursorThumb = screenWidth;
+
                                 yCursorThumb = y * screenHeight / 1000;
+                                if (yCursorThumb < 0)
+                                    yCursorThumb = 0;
+                                else if (yCursorThumb > screenHeight)
+                                    yCursorThumb = screenHeight;
+
                                 zCursorThumb = z;
+
                                 showCursorThumb = true;
                                 cursorIndexDown = true;
                                 cursorThumbDown = true;

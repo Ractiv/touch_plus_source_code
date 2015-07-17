@@ -420,7 +420,7 @@ void compute()
 
 		if (proceed)
 		{
-			stereo_processor.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1);
+			// stereo_processor.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1);
 
 			points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
 			points_ptr = &(points_pool[points_pool_count]);
@@ -559,7 +559,13 @@ void compute()
 void pose_estimator_thread_function()
 {
 	while (true)
-	{		
+	{
+		if (pose_name == "point")
+		{
+			Sleep(100);
+			continue;
+		}
+
 		if (initialized)
 			pose_estimator.compute(*points_ptr);
 

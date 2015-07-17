@@ -49,7 +49,21 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		++index;
 	}
 
-	if (record_pose && ((target_pose_name != "" && pose_name_dist_min != target_pose_name)/* || dist_min > 200*/))
+	if (dist_min != FLT_MAX)
+	{
+		LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
+		low_pass_filter->compute(dist_min, 0.5, "dist_min");
+
+		if (dist_min < 7000)
+			value_store.set_int("point_count", value_store.get_int("point_count") + 1);
+		else
+			value_store.set_int("point_count", 0);
+
+		if (value_store.get_int("point_count") >= 10)
+			pose_name = "point";		
+	}
+
+	if (record_pose && ((target_pose_name != "" && pose_name_dist_min != target_pose_name) || dist_min > 7000))
 	{
 		save(target_pose_name);
 		COUT << pose_name_dist_min << "->" << target_pose_name << " " << dist_min << endl;
