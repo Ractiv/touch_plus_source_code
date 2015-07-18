@@ -161,6 +161,8 @@ int main()
 
 	ipc.map_function("exit", [](const string message_body)
 	{
+		block_guardian = true;
+		ipc.send_message("everyone", "exit", "");
 		exit(0);
 	});
 

@@ -30,7 +30,6 @@
 #include "mono_processor_new.h"
 #include "stereo_processor.h"
 #include "pose_estimator.h"
-#include "pose_estimator_new.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
 #include "pointer_mapper.h"
@@ -569,7 +568,7 @@ void pose_estimator_thread_function()
 		if (initialized)
 			pose_estimator.compute(*points_ptr);
 
-		Sleep(100);
+		Sleep(500);
 	}
 }
 

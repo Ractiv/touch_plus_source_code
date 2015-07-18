@@ -51,7 +51,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\Plane.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\pointer_mapper.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\processes.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h" />
@@ -100,7 +99,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\Plane.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\pointer_mapper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.cpp" />

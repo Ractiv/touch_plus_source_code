@@ -20,10 +20,12 @@
 
 bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name)
 {
+	int x_separator_middle = 0;
+
 	if (mode == "tool")
-		motion_processor.x_separator_middle = WIDTH_SMALL / 2;
+		x_separator_middle = WIDTH_SMALL / 2;
 	else if (mode == "surface")
-		motion_processor.x_separator_middle = motion_processor.x_separator_middle_median;
+		x_separator_middle = motion_processor.x_separator_middle_median;
 
 	primary_hand_blobs = vector<BlobNew>();
 	x_min_result = 9999;
@@ -33,7 +35,7 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 	for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
 		if (blob.active)
-			if (blob.x > motion_processor.x_separator_middle)
+			if (blob.x > x_separator_middle)
 			{
 				primary_hand_blobs.push_back(blob);
 

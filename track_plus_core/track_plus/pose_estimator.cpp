@@ -33,6 +33,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	points_current = points_in;
 
 	string pose_name_dist_min = "";
+	vector<Point> points_dist_min;
 	float dist_min = FLT_MAX;
 
 	int index = 0;
@@ -44,33 +45,40 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		if (dist < dist_min)
 		{
 			dist_min = dist;
+			points_dist_min = points;
 			pose_name_dist_min = names_collection[index];
 		}
+
 		++index;
 	}
 
-	if (dist_min != FLT_MAX)
-	{
-		LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
-		low_pass_filter->compute(dist_min, 0.5, "dist_min");
+	int save_threshold = map_val(points_in.size(), 15, 25, 20000, 25000);
 
-		if (dist_min < 7000)
-			value_store.set_int("point_count", value_store.get_int("point_count") + 1);
-		else
-			value_store.set_int("point_count", 0);
-
-		if (value_store.get_int("point_count") >= 10)
-			pose_name = "point";		
-	}
-
-	if (record_pose && ((target_pose_name != "" && pose_name_dist_min != target_pose_name) || dist_min > 7000))
+	if (record_pose && ((target_pose_name != "" && pose_name_dist_min != target_pose_name) || dist_min > save_threshold))
 	{
 		save(target_pose_name);
 		COUT << pose_name_dist_min << "->" << target_pose_name << " " << dist_min << endl;
 	}
 
+	if (dist_min != FLT_MAX)
+	{
+		Mat image_dist_min = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+		Point pt_old = Point(-1, -1);
+		for (Point& pt : points_dist_min)
+		{
+			if (pt_old.x != -1)
+				line(image_dist_min, pt, pt_old, Scalar(254), 1);
+
+			pt_old = pt;
+		}
+
+		imshow("image_dist_min", image_dist_min);
+		waitKey(1);
+	}
+
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 5, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
 
 	if (pose_name_temp == "point")
 		pose_name = pose_name_temp;
@@ -90,7 +98,6 @@ Mat PoseEstimator::compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
 			cost_mat.ptr<float>(j, i)[0] = get_distance(vec0[i], vec1[j]);
 
 	normalize(cost_mat, cost_mat, 0, 10000, NORM_MINMAX);
-
 	return cost_mat;
 }
 
@@ -209,8 +216,8 @@ void PoseEstimator::save(const string name)
 
 	data.pop_back();
 
-	const string path = pose_database_path + "\\" + name + to_string(name_count) + "." + extension;
-	write_string_to_file(path, data);
+	const string path = pose_database_path + "\\" + name + to_string(name_count) + ".";
+	write_string_to_file(path + extension, data);
 
 	points_collection.push_back(points_current);
 	names_collection.push_back(name);
@@ -269,6 +276,11 @@ void PoseEstimator::load()
 
 			points_collection.push_back(points);
 			names_collection.push_back(pose_name_loaded);
+		}
+		else if (name_extension_vec.size() > 1 && name_extension_vec[1] == "png")
+		{
+			const string path = pose_database_path + "\\" + name_current;
+			Mat image_loaded = imread(path);
 		}
 	}
 }

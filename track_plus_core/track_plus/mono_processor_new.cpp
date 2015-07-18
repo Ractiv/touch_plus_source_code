@@ -33,8 +33,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		return false;
 	}
 
-	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
 	{
@@ -203,8 +203,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	contour_approximated.push_back(contour_sorted[contour_sorted.size() - 1]);
 
 	{
-		points_unwrapped_result = vector<Point>();
-		compute_unwrap2(contour_approximated, pivot, points_unwrapped_result);
+		points_unwrapped_result = contour_approximated;
+		// points_unwrapped_result = vector<Point>();
+		// compute_unwrap2(contour_approximated, pivot, points_unwrapped_result);
 	}
 
 	if (image_active_hand.cols == 0)

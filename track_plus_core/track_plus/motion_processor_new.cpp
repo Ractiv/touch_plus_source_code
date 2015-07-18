@@ -73,9 +73,17 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 					blob.fill(image_subtraction, 0);
 				}
 
-			bool proceed0 = compute_x_separator_middle();
-			bool proceed1 = compute_x_separator_motion_left_right();
-			bool proceed2 = compute_y_separator_motion();
+			if (!value_store.get_bool("separators_computed"))
+			{
+				bool proceed0 = compute_x_separator_middle();
+				bool proceed1 = compute_x_separator_motion_left_right();
+				bool proceed2 = compute_y_separator_motion();
+
+				if (proceed0 && proceed1 && proceed2)
+					value_store.set_bool("separators_computed", true);
+			}
+			else
+				compute_x_separator_middle();
 
 			const int push_count_max = 5;
 			if (value_store.get_int("push_count") < push_count_max)
@@ -93,9 +101,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 					value_store.set_int("push_count", value_store.get_int("push_count") + 1);
 				}
-
-			if (proceed0 && proceed1 && proceed2)
-				value_store.set_bool("separators_computed", true);
 
 			if (value_store.get_bool("separators_computed"))
 			{
@@ -180,15 +185,15 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 						float gray_max_right = gray_vec_right[gray_vec_right.size() * 0.9];
 						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
 
-						gray_threshold = gray_median - 10;
+						gray_threshold = gray_median - 20;
 						low_pass_filter->compute(gray_threshold, 0.1, "gray_threshold");
 						gray_threshold_stereo = gray_threshold;
 
-						gray_threshold_left = gray_median_left - 10;
+						gray_threshold_left = gray_median_left - 20;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
 
-						gray_threshold_right = gray_median_right - 10;
+						gray_threshold_right = gray_median_right - 20;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
 					}
