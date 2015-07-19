@@ -73,9 +73,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() / 2];
-		y_median = y_vec[y_vec.size() / 2];
-		z_median = z_vec[z_vec.size() / 2];
+		x_median = x_vec[x_vec.size() - 1];
+		y_median = y_vec[y_vec.size() - 1];
+		z_median = z_vec[z_vec.size() - 1];
 
 		pt_calib0 = Point3f(x_median, y_median, z_median);
 
@@ -94,9 +94,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() / 2];
-		y_median = y_vec[y_vec.size() / 2];
-		z_median = z_vec[z_vec.size() / 2];
+		x_median = x_vec[x_vec.size() - 1];
+		y_median = y_vec[y_vec.size() - 1];
+		z_median = z_vec[z_vec.size() - 1];
 
 		pt_calib1 = Point3f(x_median, y_median, z_median);
 
@@ -115,9 +115,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() / 2];
-		y_median = y_vec[y_vec.size() / 2];
-		z_median = z_vec[z_vec.size() / 2];
+		x_median = x_vec[x_vec.size() - 1];
+		y_median = y_vec[y_vec.size() - 1];
+		z_median = z_vec[z_vec.size() - 1];
 
 		pt_calib2 = Point3f(x_median, y_median, z_median);
 
@@ -136,9 +136,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() / 2];
-		y_median = y_vec[y_vec.size() / 2];
-		z_median = z_vec[z_vec.size() / 2];
+		x_median = x_vec[x_vec.size() - 1];
+		y_median = y_vec[y_vec.size() - 1];
+		z_median = z_vec[z_vec.size() - 1];
 
 		pt_calib3 = Point3f(x_median, y_median, z_median);
 
@@ -158,10 +158,87 @@ void PointerMapper::compute_calibration_points()
 	    const float y3_plane = pt_calib3.y;
 	    const float z3_plane = pt_calib3.z + 100;
 
-    	plane = Plane(Point3f(x0_plane, y0_plane, z0_plane), Point3f(x1_plane, y1_plane, z1_plane), Point3f(x2_plane, y2_plane, z2_plane));
+	    float angle00 = get_angle(Point(x0_plane, z0_plane), Point(x1_plane, z1_plane), Point(x2_plane, z2_plane));
+	    float angle01 = get_angle(Point(x1_plane, z1_plane), Point(x0_plane, z0_plane), Point(x2_plane, z2_plane));
+	    float angle02 = get_angle(Point(x2_plane, z2_plane), Point(x0_plane, z0_plane), Point(x1_plane, z1_plane));
+	    float angle0_max = max(max(angle00, angle01), angle02);
 
-	    direction_plane = cross_product(Point3f(x0_plane - x1_plane, y0_plane - y1_plane, z0_plane - z1_plane),
-	    								Point3f(x2_plane - x1_plane, y2_plane - y1_plane, z2_plane - z1_plane));
+	    float angle10 = get_angle(Point(x1_plane, z1_plane), Point(x2_plane, z2_plane), Point(x3_plane, z3_plane));
+	    float angle11 = get_angle(Point(x2_plane, z2_plane), Point(x1_plane, z1_plane), Point(x3_plane, z3_plane));
+	    float angle12 = get_angle(Point(x3_plane, z3_plane), Point(x1_plane, z1_plane), Point(x2_plane, z2_plane));
+	    float angle1_max = max(max(angle10, angle11), angle12);
+
+	    float angle20 = get_angle(Point(x2_plane, z2_plane), Point(x3_plane, z3_plane), Point(x0_plane, z0_plane));
+	    float angle21 = get_angle(Point(x3_plane, z3_plane), Point(x2_plane, z2_plane), Point(x0_plane, z0_plane));
+	    float angle22 = get_angle(Point(x0_plane, z0_plane), Point(x2_plane, z2_plane), Point(x3_plane, z3_plane));
+	    float angle2_max = max(max(angle20, angle21), angle22);
+
+	    float angle30 = get_angle(Point(x3_plane, z3_plane), Point(x0_plane, z0_plane), Point(x1_plane, z1_plane));
+	    float angle31 = get_angle(Point(x0_plane, z0_plane), Point(x3_plane, z3_plane), Point(x1_plane, z1_plane));
+	    float angle32 = get_angle(Point(x1_plane, z1_plane), Point(x3_plane, z3_plane), Point(x0_plane, z0_plane));
+	    float angle3_max = max(max(angle30, angle31), angle32);
+
+	    vector<float> angle_vec = { angle0_max, angle1_max, angle2_max, angle3_max };
+	    sort(angle_vec.begin(), angle_vec.end());
+	    float angle_selected = angle_vec[3];
+
+	    float configuration0[10] = { angle0_max, x0_plane, y0_plane, z0_plane,
+	    									  	 x1_plane, y1_plane, z1_plane,
+	    										 x2_plane, y2_plane, z2_plane };
+
+	    float configuration1[10] = { angle1_max, x1_plane, y1_plane, z1_plane,
+	    									  	 x2_plane, y2_plane, z2_plane,
+	    										 x3_plane, y3_plane, z3_plane };
+
+	    float configuration2[10] = { angle2_max, x2_plane, y2_plane, z2_plane,
+	    									  	 x3_plane, y3_plane, z3_plane,
+	    										 x0_plane, y0_plane, z0_plane };
+
+	    float configuration3[10] = { angle3_max, x3_plane, y3_plane, z3_plane,
+	    									  	 x0_plane, y0_plane, z0_plane,
+	    										 x1_plane, y1_plane, z1_plane };
+
+	    vector<float*> configutation_vec = { configuration0, configuration1, configuration2, configuration3 };
+
+	    float x0_selected;
+	    float y0_selected;
+	    float z0_selected;
+
+	    float x1_selected;
+	    float y1_selected;
+	    float z1_selected;
+
+	    float x2_selected;
+	    float y2_selected;
+	    float z2_selected;
+
+	    bool found = false;
+
+		for (float* configuration : configutation_vec)
+	    	if (configuration[0] == angle_selected)
+	    	{
+	    		x0_selected = configuration[1];
+	    		y0_selected = configuration[2];
+	    		z0_selected = configuration[3];
+
+	    		x1_selected = configuration[4];
+	    		y1_selected = configuration[5];
+	    		z1_selected = configuration[6];
+
+	    		x2_selected = configuration[7];
+	    		y2_selected = configuration[8];
+	    		z2_selected = configuration[9];
+
+	    		found = true;
+	    		break;
+	    	}
+
+    	plane = Plane(Point3f(x0_selected, y0_selected, z0_selected),
+    				  Point3f(x1_selected, y1_selected, z1_selected),
+    				  Point3f(x2_selected, y2_selected, z2_selected));
+
+	    direction_plane = cross_product(Point3f(x0_selected - x1_selected, y0_selected - y1_selected, z0_selected - z1_selected),
+	    								Point3f(x2_selected - x1_selected, y2_selected - y1_selected, z2_selected - z1_selected));
 
 	    direction_plane.x = -direction_plane.x;
 	    direction_plane.y = -direction_plane.y;
@@ -265,23 +342,24 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 			float hit_dist = compute_hit_dist(pt_target_projected);
 
 			dist_cursor_target_plane = dist_target_plane - hit_dist;
-			low_pass_filter->compute(dist_cursor_target_plane, 0.1, "dist_cursor_target_plane");
+			low_pass_filter->compute(dist_cursor_target_plane, 0.2, "dist_cursor_target_plane");
 
 			float hit_dist_processed = hit_dist;
 			float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
-			hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.1);
+			// hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.1);
 			value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
 
-			float dist_cursor_target_plane_processed = dist_target_plane - hit_dist_processed;
+			float dist_cursor_target_plane_no_lowpass = dist_target_plane - hit_dist_processed;
+			dist_cursor_target_plane = dist_cursor_target_plane_no_lowpass;
 
-			if (dist_cursor_target_plane_processed < actuation_dist + 3)
+			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 2)
 				value_store.set_bool("actuated" + name, true);
 
 			if (value_store.get_bool("actuated" + name))
 			{
 				target_down = true;
 				
-				if (dist_cursor_target_plane_processed > actuation_dist + 10)
+				if (dist_cursor_target_plane_no_lowpass > actuation_dist + 10)
 				{
 					target_down = false;
 					value_store.set_bool("actuated" + name, false);

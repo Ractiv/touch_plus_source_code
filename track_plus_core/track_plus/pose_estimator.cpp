@@ -73,8 +73,8 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			pt_old = pt;
 		}
 
-		imshow("image_dist_min", image_dist_min);
-		waitKey(1);
+		// imshow("image_dist_min", image_dist_min);
+		// waitKey(1);
 	}
 
 	string pose_name_temp;

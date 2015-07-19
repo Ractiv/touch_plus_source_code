@@ -34,7 +34,7 @@ using namespace std;
 #define WIDTH_MIN          80
 #define HEIGHT_MIN         60
 
-#define FOV_WIDTH          30
+#define FOV_WIDTH          40
 // #define FOV_WIDTH          23.7
 #define FOV_DEPTH          17.9
 

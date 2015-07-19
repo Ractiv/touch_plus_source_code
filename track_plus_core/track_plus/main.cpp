@@ -108,6 +108,8 @@ vector<Point>* points_ptr = NULL;
 bool exposure_adjusted = false;
 bool initialized = false;
 bool calibrating = true;
+bool key_down = false;
+bool key_up = true;
 bool calibration_step_2 = false;
 bool first_frame = true;
 bool increment_wait_count = false;
@@ -402,6 +404,8 @@ void compute()
 		proceed1 = foreground_extractor1.compute(image_preprocessed1, image_preprocessed_smoothed1, motion_processor1, "1", true);
 		proceed = proceed0 && proceed1;
 	}
+	else
+		hide_cursors();
 
 	if (proceed)
 	{
@@ -409,6 +413,8 @@ void compute()
 		proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1");
 		proceed = proceed0 && proceed1;
 	}
+	else
+		hide_cursors();
 
 	if (mode == "surface" && proceed)
 	{
@@ -473,6 +479,8 @@ void compute()
 				}
 			}
 		}
+		else
+			hide_cursors();
 
 		if (!pinch_to_zoom)
 		{
@@ -559,12 +567,6 @@ void pose_estimator_thread_function()
 {
 	while (true)
 	{
-		if (pose_name == "point")
-		{
-			Sleep(100);
-			continue;
-		}
-
 		if (initialized)
 			pose_estimator.compute(*points_ptr);
 
