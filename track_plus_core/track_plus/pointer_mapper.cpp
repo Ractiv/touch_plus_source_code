@@ -73,9 +73,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() - 1];
-		y_median = y_vec[y_vec.size() - 1];
-		z_median = z_vec[z_vec.size() - 1];
+		x_median = x_vec[x_vec.size() * 0.25];
+		y_median = y_vec[y_vec.size() * 0.25];
+		z_median = z_vec[z_vec.size() * 0.25];
 
 		pt_calib0 = Point3f(x_median, y_median, z_median);
 
@@ -94,9 +94,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() - 1];
-		y_median = y_vec[y_vec.size() - 1];
-		z_median = z_vec[z_vec.size() - 1];
+		x_median = x_vec[x_vec.size() * 0.25];
+		y_median = y_vec[y_vec.size() * 0.25];
+		z_median = z_vec[z_vec.size() * 0.25];
 
 		pt_calib1 = Point3f(x_median, y_median, z_median);
 
@@ -115,9 +115,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() - 1];
-		y_median = y_vec[y_vec.size() - 1];
-		z_median = z_vec[z_vec.size() - 1];
+		x_median = x_vec[x_vec.size() * 0.25];
+		y_median = y_vec[y_vec.size() * 0.25];
+		z_median = z_vec[z_vec.size() * 0.25];
 
 		pt_calib2 = Point3f(x_median, y_median, z_median);
 
@@ -136,9 +136,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() - 1];
-		y_median = y_vec[y_vec.size() - 1];
-		z_median = z_vec[z_vec.size() - 1];
+		x_median = x_vec[x_vec.size() * 0.25];
+		y_median = y_vec[y_vec.size() * 0.25];
+		z_median = z_vec[z_vec.size() * 0.25];
 
 		pt_calib3 = Point3f(x_median, y_median, z_median);
 
@@ -398,12 +398,12 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 
 			float hit_dist_processed = hit_dist;
 			float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
-			// hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.1);
+			hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.25);
 			value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
 
 			float dist_cursor_target_plane_no_lowpass = dist_target_plane - hit_dist_processed;
 
-			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 3)
+			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 2)
 				value_store.set_bool("actuated" + name, true);
 
 			if (value_store.get_bool("actuated" + name))

@@ -122,6 +122,7 @@ bool updated = true;
 
 int calibration_key_codes[4] { 56, 187, 161, 77 };
 int calibration_step = 4;
+int calibration_points_count = 10;
 int keypress_count = 0;
 int increment_keypress_count_new = 0;
 int increment_keypress_count_old = 0;
@@ -345,7 +346,7 @@ void compute()
 		static int calibration_step_2_count = 0;
 		pointer_mapper.add_calibration_point(calibration_step);
 
-		if (calibration_step_2_count == 10)
+		if (calibration_step_2_count == calibration_points_count)
 		{
 			ipc->send_message("menu_plus", "show calibration next", "");
 
@@ -598,7 +599,7 @@ LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
 			++increment_keypress_count_new;
 			pointer_mapper.add_calibration_point(calibration_step);
 
-			if ((keypress_count >= 10 && calibration_step != 2))
+			if ((keypress_count >= calibration_points_count && calibration_step != 2))
 			{
 				ipc->send_message("menu_plus", "show calibration next", "");
 
