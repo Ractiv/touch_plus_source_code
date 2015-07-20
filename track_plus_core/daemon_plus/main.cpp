@@ -69,7 +69,10 @@ int main()
 	settings_file_path = data_path + "\\settings.nrocinunerrad";
 	ipc_path = executable_path + "\\ipc";
 
-	delete_all_files(ipc_path);
+	if (!directory_exists(ipc_path))
+		create_directory(ipc_path);
+	else
+		delete_all_files(ipc_path);
 
 	Settings settings;
 
