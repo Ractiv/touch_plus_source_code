@@ -199,7 +199,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\lib;$(DIRECTSHOW_DIR)\lib;$(TURBOJPEG_DIR)\;$(SFML_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dxguid.lib;ole32.lib;strmiids.lib;uuid.lib;opencv_core249.lib;turbojpeg.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_video249.lib;opencv_flann249.lib;opencv_nonfree249.lib;opencv_features2d249.lib;opencv_ocl249.lib;opencv_objdetect249.lib;eSPDI.lib;eSPAEAWBCtrl.lib;sfml-network.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;ole32.lib;strmiids.lib;uuid.lib;opencv_core249.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_video249.lib;opencv_flann249.lib;opencv_nonfree249.lib;opencv_features2d249.lib;opencv_ocl249.lib;opencv_objdetect249.lib;eSPDI.lib;eSPAEAWBCtrl.lib;sfml-network.lib;turbojpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
     </Link>
     <PreBuildEvent>

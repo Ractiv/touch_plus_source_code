@@ -577,8 +577,6 @@ void pose_estimator_thread_function()
 
 void on_key_down(int code)
 {
-	COUT << code << " is down" << endl;
-
 	if (target_pose_name != "")
 	{
 		if (code == 192)
@@ -625,7 +623,7 @@ void on_key_down(int code)
 
 void on_key_up(int code)
 {
-	COUT << code << " is up" << endl;
+	
 }
 
 HHOOK keyboard_hook_handle;

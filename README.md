@@ -7,6 +7,7 @@ DIRECTSHOW_DIR  root_dir\dependencies\DirectShow
 ETRON_DIR       root_dir\dependencies\Etron
 OPENCV_DIR      root_dir\dependencies\Opencv\build\x86\vc12
 SFML_DIR        root_dir\dependencies\SFML
+TURBOJPEG_DIR   root_dir\dependencies\turbojpeg
 </pre>
 
 3. Start Visual Studio with administrator permissions, then open "root_dir\track_plus_visual_studio\track_plus.sln"

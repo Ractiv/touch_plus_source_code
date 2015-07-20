@@ -73,9 +73,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() * 0.25];
-		y_median = y_vec[y_vec.size() * 0.25];
-		z_median = z_vec[z_vec.size() * 0.25];
+		x_median = x_vec[x_vec.size() * 0.5];
+		y_median = y_vec[y_vec.size() * 0.5];
+		z_median = z_vec[z_vec.size() * 0.5];
 
 		pt_calib0 = Point3f(x_median, y_median, z_median);
 
@@ -94,9 +94,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() * 0.25];
-		y_median = y_vec[y_vec.size() * 0.25];
-		z_median = z_vec[z_vec.size() * 0.25];
+		x_median = x_vec[x_vec.size() * 0.5];
+		y_median = y_vec[y_vec.size() * 0.5];
+		z_median = z_vec[z_vec.size() * 0.5];
 
 		pt_calib1 = Point3f(x_median, y_median, z_median);
 
@@ -115,9 +115,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() * 0.25];
-		y_median = y_vec[y_vec.size() * 0.25];
-		z_median = z_vec[z_vec.size() * 0.25];
+		x_median = x_vec[x_vec.size() * 0.5];
+		y_median = y_vec[y_vec.size() * 0.5];
+		z_median = z_vec[z_vec.size() * 0.5];
 
 		pt_calib2 = Point3f(x_median, y_median, z_median);
 
@@ -136,9 +136,9 @@ void PointerMapper::compute_calibration_points()
 		sort(y_vec.begin(), y_vec.end());
 		sort(z_vec.begin(), z_vec.end());
 
-		x_median = x_vec[x_vec.size() * 0.25];
-		y_median = y_vec[y_vec.size() * 0.25];
-		z_median = z_vec[z_vec.size() * 0.25];
+		x_median = x_vec[x_vec.size() * 0.5];
+		y_median = y_vec[y_vec.size() * 0.5];
+		z_median = z_vec[z_vec.size() * 0.5];
 
 		pt_calib3 = Point3f(x_median, y_median, z_median);
 
