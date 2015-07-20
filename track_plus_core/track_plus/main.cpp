@@ -575,12 +575,9 @@ void pose_estimator_thread_function()
 	}
 }
 
-HHOOK keyboard_hook_handle;
-
-LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
+void on_key_down(int code)
 {
-	KBDLLHOOKSTRUCT* keyboard_hook_stuct = (KBDLLHOOKSTRUCT*)l_param;
-	const int code = keyboard_hook_stuct->vkCode;
+	COUT << code << " is down" << endl;
 
 	if (target_pose_name != "")
 	{
@@ -624,6 +621,23 @@ LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
 	}
 	else
 		pose_name = "";
+}
+
+void on_key_up(int code)
+{
+	COUT << code << " is up" << endl;
+}
+
+HHOOK keyboard_hook_handle;
+LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
+{
+	KBDLLHOOKSTRUCT* keyboard_hook_stuct = (KBDLLHOOKSTRUCT*)l_param;
+	const int code = keyboard_hook_stuct->vkCode;
+
+	if (w_param == WM_KEYDOWN)
+		on_key_down(code);
+	else if (w_param == WM_KEYUP)
+		on_key_up(code);
 
 	return CallNextHookEx(keyboard_hook_handle, n_code, w_param, l_param);
 }
