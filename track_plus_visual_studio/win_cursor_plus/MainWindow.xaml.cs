@@ -207,7 +207,7 @@ namespace win_cursor_plus
             {
                 ipc.Update();
 
-                if (updateNumNew == updateNumOld)
+                if (updateNumNew == updateNumOld && showCursorIndex)
                     return;
 
                 updateNumOld = updateNumNew;
