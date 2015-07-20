@@ -46,6 +46,18 @@ void PointerMapper::add_calibration_point(const uchar index)
 		pt_calib_vec3.push_back(pt_index);
 }
 
+void PointerMapper::reset_calibration(const uchar index)
+{
+	if (index == 0)
+		pt_calib_vec0.clear();
+	else if (index == 1)
+		pt_calib_vec1.clear();
+	else if (index == 2)
+		pt_calib_vec2.clear();
+	else if (index == 3)
+		pt_calib_vec3.clear();
+}
+
 void PointerMapper::compute_calibration_points()
 {
 	vector<float> x_vec;

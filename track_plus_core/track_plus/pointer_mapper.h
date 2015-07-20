@@ -78,6 +78,7 @@ public:
 
 	void compute(HandResolver& hand_resolver, Reprojector& reprojector);
 	void add_calibration_point(const uchar index);
+	void reset_calibration(const uchar index);
 	void compute_calibration_points();
 	bool project_to_plane(Point3f& pt, Point3f& result, float& dist_to_plane);
 	float compute_hit_dist(Point3f& pt);

@@ -108,9 +108,7 @@ vector<Point>* points_ptr = NULL;
 bool exposure_adjusted = false;
 bool initialized = false;
 bool calibrating = true;
-bool key_down = false;
-bool key_up = true;
-bool calibration_step_2 = false;
+bool increment_keypress_count = false;
 bool first_frame = true;
 bool increment_wait_count = false;
 bool show_point_sent = false;
@@ -121,11 +119,9 @@ bool wait_for_device_bool = false;
 bool updated = true;
 
 int calibration_key_codes[4] { 56, 187, 161, 77 };
-int calibration_step = 4;
+int calibration_step = 0;
 int calibration_points_count = 10;
 int keypress_count = 0;
-int increment_keypress_count_new = 0;
-int increment_keypress_count_old = 0;
 int wait_count = 0;
 int accel_val_old = 0;
 int val_diff_counter = 0;
@@ -341,25 +337,6 @@ void compute()
 		exit(0);
 	}
 
-	if (calibration_step_2)
-	{
-		static int calibration_step_2_count = 0;
-		pointer_mapper.add_calibration_point(calibration_step);
-
-		if (calibration_step_2_count == calibration_points_count)
-		{
-			ipc->send_message("menu_plus", "show calibration next", "");
-
-			COUT << "step " << calibration_step << " complete" << endl; 
-
-			keypress_count = 0;
-			++calibration_step;
-			calibration_step_2 = false;
-		}
-
-		++calibration_step_2_count;
-	}
-
 	//----------------------------------------core algorithm----------------------------------------
 
 	Mat image_flipped;
@@ -506,11 +483,6 @@ void compute()
 													 to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
 		}
 
-		if (increment_keypress_count_old != increment_keypress_count_new)
-			++keypress_count;
-
-		increment_keypress_count_old = increment_keypress_count_new;
-
 		ipc->send_udp_message("win_cursor_plus", "update!" + to_string(frame_num));
 	}
 	else if (mode == "tool" && proceed)
@@ -560,6 +532,37 @@ void compute()
 
 	++frame_num;
 
+	if (increment_keypress_count)
+	{
+		if (keypress_count == calibration_points_count)
+		{
+			ipc->send_message("menu_plus", "show calibration next", "");
+
+			COUT << "step " << calibration_step << " complete" << endl; 
+
+			++calibration_step;
+		}
+		else if (keypress_count < calibration_points_count)
+		{
+			float percentage = (keypress_count * 100.0 / calibration_points_count);
+			COUT << percentage << endl;
+			pointer_mapper.add_calibration_point(calibration_step);
+		}
+
+		if (calibration_step == 4)
+		{
+			ipc->send_message("menu_plus", "show stage", "");
+
+			pointer_mapper.compute_calibration_points();
+			calibrating = false;
+			increment_keypress_count = false;
+
+			COUT << "calibration finished" << endl;
+		}
+
+		++keypress_count;
+	}
+
 	if (enable_imshow)
 		waitKey(1);
 }
@@ -585,37 +588,9 @@ void on_key_down(int code)
 			record_pose = false;
 	}
 	else if (calibrating)
-	{			
-		if (calibration_step == 4)
-			calibration_step = 0;
-
+	{
 		if (code == calibration_key_codes[calibration_step] && pointer_mapper.active && pose_name == "point")
-		{
-			++increment_keypress_count_new;
-			pointer_mapper.add_calibration_point(calibration_step);
-
-			if ((keypress_count >= calibration_points_count && calibration_step != 2))
-			{
-				ipc->send_message("menu_plus", "show calibration next", "");
-
-				COUT << "step " << calibration_step << " complete" << endl; 
-
-				keypress_count = 0;
-				++calibration_step;
-			}
-			else if (calibration_step == 2)
-				calibration_step_2 = true;
-		}
-
-		if (calibration_step == 4)
-		{
-			ipc->send_message("menu_plus", "show stage", "");
-
-			pointer_mapper.compute_calibration_points();
-			calibrating = false;
-
-			COUT << "calibration finished" << endl;
-		}
+			increment_keypress_count = true;
 	}
 	else
 		pose_name = "";
@@ -623,7 +598,12 @@ void on_key_down(int code)
 
 void on_key_up(int code)
 {
-	
+	if (calibrating)
+	{
+		keypress_count = 0;
+		increment_keypress_count = false;
+		pointer_mapper.reset_calibration(calibration_step);
+	}
 }
 
 HHOOK keyboard_hook_handle;
