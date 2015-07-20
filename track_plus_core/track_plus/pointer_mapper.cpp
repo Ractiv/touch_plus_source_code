@@ -180,7 +180,59 @@ void PointerMapper::compute_calibration_points()
 
 	    vector<float> angle_vec = { angle0_max, angle1_max, angle2_max, angle3_max };
 	    sort(angle_vec.begin(), angle_vec.end());
-	    float angle_selected = angle_vec[3];
+
+	    float diff_min = 9999;
+	    int index_diff_min0;
+	    int index_diff_min1;
+	    int index_diff_min2;
+
+	    int index0 = 0;
+	    for (float& angle0 : angle_vec)
+	    {
+	    	int index1 = 0;
+	    	for (float& angle1 : angle_vec)
+	    	{
+	    		int index2 = 0;
+	    		for (float& angle2 : angle_vec)
+	    		{
+	    			if (index0 != index1 && index1 != index2 && index0 != index2)
+	    			{
+	    				float diff0 = abs(angle0 - angle1);
+	    				float diff1 = abs(angle1 - angle2);
+	    				float diff2 = abs(angle0 - angle2);
+	    				float diff_sum = diff0 + diff1 + diff2 + max(max(diff0, diff1), diff2);
+
+	    				if (diff_sum < diff_min)
+	    				{
+	    					diff_min = diff_sum;
+	    					index_diff_min0 = index0;
+	    					index_diff_min1 = index1;
+	    					index_diff_min2 = index2;
+	    				}
+	    			}
+	    			++index2;
+	    		}
+	    		++index1;
+	    	}
+	    	++index0;
+	    }
+
+	    vector<float> angle_vec_filtered;
+
+	    int index = 0;
+	    for (float& angle : angle_vec)
+	    {
+	    	if (index == index_diff_min0 || index == index_diff_min1 || index == index_diff_min2)
+	    		angle_vec_filtered.push_back(angle);
+
+	    	++index;
+	    }
+
+	    sort(angle_vec_filtered.begin(), angle_vec_filtered.end());
+	    float angle_selected = angle_vec_filtered[1];
+
+	    COUT << "size is " << angle_vec_filtered.size() << endl;
+	    COUT << index_diff_min0 << " " << index_diff_min1 << " " << index_diff_min2 << endl;
 
 	    float configuration0[10] = { angle0_max, x0_plane, y0_plane, z0_plane,
 	    									  	 x1_plane, y1_plane, z1_plane,
@@ -350,9 +402,8 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 			value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
 
 			float dist_cursor_target_plane_no_lowpass = dist_target_plane - hit_dist_processed;
-			dist_cursor_target_plane = dist_cursor_target_plane_no_lowpass;
 
-			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 2)
+			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 3)
 				value_store.set_bool("actuated" + name, true);
 
 			if (value_store.get_bool("actuated" + name))

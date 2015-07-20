@@ -88,7 +88,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\imu.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\low_pass_filter.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\main.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\math_plus.cpp" />
@@ -110,7 +110,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
-    <ClCompile Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_mono_processor.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

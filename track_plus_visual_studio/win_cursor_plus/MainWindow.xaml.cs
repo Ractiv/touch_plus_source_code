@@ -77,7 +77,7 @@ namespace win_cursor_plus
         private static bool cursorThumbDown = false;
         private static bool cursorThumbDownOld = false;
 
-        private static bool useTUIO = false;
+        private static bool useTUIO = true;
 
         private static int tuioFSeq = 0;
         private static OSCTransmitter transmitter = new OSCTransmitter("127.0.0.1", 3333);

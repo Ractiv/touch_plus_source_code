@@ -241,9 +241,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\low_pass_filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -289,9 +286,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -308,6 +302,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\imu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
