@@ -144,10 +144,10 @@ namespace win_cursor_plus
                         float z;
                         int down;
 
-                        bool b0 = float.TryParse(xyStr[0], out x);
-                        bool b1 = float.TryParse(xyStr[1], out y);
-                        bool b2 = float.TryParse(xyStr[2], out z);
-                        bool b3 = int.TryParse(xyStr[3], out down);
+                        bool b0 = float.TryParse(xyStr[0], System.Globalization.NumberStyles.Float, null, out x);
+                        bool b1 = float.TryParse(xyStr[1], System.Globalization.NumberStyles.Float, null, out y);
+                        bool b2 = float.TryParse(xyStr[2], System.Globalization.NumberStyles.Float, null, out z);
+                        bool b3 = int.TryParse(xyStr[3], System.Globalization.NumberStyles.Float, null, out down);
 
                         if (b0 && b1 && b2)
                             if (xyStr[4] == "index")
