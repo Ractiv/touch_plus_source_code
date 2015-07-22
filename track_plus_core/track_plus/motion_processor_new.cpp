@@ -75,9 +75,24 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 			if (!value_store.get_bool("separators_computed"))
 			{
+				if (value_store.get_int("separator_timer") > 10)
+				{
+					value_store.set_bool("reset_separators", true);
+					value_store.set_int("separator_timer", 0);
+				}
+				else
+					value_store.set_bool("reset_separators", false);
+
 				bool proceed0 = compute_x_separator_middle();
 				bool proceed1 = compute_x_separator_motion_left_right();
 				bool proceed2 = compute_y_separator_motion();
+
+				COUT << proceed0 << " " << proceed1 << " " << proceed2 << endl;
+
+				if (value_store.get_bool("both_hands_are_moving"))
+					value_store.set_int("separator_timer", 0);
+				else
+					value_store.set_int("separator_timer", value_store.get_int("separator_timer") + 1);
 
 				if (proceed0 && proceed1 && proceed2)
 					value_store.set_bool("separators_computed", true);
@@ -418,73 +433,76 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 bool MotionProcessorNew::compute_y_separator_motion()
 {
+	vector<int>* y_separator_motion_down_vec = value_store.get_int_vec("y_separator_motion_down_vec");
+	vector<int>* y_separator_motion_up_vec = value_store.get_int_vec("y_separator_motion_up_vec");
+	if (value_store.get_bool("reset_separators"))
+	{
+		y_separator_motion_down_vec->clear();
+		y_separator_motion_up_vec->clear();
+	}
+
 	BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
 
-	if (x_separator_middle == -1 || blob_detector_image_subtraction->blobs->size() == 0)
-		return false;
+	if (x_separator_middle != -1 && blob_detector_image_subtraction->blobs->size() > 0 && value_store.get_bool("both_hands_are_moving"))
+	{
+		int y_min = 9999;
+		int y_max = 0;
+		for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+			if (blob.active && blob.y < REFLECTION_Y)
+			{
+				if (blob.y_min < y_min)
+					y_min = blob.y_min;
+				if (blob.y_max > y_max)
+					y_max = blob.y_max;
+			}
 
-	int y_min = 9999;
-	int y_max = 0;
-	for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-		if (blob.active && blob.y < REFLECTION_Y)
+		Mat image_foreground = value_store.get_mat("image_foreground");
+
+		bool repeat = true;
+		while (y_max < HEIGHT_SMALL && repeat)
 		{
-			if (blob.y_min < y_min)
-				y_min = blob.y_min;
-			if (blob.y_max > y_max)
-				y_max = blob.y_max;
+			repeat = false;
+			for (int i = 0; i < WIDTH_SMALL; ++i)
+				if (image_foreground.ptr<uchar>(y_max, i)[0] > 0)
+				{
+					repeat = true;
+					++y_max;
+					break;
+				}
 		}
 
-	Mat image_foreground = value_store.get_mat("image_foreground");
+		if (y_separator_motion_down_vec->size() < 1000)
+			y_separator_motion_down_vec->push_back(y_max);
+		else
+			(*y_separator_motion_down_vec)[y_separator_motion_down_vec->size() - 1] = y_max;
 
-	bool repeat = true;
-	while (y_max < HEIGHT_SMALL && repeat)
-	{
-		repeat = false;
-		for (int i = 0; i < WIDTH_SMALL; ++i)
-			if (image_foreground.ptr<uchar>(y_max, i)[0] > 0)
-			{
-				repeat = true;
-				++y_max;
-				break;
-			}
+		if (y_separator_motion_down_vec->size() >= vector_completion_size)
+		{
+			sort(y_separator_motion_down_vec->begin(), y_separator_motion_down_vec->end());
+			y_separator_motion_down_median = (*y_separator_motion_down_vec)[y_separator_motion_down_vec->size() / 2];
+		}
+
+		if (y_separator_motion_up_vec->size() < 1000)
+			y_separator_motion_up_vec->push_back(y_min);
+		else
+			(*y_separator_motion_up_vec)[y_separator_motion_up_vec->size() - 1] = y_min;
+
+		if (y_separator_motion_up_vec->size() >= vector_completion_size)
+		{
+			sort(y_separator_motion_up_vec->begin(), y_separator_motion_up_vec->end());
+			y_separator_motion_up_median = (*y_separator_motion_up_vec)[y_separator_motion_up_vec->size() / 2];
+		}
 	}
 
-	bool b0 = false;
-	bool b1 = false;
-
-	vector<int>* y_separator_motion_down_vec = value_store.get_int_vec("y_separator_motion_down_vec");
-
-	if (y_separator_motion_down_vec->size() < 1000)
-		y_separator_motion_down_vec->push_back(y_max);
-	else
-		(*y_separator_motion_down_vec)[y_separator_motion_down_vec->size() - 1] = y_max;
-
-	if (y_separator_motion_down_vec->size() >= vector_completion_size)
-	{
-		sort(y_separator_motion_down_vec->begin(), y_separator_motion_down_vec->end());
-		y_separator_motion_down_median = (*y_separator_motion_down_vec)[y_separator_motion_down_vec->size() / 2];
-		b0 = true;
-	}
-
-	vector<int>* y_separator_motion_up_vec = value_store.get_int_vec("y_separator_motion_up_vec");
-
-	if (y_separator_motion_up_vec->size() < 1000)
-		y_separator_motion_up_vec->push_back(y_min);
-	else
-		(*y_separator_motion_up_vec)[y_separator_motion_up_vec->size() - 1] = y_min;
-
-	if (y_separator_motion_up_vec->size() >= vector_completion_size)
-	{
-		sort(y_separator_motion_up_vec->begin(), y_separator_motion_up_vec->end());
-		y_separator_motion_up_median = (*y_separator_motion_up_vec)[y_separator_motion_up_vec->size() / 2];
-		b1 = true;
-	}
-
-	return b0 && b1;
+	return y_separator_motion_down_vec->size() >= vector_completion_size && y_separator_motion_up_vec->size() >= vector_completion_size;
 }
 
 bool MotionProcessorNew::compute_x_separator_middle()
 {
+	vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
+	if (value_store.get_bool("reset_separators"))
+		x_separator_middle_vec->clear();
+
 	BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
 
 	Mat image_active_blobs = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -516,8 +534,6 @@ bool MotionProcessorNew::compute_x_separator_middle()
 
 		if (((float)(*blob_detector_image_motion_blocks->blobs)[1].count) / (*blob_detector_image_motion_blocks->blobs)[0].count > 0.3)
 		{
-			vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
-
 			if (blob_detector_image_motion_blocks->blobs->size() == 2)
 			{
 				x_separator_middle = (*blob_detector_image_motion_blocks->blobs)[0].x + (*blob_detector_image_motion_blocks->blobs)[1].x;
@@ -534,10 +550,7 @@ bool MotionProcessorNew::compute_x_separator_middle()
 				x_separator_middle_median = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
 			
 				if (value_store.get_int("both_hands_are_moving_count") >= 1)
-				{
 					value_store.set_bool("both_hands_are_moving", true);
-					value_store.set_bool("compute_x_separator_middle_result", true);
-				}
 
 				value_store.set_int("both_hands_are_moving_count", value_store.get_int("both_hands_are_moving_count") + 1);
 			}
@@ -548,13 +561,18 @@ bool MotionProcessorNew::compute_x_separator_middle()
 	else
 		value_store.set_int("both_hands_are_moving_count", 0);
 
-	return value_store.get_bool("compute_x_separator_middle_result");
+	return x_separator_middle_vec->size() >= vector_completion_size;
 }
 
 bool MotionProcessorNew::compute_x_separator_motion_left_right()
 {
 	vector<int>* x_separator_motion_left_vec = value_store.get_int_vec("x_separator_motion_left_vec");
 	vector<int>* x_separator_motion_right_vec = value_store.get_int_vec("x_separator_motion_right_vec");
+	if (value_store.get_bool("reset_separators"))
+	{
+		x_separator_motion_left_vec->clear();
+		x_separator_motion_right_vec->clear();
+	}
 
 	if (value_store.get_bool("both_hands_are_moving") == true)
 	{
@@ -592,10 +610,7 @@ bool MotionProcessorNew::compute_x_separator_motion_left_right()
 		}
 	}
 
-	if (x_separator_motion_left_vec->size() >= vector_completion_size)
-		return true;
-
-	return false;
+	return x_separator_motion_left_vec->size() >= vector_completion_size && x_separator_motion_right_vec->size() >= vector_completion_size;
 }
 
 inline void MotionProcessorNew::fill_image_background_static(const int x, const int y, Mat& image_in)
