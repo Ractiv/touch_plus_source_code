@@ -184,10 +184,12 @@ Point2f ValueStore::get_point2f(string name, Point2f if_not_exist_result)
 Mat ValueStore::get_mat(string name, bool if_not_exist_return_zero_mat)
 {
 	if (mat_map.count(name) == 0)
+    {
 		if (if_not_exist_return_zero_mat)
 			mat_map[name] = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 		else
 			mat_map[name] = Mat();
+    }
 
 	return mat_map[name];
 }

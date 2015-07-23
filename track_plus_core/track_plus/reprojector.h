@@ -18,11 +18,10 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include <direct.h>
 #include <windows.h>
-
-// #include <atlstr.h>
-// #include <ShlObj.h>
+#endif
 
 #include <iostream>
 #include <fstream>

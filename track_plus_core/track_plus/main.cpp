@@ -18,14 +18,15 @@
 
 #include <opencv2/opencv.hpp>
 #include <thread>
+
 #include "globals.h"
+#include "ipc.h"
 #include "Camera.h"
 #include "imu.h"
 #include "mat_functions.h"
 #include "camera_initializer_new.h"
 #include "motion_processor_new.h"
 #include "foreground_extractor_new.h"
-#include "ipc.h"
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
 #include "stereo_processor.h"
@@ -37,7 +38,9 @@
 #include "tool_stereo_processor.h"
 #include "tool_pointer_mapper.h"
 
+#ifdef _WIN32
 #include <VersionHelpers.h>
+#endif
 
 using namespace std;
 using namespace cv;
@@ -116,7 +119,7 @@ bool show_calibration_sent = false;
 bool show_cursor_index = false;
 bool show_cursor_thumb = false;
 bool wait_for_device_bool = false;
-bool updated = true;
+bool updated = false;
 
 int calibration_key_codes[4] { 56, 187, 161, 77 };
 int calibration_step = 0;
@@ -144,6 +147,7 @@ void wait_for_device()
 			destroyAllWindows();
 		}
 		
+#ifdef _WIN32
 		CCameraDS camera_ds;
 		int camera_count_new = camera_ds.CameraCount();
 		static int camera_count_old = camera_count_new;
@@ -157,6 +161,9 @@ void wait_for_device()
 		}
 
 		camera_count_old = camera_count_new;
+#elif __APPLE__
+      //todo:: port to OSX
+#endif
 		Sleep(500);
 	}
 }
@@ -182,10 +189,14 @@ void update(Mat& image_in)
 
 void init_paths()
 {
+#ifdef _WIN32
 	char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 	data_path = executable_path + "\\userdata";
 	settings_file_path = data_path + "\\settings.nrocinunerrad";
 	menu_file_path = executable_path + "\\menu_plus\\menu_plus.exe";
@@ -237,6 +248,8 @@ void on_first_frame()
 
 		wait_for_device();
 	}
+    
+    COUT << serial_number << endl;
 
 	data_path_current_module = data_path + "\\" + serial_number;
 
@@ -262,10 +275,14 @@ void on_first_frame()
 	{
 		child_module_name = "win_cursor_plus";
 
+#ifdef _WIN32
 		if (IsWindows8OrGreater())
 			child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
 		else
 			child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
+#elif __APPLE__
+        //todo: port to OSX
+#endif
 
 		ipc->open_udp_channel("win_cursor_plus");
 		ipc->send_message("menu_plus", "show window", "");	
@@ -340,11 +357,7 @@ void compute()
 	//----------------------------------------core algorithm----------------------------------------
 
 	Mat image_flipped;
-	if (mode == "surface")
-		flip(image_current_frame, image_flipped, 0);
-	else
-		flip(image_current_frame, image_flipped, 0);
-		// image_flipped = image_current_frame.clone();
+    flip(image_current_frame, image_flipped, 0);
 
 	Mat image0 = image_flipped(Rect(0, 0, 640, 480));
 	Mat image1 = image_flipped(Rect(640, 0, 640, 480));
@@ -606,6 +619,7 @@ void on_key_up(int code)
 	}
 }
 
+#ifdef _WIN32
 HHOOK keyboard_hook_handle;
 LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
 {
@@ -634,6 +648,9 @@ void keyboard_hook_thread_function()
 
     UnhookWindowsHookEx(keyboard_hook_handle);
 }
+#elif __APPLE__
+//todo: port to OSX
+#endif
 
 void input_thread_function()
 {
@@ -662,7 +679,7 @@ void input_thread_function()
 
 			pose_estimator.show = false;
 		}
-	}	
+	}
 }
 
 void guardian_thread_function()
@@ -694,7 +711,11 @@ int main()
 {
 	init_paths();
 
+#ifdef _WIN32
 	thread keyboard_hook_thread(keyboard_hook_thread_function);
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 	thread guardian_thread(guardian_thread_function);
 	thread input_thread(input_thread_function);
 	thread pose_estimator_thread(pose_estimator_thread_function);

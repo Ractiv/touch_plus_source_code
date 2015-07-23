@@ -17,6 +17,7 @@
  */
 
 #include "filesystem.h"
+#include "globals.h"
 
 #ifdef __APPLE__
 #include <unistd.h>
@@ -33,7 +34,6 @@
 bool directory_exists(const string path)
 {
 #ifdef _WIN32
-    //define something for Windows (32-bit and 64-bit, this part is common)
     DWORD ftyp = GetFileAttributesA(path.c_str());
     if (ftyp == INVALID_FILE_ATTRIBUTES)
         return false;
@@ -42,12 +42,14 @@ bool directory_exists(const string path)
         return true;
     
     return false;
+    
 #elif __APPLE__
     int         status;
     struct      stat buffer;
     status = stat(path.c_str(), &buffer);
     if (status < 0) return false;
     return true;
+    
 #endif
 }
 
@@ -65,12 +67,14 @@ bool file_exists(const string path)
         f.close();
         return false;
     }
+    
 #elif __APPLE__
     int         status;
     struct      stat buffer;
     status = stat(path.c_str(), &buffer);
     if (status < 0) return false;
     return true;
+    
 #endif
     
 }
@@ -98,19 +102,19 @@ void create_directory(const string path)
 {
 #ifdef _WIN32
     CreateDirectory(path.c_str(), NULL);
+    
 #elif __APPLE__
     printf("Directory to create = %s",path.c_str());
     mkdir(path.c_str(), 0775);
+    
 #endif
 }
 
 void write_string_to_file(const string path, const string str)
 {
-    
     ofstream out(path);
     out << str.c_str();
     out.close();
-    
 }
 
 vector<string> read_text_file(const string path)
@@ -130,23 +134,15 @@ vector<string> read_text_file(const string path)
 
 void copy_file(const string src_path, const string dst_path)
 {
-    
     ifstream src(src_path, ios::binary);
     ofstream dest(dst_path, ios::binary);
     dest << src.rdbuf();
-    
 }
 
 void delete_file(const string path)
 {
-#ifdef _WIN32
     while (remove(path.c_str()) != 0)
         Sleep(1);
-    
-#elif __APPLE__
-    while (remove(path.c_str()) != 0)
-        sleep(1);
-#endif
 }
 
 void delete_all_files(const string path)

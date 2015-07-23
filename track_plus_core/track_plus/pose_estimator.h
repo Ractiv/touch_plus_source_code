@@ -24,7 +24,7 @@
 #include "math_plus.h"
 #include "mat_functions.h"
 #include "value_store.h"
-#include "opencv2\opencv.hpp"
+#include "opencv2/opencv.hpp"
 #include <unordered_map>
 
 using namespace cv;

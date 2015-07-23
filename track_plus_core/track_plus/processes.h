@@ -19,11 +19,14 @@
 #pragma once
 
 #include <iostream>
+#include <string>
+
+#ifdef _WIN32
 #include <windows.h>
 #include <tlhelp32.h>
-#include <string>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
+#endif
 
 using namespace std;
 

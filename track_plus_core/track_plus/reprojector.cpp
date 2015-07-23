@@ -89,8 +89,8 @@ void Reprojector::load(IPC& ipc)
 			Sleep(100);
 		}
 
-		CreateDirectory(data_path.c_str(), NULL);
-		CreateDirectory(data_path_current_module.c_str(), NULL);
+        create_directory(data_path);
+        create_directory(data_path_current_module);
 
 		copy_file(executable_path + "\\downloader.exe", data_path_current_module + "\\downloader.exe");
 		copy_file(executable_path + "\\rectifier.exe", data_path_current_module + "\\rectifier.exe");

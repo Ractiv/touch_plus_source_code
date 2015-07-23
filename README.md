@@ -3,11 +3,11 @@
 
 2. Quit Visual Studio if it is already running, then add the following variables to "Windows Environment Variables" (replace "root_dir" with the path of the cloned repository, e.g. "C:\touch_plus_source_code")
 <pre>
-DIRECTSHOW_DIR  root_dir\dependencies\DirectShow
-ETRON_DIR       root_dir\dependencies\Etron
-OPENCV_DIR      root_dir\dependencies\OpenCV\build\x86\vc12
-SFML_DIR        root_dir\dependencies\SFML
-TURBOJPEG_DIR   root_dir\dependencies\TurboJPEG
+DIRECTSHOW_DIR  root_dir\dependencies\Windows\DirectShow
+ETRON_DIR       root_dir\dependencies\Windows\Etron
+OPENCV_DIR      root_dir\dependencies\Windows\OpenCV\build\x86\vc12
+SFML_DIR        root_dir\dependencies\Windows\SFML
+TURBOJPEG_DIR   root_dir\dependencies\Windows\TurboJPEG
 </pre>
 
 3. Start Visual Studio with administrator permissions, then open "root_dir\track_plus_visual_studio\track_plus.sln"

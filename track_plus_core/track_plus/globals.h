@@ -41,7 +41,14 @@ using namespace std;
 #define COUT cout
 // #define COUT ostream(0).flush()
 
+#ifdef __APPLE__
+#include <unistd.h>
+#define Sleep(a) usleep(a * 1000)
+#define BYTE unsigned char*
+#endif
+
 extern const string cmd_quote;
+extern const string app_extension;
 
 extern string serial_number;
 extern string executable_path;

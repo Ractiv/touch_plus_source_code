@@ -129,10 +129,12 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 					for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
 						if (blob.active)
+                        {
 							if (blob.x < x_separator_middle_median)
 								++left_count;
 							else
 								++right_count;
+                        }
 
 					if (left_count > right_count)
 						value_store.set_bool("left_hand_is_moving", true);
@@ -146,6 +148,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 					for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
 						if (blob.active)
+                        {
 							if (blob.x < x_separator_middle_median)
 							{
 								if (blob.y_max > left_y_max)
@@ -156,6 +159,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 								if (blob.y_max > right_y_max)
 									right_y_max = blob.y_max;
 							}
+                        }
 				}
 
 				if (value_store.get_bool("left_hand_is_moving") &&

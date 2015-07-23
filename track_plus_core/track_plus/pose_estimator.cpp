@@ -254,7 +254,7 @@ void PoseEstimator::load()
 			vector<Point> points;
 			for (string& str : data)
 			{
-				vector<String> str_pair = split_string(str, "!");
+				vector<string> str_pair = split_string(str, "!");
 				int x = atoi(str_pair[0].c_str());
 				int y = atoi(str_pair[1].c_str());
 				points.push_back(Point(x, y));

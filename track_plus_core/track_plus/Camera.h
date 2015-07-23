@@ -17,15 +17,28 @@
  */
 
 #pragma once
-#include <winsock2.h>
-#include <stdio.h>
-#include <functional>
-#include "opencv2/opencv.hpp"
+
+#ifdef _WIN32
+#include <Windows.h>
 #include "EtronDI_O.h"
 #include "eSPAEAWBCtrl.h"
 #include "CameraDS.h"
-#include <time.h>
 #include "RactivJPEGDecompressor.h"
+
+#elif __APPLE__
+#include "libusb.h"
+#include "libuvc.h"
+#endif
+
+#include <stdio.h>
+#include <functional>
+#include "opencv2/opencv.hpp"
+#include <time.h>
+ #include <fstream>
+#include <string>
+#include <iostream>
+#include <algorithm>
+
 #include "globals.h"
 
 using namespace cv;
@@ -33,11 +46,15 @@ using namespace std;
 
 class Camera
 {
+#define MJPEG 1
+#define UNCOMPRESSED 0
+    
 public:
 	Camera();
 	Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in);
 	~Camera();
-	unsigned char * frame;
+    
+	unsigned char* frame;
 
 	bool device_not_detected = false;
 
@@ -47,7 +64,6 @@ public:
 
 	static function<void (Mat& image_in)> callback;
 	
-	unsigned char* getDataPointer();
 	//accelerometer acquisition
 	int getAccelerometerValues(int *x, int *y, int *z);
 	
@@ -72,30 +88,42 @@ public:
 
 	int     do_software_unlock();
 	int     isCameraPresent();
+    
 	string  getSerialNumber();
 
-private:
-
+#ifdef _WIN32
 	void YUY2_to_RGB24_Microsoft(BYTE *pSrc, BYTE *pDst, int cx, int cy);
-	
+    
+    BYTE* buffer;
+    BYTE* bufferRGB;
+    BYTE* depth;
+    
+    CCameraDS* ds_camera_;
+    
+#elif __APPLE__
+    //static void cb(uvc_frame_t *frame, void *ptr);
+    int startVideoStream(int width, int height, int framerate, int format);
+    int stopVideoStream();
+    void read_ADDR_85(libusb_device_handle* dev_handle, unsigned short wValue = 0x0300);
+    unsigned char read_ADDR_81(libusb_device_handle* dev_handle, unsigned short wValue = 0x0300, int length = 4);
+    unsigned char read_ADDR_81(libusb_device_handle* dev_handle, unsigned char* data,
+                               unsigned short wValue = 0x0300, int length = 4);
+    
+    void write_ADDR_01(libusb_device_handle *dev_handle, unsigned char* data, unsigned short wValue = 0x0300, int length = 4);
+    int readFlash(unsigned char* data, int length);
+#endif
+    
 	int width;
 	int height;
-	BYTE * buffer;
-	BYTE * bufferRGB;
-	BYTE * depth;
-	Mat  result;
+    
+	Mat result;
 	Mat decoded;
-	void *pHandle;
+    
+	void* pHandle;
+    
 	Rect left_roi;
 	Rect right_roi;
+    
 	int doSetup(const int & format);
-
-	CvCapture                          *capture_camera_;
-	CCameraDS                          *ds_camera_;
-	
-	bool useMJPEG;
-	volatile long last_given_frame = 0;
-	bool record;
-	VideoWriter outputVideo;
 };
 
