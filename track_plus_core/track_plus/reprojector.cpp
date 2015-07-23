@@ -130,7 +130,7 @@ void Reprojector::load(IPC& ipc)
 								ipc_ptr->send_message("daemon_plus", "exit", "");
 							else
 							{
-								system(("cd " + cmd_quote + data_path_current_module + cmd_quote + "&& rectifier.exe").c_str());
+								system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier.exe").c_str());
 
 								bool has_complete_calib_data = false;
 								if (directory_exists(data_path_current_module))
