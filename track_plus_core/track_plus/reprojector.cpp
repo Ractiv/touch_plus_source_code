@@ -92,14 +92,16 @@ void Reprojector::load(IPC& ipc)
         create_directory(data_path);
         create_directory(data_path_current_module);
 
-		copy_file(executable_path + "\\downloader.exe", data_path_current_module + "\\downloader.exe");
-		copy_file(executable_path + "\\rectifier.exe", data_path_current_module + "\\rectifier.exe");
-		copy_file(executable_path + "\\opencv_core249.dll", data_path_current_module + "\\opencv_core249.dll");
-		copy_file(executable_path + "\\opencv_highgui249.dll", data_path_current_module + "\\opencv_highgui249.dll");
-		copy_file(executable_path + "\\opencv_imgproc249.dll", data_path_current_module + "\\opencv_imgproc249.dll");
-		copy_file(executable_path + "\\opencv_calib3d249.dll", data_path_current_module + "\\opencv_calib3d249.dll");
-		copy_file(executable_path + "\\opencv_flann249.dll", data_path_current_module + "\\opencv_flann249.dll");
-		copy_file(executable_path + "\\opencv_features2d249.dll", data_path_current_module + "\\opencv_features2d249.dll");
+        if (!directory_exists(data_path_current_module))
+        {
+			copy_file(executable_path + "\\rectifier.exe", data_path_current_module + "\\rectifier.exe");
+			copy_file(executable_path + "\\opencv_core249.dll", data_path_current_module + "\\opencv_core249.dll");
+			copy_file(executable_path + "\\opencv_highgui249.dll", data_path_current_module + "\\opencv_highgui249.dll");
+			copy_file(executable_path + "\\opencv_imgproc249.dll", data_path_current_module + "\\opencv_imgproc249.dll");
+			copy_file(executable_path + "\\opencv_calib3d249.dll", data_path_current_module + "\\opencv_calib3d249.dll");
+			copy_file(executable_path + "\\opencv_flann249.dll", data_path_current_module + "\\opencv_flann249.dll");
+			copy_file(executable_path + "\\opencv_features2d249.dll", data_path_current_module + "\\opencv_features2d249.dll");
+		}
 
 		string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + serial + "/0.jpg";
 		string param1 = data_path_current_module + "\\0.jpg";
@@ -130,21 +132,21 @@ void Reprojector::load(IPC& ipc)
 								ipc_ptr->send_message("daemon_plus", "exit", "");
 							else
 							{
-								system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier.exe").c_str());
-
 								bool has_complete_calib_data = false;
-								if (directory_exists(data_path_current_module))
-									if (file_exists(data_path_current_module + "\\0.jpg"))
-										if (file_exists(data_path_current_module + "\\1.jpg"))
-											if (file_exists(data_path_current_module + "\\stereoCalibData.txt"))
-												if (file_exists(data_path_current_module + "\\rect0.txt"))
-													if (file_exists(data_path_current_module + "\\rect1.txt"))
-														has_complete_calib_data = true;
+								while (!has_complete_calib_data)
+								{
+									system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier.exe").c_str());
 
-								if (has_complete_calib_data)
-									block_thread = false;
-								else
-									ipc_ptr->send_message("menu_plus", "download failed", "");
+									if (directory_exists(data_path_current_module))
+										if (file_exists(data_path_current_module + "\\0.jpg"))
+											if (file_exists(data_path_current_module + "\\1.jpg"))
+												if (file_exists(data_path_current_module + "\\stereoCalibData.txt"))
+													if (file_exists(data_path_current_module + "\\rect0.txt"))
+														if (file_exists(data_path_current_module + "\\rect1.txt"))
+															has_complete_calib_data = true;
+								}
+
+								block_thread = false;
 							}
 						});
 					}

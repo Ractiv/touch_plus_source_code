@@ -43,6 +43,8 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 		pt_precise_thumb1 = increase_resolution(mono_processor1.pt_thumb, image1, motion_processor1.image_background_static,
 											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector);
 
+	Mat image_visualization = image0.clone();
+
 	if (pt_precise_index0.x == -1 || pt_precise_index1.x == -1)
 	{
 		pt_precise_index0 = Point2f(-1, -1);
@@ -50,8 +52,8 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 	}
 	else
 	{
-		circle(image0, pt_precise_index0, 5, Scalar(120, 60, 30), -1);
-		circle(image0, pt_precise_index1, 5, Scalar(200, 32, 97), -1);
+		circle(image_visualization, pt_precise_index0, 5, Scalar(120, 60, 30), -1);
+		circle(image_visualization, pt_precise_index1, 5, Scalar(200, 32, 97), -1);
 	}
 
 	if (pt_precise_thumb0.x == -1 || pt_precise_thumb1.x == -1)
@@ -61,11 +63,11 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 	}
 	else
 	{
-		circle(image0, pt_precise_thumb0, 5, Scalar(192, 100, 30), -1);
-		circle(image0, pt_precise_thumb1, 5, Scalar(32, 64, 99), -1);
+		circle(image_visualization, pt_precise_thumb0, 5, Scalar(192, 100, 30), -1);
+		circle(image_visualization, pt_precise_thumb1, 5, Scalar(32, 64, 99), -1);
 	}
 
-	// imshow("image0", image0);
+	imshow("image_visualization", image_visualization);
 }
 
 Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& image_background_in, uchar diff_threshold, uchar gray_threshold,
