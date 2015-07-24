@@ -40,8 +40,8 @@ Point3f Reprojector::reproject_to_3d(float pt0_x, float pt0_y, float pt1_x, floa
 	float half_plane_width = plane_size.x / 2;
 	float halfPlaneHeight = plane_size.y / 2;
 
-	float real_x = map_val(pt0_x, 0, 640, -half_plane_width,  half_plane_width);
-	float real_y = map_val(pt0_y, 0, 480, -halfPlaneHeight,   halfPlaneHeight);
+	float real_x = map_val(pt0_x, 0, WIDTH_LARGE, -half_plane_width, half_plane_width);
+	float real_y = map_val(pt0_y, 0, HEIGHT_LARGE, -halfPlaneHeight, halfPlaneHeight);
 
 	return Point3f(real_x * 10, real_y * 10, depth * 10);
 }
@@ -251,9 +251,9 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	is_number_old = false;
 	block_count = 0;
 
-	rect_mat0 = new Point*[640];
-	for (int i = 0; i < 640; ++i)
-		rect_mat0[i] = new Point[480];
+	rect_mat0 = new Point*[WIDTH_LARGE];
+	for (int i = 0; i < WIDTH_LARGE; ++i)
+		rect_mat0[i] = new Point[HEIGHT_LARGE];
 
 	string rect0_string = "";
 	while (getline(file0, rect0_string))
@@ -286,7 +286,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 				if (!flipped)
 					rect_mat0[block[0]][block[1]] = Point(block[2], block[3]);
 				else
-					rect_mat0[block[0]][480 - 1 - block[1]] = Point(block[2], block[3]);
+					rect_mat0[block[0]][HEIGHT_LARGE_MINUS - block[1]] = Point(block[2], block[3]);
 
 				block_count = 0;
 			}
@@ -298,9 +298,9 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	is_number_old = false;
 	block_count = 0;
 
-	rect_mat1 = new Point*[640];
-	for (int i = 0; i < 640; ++i)
-		rect_mat1[i] = new Point[480];
+	rect_mat1 = new Point*[WIDTH_LARGE];
+	for (int i = 0; i < WIDTH_LARGE; ++i)
+		rect_mat1[i] = new Point[HEIGHT_LARGE];
 
 	string rect1_string = "";
 	while (getline(file1, rect1_string))
@@ -333,7 +333,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 				if (!flipped)
 					rect_mat1[block[0]][block[1]] = Point(block[2], block[3]);
 				else
-					rect_mat1[block[0]][480 - 1 - block[1]] = Point(block[2], block[3]);
+					rect_mat1[block[0]][HEIGHT_LARGE_MINUS - block[1]] = Point(block[2], block[3]);
 
 				block_count = 0;
 			}
@@ -347,7 +347,7 @@ Mat Reprojector::remap(Mat* const image_in, const uchar side, const bool interpo
 	const int image_width_const = image_in->cols;
 	const int image_height_const = image_in->rows;
 
-	const int scale = 640 / image_in->cols;
+	const int scale = WIDTH_LARGE / image_in->cols;
 
 	Mat image_out = Mat(image_in->size(), CV_8UC1, Scalar(254));
 	Point** rect_mat = NULL;
