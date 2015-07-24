@@ -48,7 +48,7 @@ public:
 	Point** rect_mat0 = NULL;
 	Point** rect_mat1 = NULL;
 
-	void load(IPC& ipc);
+	void load(IPC& ipc, bool flipped);
 	void proceed();
 	float compute_depth(float disparity_in);
 	Point2f compute_plane_size(float depth);

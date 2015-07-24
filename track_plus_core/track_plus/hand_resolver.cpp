@@ -21,39 +21,51 @@
 void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorNew& mono_processor1,
 						   MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1,
 						   Mat& image0, 					      Mat& image1,
-						   Reprojector& reprojector)
+						   Reprojector& reprojector,              bool visualize)
 {
+	Mat image_visualization0;
+	Mat image_visualization1;
+
+	if (visualize)
+	{
+		image_visualization0 = reprojector.remap(&image0, 0, true);
+		image_visualization1 = reprojector.remap(&image1, 1, true);
+	}
+
+	pt_precise_palm0.x = mono_processor0.pt_palm.x * 2;
+	pt_precise_palm0.y = mono_processor0.pt_palm.y * 2;
+	pt_precise_palm1.x = mono_processor1.pt_palm.x * 2;
+	pt_precise_palm1.y = mono_processor1.pt_palm.y * 2;
+
 	pt_precise_index0 = Point2f(-1, -1);
 	if (mono_processor0.pt_index.x != -1)
 		pt_precise_index0 = increase_resolution(mono_processor0.pt_index, image0, motion_processor0.image_background_static,
-											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector);
+											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector, 0);
 
 	pt_precise_index1 = Point2f(-1, -1);
 	if (mono_processor1.pt_index.x != -1)
 		pt_precise_index1 = increase_resolution(mono_processor1.pt_index, image1, motion_processor1.image_background_static,
-											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector);
+											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector, 1);
 
 	pt_precise_thumb0 = Point2f(-1, -1);
 	if (mono_processor0.pt_thumb.x != -1)
 		pt_precise_thumb0 = increase_resolution(mono_processor0.pt_thumb, image0, motion_processor0.image_background_static,
-											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector);
+											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector, 0);
 
 	pt_precise_thumb1 = Point2f(-1, -1);
 	if (mono_processor1.pt_thumb.x != -1)
 		pt_precise_thumb1 = increase_resolution(mono_processor1.pt_thumb, image1, motion_processor1.image_background_static,
-											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector);
-
-	Mat image_visualization = image0.clone();
+											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector, 1);
 
 	if (pt_precise_index0.x == -1 || pt_precise_index1.x == -1)
 	{
 		pt_precise_index0 = Point2f(-1, -1);
 		pt_precise_index1 = Point2f(-1, -1);
 	}
-	else
+	else if (visualize)
 	{
-		circle(image_visualization, pt_precise_index0, 5, Scalar(120, 60, 30), -1);
-		circle(image_visualization, pt_precise_index1, 5, Scalar(200, 32, 97), -1);
+		circle(image_visualization0, pt_precise_index0, 5, Scalar(255), -1);
+		circle(image_visualization1, pt_precise_index1, 5, Scalar(255), -1);
 	}
 
 	if (pt_precise_thumb0.x == -1 || pt_precise_thumb1.x == -1)
@@ -61,17 +73,21 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 		pt_precise_thumb0 = Point2f(-1, -1);
 		pt_precise_thumb1 = Point2f(-1, -1);
 	}
-	else
+	else if (visualize)
 	{
-		circle(image_visualization, pt_precise_thumb0, 5, Scalar(192, 100, 30), -1);
-		circle(image_visualization, pt_precise_thumb1, 5, Scalar(32, 64, 99), -1);
+		circle(image_visualization0, pt_precise_thumb0, 5, Scalar(255), -1);
+		circle(image_visualization1, pt_precise_thumb1, 5, Scalar(255), -1);
 	}
 
-	imshow("image_visualization", image_visualization);
+	if (visualize)
+	{
+		imshow("image_visualization0", image_visualization0);
+		imshow("image_visualization1", image_visualization1);
+	}
 }
 
-Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& image_background_in, uchar diff_threshold, uchar gray_threshold,
-										  Reprojector& reprojector)
+Point2f HandResolver::increase_resolution(Point& pt_in,         Mat& image_in,        Mat& image_background_in,
+										  uchar diff_threshold, uchar gray_threshold, Reprojector& reprojector, uchar side)
 {
 	Point pt_large = pt_in * 4;
 
@@ -107,7 +123,7 @@ Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& imag
 	Mat image_cropped_preprocessed;
 	compute_channel_diff_image(image_cropped, image_cropped_preprocessed, true, "image_cropped_preprocessed");
 	Point pt_offset0;
-	image_cropped_preprocessed = reprojector.remap(&image_cropped_preprocessed, x0, y0, 0, pt_offset0);
+	image_cropped_preprocessed = reprojector.remap(&image_cropped_preprocessed, x0, y0, side, pt_offset0);
 
 	Mat image_background_cropped = image_background_in(crop_rect_small).clone();
 
@@ -132,7 +148,7 @@ Point2f HandResolver::increase_resolution(Point& pt_in, Mat& image_in, Mat& imag
 	resize(image_background_cropped, image_background_cropped_scaled, crop_rect.size(), 0, 0, INTER_LINEAR);
 
 	Point pt_offset1;
-	image_background_cropped_scaled = reprojector.remap(&image_background_cropped_scaled, x0, y0, 0, pt_offset1);
+	image_background_cropped_scaled = reprojector.remap(&image_background_cropped_scaled, x0, y0, side, pt_offset1);
 
 	if (image_background_cropped_scaled.cols == 0)
 		return Point(-1, -1);

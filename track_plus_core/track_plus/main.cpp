@@ -267,7 +267,7 @@ void on_first_frame()
 
 	ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
 
-	reprojector.load(*ipc);
+	reprojector.load(*ipc, true);
 	CameraInitializerNew::init(camera);
 	pose_estimator.init();
 
@@ -409,7 +409,7 @@ void compute()
 
 	if (mode == "surface" && proceed)
 	{
-		proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+		proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
 		proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
 		proceed = false;
 		proceed = proceed0 && proceed1;
@@ -441,7 +441,11 @@ void compute()
 					show_calibration_sent = true;
 				}
 
-				hand_resolver.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1, image0, image1, reprojector);
+				hand_resolver.compute(mono_processor0,   mono_processor1,
+									  motion_processor0, motion_processor1,
+									  image0,            image1,
+									  reprojector,       false);
+
 				pointer_mapper.compute(hand_resolver, reprojector);
 
 				if (pointer_mapper.calibrated)

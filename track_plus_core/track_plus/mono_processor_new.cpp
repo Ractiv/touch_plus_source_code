@@ -36,11 +36,24 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
+	pt_palm = Point2f(0, 0);
+	int pt_palm_count = 0;
+
 	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
 	{
 		blob.fill(image_find_contours, 254);
 		blob.fill(image_active_hand, 254);
+
+		for (Point& pt : blob.data)
+		{
+			pt_palm.x += pt.x;
+			pt_palm.y += pt.y;
+			++pt_palm_count;
+		}
 	}
+
+	pt_palm.x /= pt_palm_count;
+	pt_palm.y /= pt_palm_count;
 
 	Mat image_find_contours_clone = image_find_contours.clone();
 
@@ -142,7 +155,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		Point max_loc;
 		minMaxLoc(image_distance_transform, &min, &max, &min_loc, &max_loc);
 
-		pt_palm = max_loc * 4;
+		pt_hand_anchor = max_loc * 4;
 		palm_radius = max * 4;
 	}
 
@@ -171,9 +184,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		Point max_loc;
 		minMaxLoc(image_distance_transform, &min, &max, &min_loc, &max_loc);
 
-		Point pt_palm_new = max_loc * 4;
-		pt_palm.y = pt_palm_new.y;
-		pt_palm.x = pt_palm_new.x;
+		Point pt_hand_anchor_new = max_loc * 4;
+		pt_hand_anchor.y = pt_hand_anchor_new.y;
+		pt_hand_anchor.x = pt_hand_anchor_new.x;
+		pt_hand_anchor.x = pt_palm.x;
 
 		palm_radius = max * 4;
 		float multiplier = palm_radius > 10 ? 10 : palm_radius;
@@ -186,13 +200,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		angle_final_diff = 10;
 
 	float alpha = map_val(angle_final_diff, 0, 10, 0.01, 1);
-	low_pass_filter.compute(pt_palm, alpha, "pt_palm");
+	low_pass_filter.compute(pt_hand_anchor, alpha, "pt_hand_anchor");
 
 	low_pass_filter.compute(palm_radius, 0.1, "palm_radius");
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	Point pivot = Point(pt_palm.x + palm_radius, 0);
+	Point pivot = Point(pt_hand_anchor.x + palm_radius, 0);
 
 	vector<Point> contour_sorted;
 	sort_contour(contours[0], contour_sorted, pivot);
@@ -231,7 +245,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 
 		//rotated rect masking of palm
-		RotatedRect r_rect0 = RotatedRect(pt_palm, Size2f(500, 500), -angle_final);
+		RotatedRect r_rect0 = RotatedRect(pt_hand_anchor, Size2f(500, 500), -angle_final);
 		Point2f vertices0[4];
 		r_rect0.points(vertices0);
 
@@ -242,7 +256,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		line(image_palm, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(254), 1);
 
-		RotatedRect r_rect1 = RotatedRect(pt_palm, Size2f(palm_radius * 2, 500), -angle_final);
+		RotatedRect r_rect1 = RotatedRect(pt_hand_anchor, Size2f(palm_radius * 2, 500), -angle_final);
 		Point2f vertices1[4];
 		r_rect1.points(vertices1);
 
@@ -300,8 +314,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 			if (concave_points[0].x == concave_points[concave_indexes_size - 1].x)
 			{
-				concave_points[0].x = pt_palm.x;
-				concave_points[concave_indexes_size - 1].x = pt_palm.x;
+				concave_points[0].x = pt_hand_anchor.x;
+				concave_points[concave_indexes_size - 1].x = pt_hand_anchor.x;
 			}
 
 			Point concave_point_first = concave_points[0];
@@ -317,14 +331,14 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 
 		//
-		circle(image_palm, pt_palm, palm_radius, Scalar(254), 1);
+		circle(image_palm, pt_hand_anchor, palm_radius, Scalar(254), 1);
 
 		vector<Point> circle_vec;
-		midpoint_circle(pt_palm.x, pt_palm.y, palm_radius, circle_vec);
+		midpoint_circle(pt_hand_anchor.x, pt_hand_anchor.y, palm_radius, circle_vec);
 
 		if (circle_vec.size() > 0)
 		{
-			sort(circle_vec.begin(), circle_vec.end(), compare_point_angle(pt_palm));
+			sort(circle_vec.begin(), circle_vec.end(), compare_point_angle(pt_hand_anchor));
 
 			Point pt_dist_contour_circle_min_old = Point(9999, 0);
 			Point pt_dist_contour_circle_min_first;
@@ -406,12 +420,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	const int dest_x = 80;
 	const int dest_y = 40;
-	dest_diff_x = pt_palm.x - dest_x;
-	dest_diff_y = pt_palm.y - dest_y;
+	dest_diff_x = pt_hand_anchor.x - dest_x;
+	dest_diff_y = pt_hand_anchor.y - dest_y;
 
-	pt_palm_rotated = rotate(pt_palm);
+	pt_hand_anchor_rotated = rotate(pt_hand_anchor);
 
-	Mat image_hand_rotated_raw = rotate_image(image_hand, -angle_final, pt_palm, 0);
+	Mat image_hand_rotated_raw = rotate_image(image_hand, -angle_final, pt_hand_anchor, 0);
 	image_hand_rotated_raw = translate_image(image_hand_rotated_raw, dest_diff_x, dest_diff_y);
 
 	Mat image_hand_rotated;
@@ -441,8 +455,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	if (pose_name == "point")
 	{
 		BlobNew* blob_dist_min = blob_detector_image_hand_rotated.blob_max_size;
-		Point pt_anchor0 = Point(pt_palm_rotated.x, HEIGHT_SMALL_MINUS);
-		Point pt_anchor1 = Point(pt_palm_rotated.x + palm_radius, HEIGHT_SMALL_MINUS);
+		Point pt_anchor0 = Point(pt_hand_anchor_rotated.x, HEIGHT_SMALL_MINUS);
+		Point pt_anchor1 = Point(pt_hand_anchor_rotated.x + palm_radius, HEIGHT_SMALL_MINUS);
 
 		for (BlobNew& blob : *blob_detector_image_hand_rotated.blobs)
 		{
@@ -487,7 +501,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 	}
 
-	static Point pt_palm_static = pt_palm;
+	static Point pt_hand_anchor_static = pt_hand_anchor;
 
 	if (blob_index_unrotated != NULL)
 	{
@@ -504,7 +518,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		blob_thumb_unrotated->fill(image_hand, 127);
 		blob_thumb_rotated->fill(image_hand_rotated, 127);
 
-		float thumb_ratio = get_distance(pt_thumb, pt_palm) / palm_radius;
+		float thumb_ratio = get_distance(pt_thumb, pt_hand_anchor) / palm_radius;
 		low_pass_filter.compute_if_larger(thumb_ratio, 0.5, "thumb_ratio");
 
 		if (thumb_ratio < 2)
@@ -549,19 +563,19 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			sort(blob.data.begin(), blob.data.end(), compare_point_y());
 			Point pt_blob = blob.data[blob.data.size() * 0.7];
 
-			if (blob.x_max < (pt_palm_rotated.x - palm_radius))
+			if (blob.x_max < (pt_hand_anchor_rotated.x - palm_radius))
 			{
-				float angle_blob = get_angle(pt_palm_rotated, pt_blob, Point(pt_palm_rotated.x, 0));
+				float angle_blob = get_angle(pt_hand_anchor_rotated, pt_blob, Point(pt_hand_anchor_rotated.x, 0));
 				if (angle_blob < 150)
 					if (blob_aux == NULL || blob.x_min < blob_aux->x_min)
 						blob_aux = &blob;
 
-				if (pt_blob.y < pt_palm_rotated.y)
+				if (pt_blob.y < pt_hand_anchor_rotated.y)
 					if (blob_aux == NULL || blob.x_min < blob_aux->x_min)
 						blob_aux = &blob;
 			}
 
-			if (index == 0 && blob.y_min < pt_palm_rotated.y)
+			if (index == 0 && blob.y_min < pt_hand_anchor_rotated.y)
 				if (blob_aux == NULL || blob.x_min < blob_aux->x_min)
 					blob_aux = &blob;
 
@@ -597,7 +611,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			if (pt.x < pt_x_min.x)
 				pt_x_min = pt;
 
-		float angle_raw = get_angle(pt_palm, pt_x_min, Point(0, pt_palm.y)) - 90;
+		float angle_raw = get_angle(pt_hand_anchor, pt_x_min, Point(0, pt_hand_anchor.y)) - 90;
 		if (value_store.get_bool("has_aux") || pose_name == "point")
 			angle_raw += 30;
 
@@ -627,7 +641,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		static Point pt_reference_old = Point(WIDTH_SMALL, HEIGHT_SMALL);
 		static float angle_reference_old = 0;
-		pt_palm_rotated = rotate(pt_palm, angle_reference_old);
+		pt_hand_anchor_rotated = rotate(pt_hand_anchor, angle_reference_old);
 
 		float dist_min = 9999;
 		Point pt_reference;
@@ -635,12 +649,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		{
 			Point pt_unrotated = unrotate(pt, angle_raw);
 			Point pt_rotated = rotate(pt_unrotated, angle_reference_old);
-			float angle = get_angle(pt_palm, pt_unrotated, Point(0, pt_palm.y)) - 90;
+			float angle = get_angle(pt_hand_anchor, pt_unrotated, Point(0, pt_hand_anchor.y)) - 90;
 
 			float dist = (get_distance(pt, pt_anchor) * 1) +
 					 	 (blob_index_unrotated == NULL ? 0 : (get_distance(pt_unrotated, blob_index_unrotated->pt_y_max) * 0.25)) +
 						 (abs(angle_reference_old - angle) * 0.1) +
-						 ((0 - (pt_rotated.y - pt_palm_rotated.y)) * 0.25);
+						 ((0 - (pt_rotated.y - pt_hand_anchor_rotated.y)) * 0.25);
 
 			if (dist < dist_min)
 			{
@@ -650,7 +664,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 		Point pt_reference_unrotated = unrotate(pt_reference, angle_raw);
 
-		angle_reference_old = get_angle(pt_palm, pt_reference_unrotated, Point(0, pt_palm.y)) - 90;
+		angle_reference_old = get_angle(pt_hand_anchor, pt_reference_unrotated, Point(0, pt_hand_anchor.y)) - 90;
 		pt_reference_old = pt_reference;
 
 		float angle_final_old = angle_final;
@@ -670,8 +684,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	if (visualize && enable_imshow)
 	{
-		circle(image_hand_rotated, pt_palm_rotated, palm_radius, Scalar(127), 2);
-		circle(image_hand, pt_palm, palm_radius, Scalar(64), 2);
+		circle(image_hand_rotated, pt_hand_anchor_rotated, palm_radius, Scalar(127), 2);
+		circle(image_hand, pt_hand_anchor, palm_radius, Scalar(64), 2);
+		circle(image_hand, pt_palm, 10, Scalar(127), 1);
 
 		imshow("image_hand" + name, image_hand);
 		imshow("image_hand_rotated" + name, image_hand_rotated);
@@ -833,9 +848,9 @@ Point MonoProcessorNew::rotate(Point pt, float angle, Point anchor_in)
 		angle = angle_final;
 
 	if (anchor_in.x == 9999)
-		anchor_in = pt_palm;
+		anchor_in = pt_hand_anchor;
 
-	pt = rotate_point(angle, pt, pt_palm);
+	pt = rotate_point(angle, pt, pt_hand_anchor);
 	pt.x -= dest_diff_x;
 	pt.y -= dest_diff_y;
 	return pt;
@@ -847,11 +862,11 @@ Point MonoProcessorNew::unrotate(Point pt, float angle, Point anchor_in)
 		angle = angle_final;
 
 	if (anchor_in.x == 9999)
-		anchor_in = pt_palm;
+		anchor_in = pt_hand_anchor;
 
 	pt.x += dest_diff_x;
 	pt.y += dest_diff_y;
-	pt = rotate_point(-angle, pt, pt_palm);
+	pt = rotate_point(-angle, pt, pt_hand_anchor);
 	return pt;
 }
 

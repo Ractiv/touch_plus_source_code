@@ -22,6 +22,9 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 {
 	active = false;
 
+	pt_palm = reprojector.reproject_to_3d(hand_resolver.pt_precise_palm0.x, hand_resolver.pt_precise_palm0.y,
+										  hand_resolver.pt_precise_palm1.x, hand_resolver.pt_precise_palm1.y);
+
 	compute_cursor_point(index_down, hand_resolver.pt_precise_index0, hand_resolver.pt_precise_index1,
 						 pt_index, reprojector, pt_cursor_index, dist_cursor_index_plane, actuate_dist, "compute_index");
 

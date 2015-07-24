@@ -36,8 +36,10 @@ public:
 
 	LowPassFilter low_pass_filter;
 
-	Point pt_palm;
-	Point pt_palm_rotated;
+	Point pt_hand_anchor;
+	Point pt_hand_anchor_rotated;
+
+	Point2f pt_palm;
 
 	Point pt_index;
 	Point pt_thumb;

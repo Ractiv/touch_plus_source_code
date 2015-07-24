@@ -46,7 +46,7 @@ Point3f Reprojector::reproject_to_3d(float pt0_x, float pt0_y, float pt1_x, floa
 	return Point3f(real_x * 10, real_y * 10, depth * 10);
 }
 
-void Reprojector::load(IPC& ipc)
+void Reprojector::load(IPC& ipc, bool flipped)
 {
 	bool serial_first_non_zero = false;
 	string serial = "";
@@ -92,16 +92,13 @@ void Reprojector::load(IPC& ipc)
         create_directory(data_path);
         create_directory(data_path_current_module);
 
-        if (!directory_exists(data_path_current_module))
-        {
-			copy_file(executable_path + "\\rectifier.exe", data_path_current_module + "\\rectifier.exe");
-			copy_file(executable_path + "\\opencv_core249.dll", data_path_current_module + "\\opencv_core249.dll");
-			copy_file(executable_path + "\\opencv_highgui249.dll", data_path_current_module + "\\opencv_highgui249.dll");
-			copy_file(executable_path + "\\opencv_imgproc249.dll", data_path_current_module + "\\opencv_imgproc249.dll");
-			copy_file(executable_path + "\\opencv_calib3d249.dll", data_path_current_module + "\\opencv_calib3d249.dll");
-			copy_file(executable_path + "\\opencv_flann249.dll", data_path_current_module + "\\opencv_flann249.dll");
-			copy_file(executable_path + "\\opencv_features2d249.dll", data_path_current_module + "\\opencv_features2d249.dll");
-		}
+		copy_file(executable_path + "\\rectifier.exe", data_path_current_module + "\\rectifier.exe");
+		copy_file(executable_path + "\\opencv_core249.dll", data_path_current_module + "\\opencv_core249.dll");
+		copy_file(executable_path + "\\opencv_highgui249.dll", data_path_current_module + "\\opencv_highgui249.dll");
+		copy_file(executable_path + "\\opencv_imgproc249.dll", data_path_current_module + "\\opencv_imgproc249.dll");
+		copy_file(executable_path + "\\opencv_calib3d249.dll", data_path_current_module + "\\opencv_calib3d249.dll");
+		copy_file(executable_path + "\\opencv_flann249.dll", data_path_current_module + "\\opencv_flann249.dll");
+		copy_file(executable_path + "\\opencv_features2d249.dll", data_path_current_module + "\\opencv_features2d249.dll");
 
 		string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + serial + "/0.jpg";
 		string param1 = data_path_current_module + "\\0.jpg";
@@ -283,7 +280,11 @@ void Reprojector::load(IPC& ipc)
 			}
 			if (block_count == 4)
 			{
-				rect_mat0[block[0]][block[1]] = Point(block[2], block[3]);
+				if (!flipped)
+					rect_mat0[block[0]][block[1]] = Point(block[2], block[3]);
+				else
+					rect_mat0[block[0]][480 - 1 - block[1]] = Point(block[2], block[3]);
+
 				block_count = 0;
 			}
 			is_number_old = is_number_new;
@@ -326,7 +327,11 @@ void Reprojector::load(IPC& ipc)
 			}
 			if (block_count == 4)
 			{
-				rect_mat1[block[0]][block[1]] = Point(block[2], block[3]);
+				if (!flipped)
+					rect_mat1[block[0]][block[1]] = Point(block[2], block[3]);
+				else
+					rect_mat1[block[0]][480 - 1 - block[1]] = Point(block[2], block[3]);
+
 				block_count = 0;
 			}
 			is_number_old = is_number_new;

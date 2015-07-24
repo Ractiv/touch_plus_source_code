@@ -27,11 +27,14 @@ class HandResolver
 {
 public:
 	const int window_width = 50;
-	const int window_height = 20;
+	const int window_height = 10;
 	const int window_width_half = window_width / 2;
 	const int window_height_half = window_height / 2;
 
 	BlobDetectorNew blob_detector_image_subtraction;
+
+	Point2f pt_precise_palm0 = Point(-1, -1);
+	Point2f pt_precise_palm1 = Point(-1, -1);
 
 	Point2f pt_precise_index0 = Point(-1, -1);
 	Point2f pt_precise_index1 = Point(-1, -1);
@@ -39,11 +42,12 @@ public:
 	Point2f pt_precise_thumb0 = Point(-1, -1);
 	Point2f pt_precise_thumb1 = Point(-1, -1);
 
+
 	void compute(MonoProcessorNew& mono_processor0,     MonoProcessorNew& mono_processor1,
 				 MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1,
 				 Mat& image0,                           Mat& image1,
-				 Reprojector& reprojector);
+				 Reprojector& reprojector,              bool visualize);
 
-	Point2f increase_resolution(Point& pt_in, Mat& image_in, Mat& image_background_in, uchar diff_threshold, uchar gray_threshold,
-								Reprojector& reprojector);
+	Point2f increase_resolution(Point& pt_in,         Mat& image_in,        Mat& image_background_in,
+								uchar diff_threshold, uchar gray_threshold, Reprojector& reprojector, uchar side);
 };
