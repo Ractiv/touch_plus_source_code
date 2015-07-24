@@ -7,6 +7,7 @@ win_cursor_plus.exe
 ipc/
 userdata/
 
+
 #XCode
 
 # Created by https://www.gitignore.io
@@ -38,11 +39,6 @@ DerivedData
 *.gch
 *.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
 # Fortran module files
 *.mod
 
@@ -50,7 +46,6 @@ DerivedData
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
