@@ -32,10 +32,10 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 		image_visualization1 = reprojector.remap(&image1, 1, true);
 	}
 
-	pt_precise_palm0.x = mono_processor0.pt_palm.x * 2;
-	pt_precise_palm0.y = mono_processor0.pt_palm.y * 2;
-	pt_precise_palm1.x = mono_processor1.pt_palm.x * 2;
-	pt_precise_palm1.y = mono_processor1.pt_palm.y * 2;
+	pt_precise_palm0.x = mono_processor0.pt_palm.x * 4;
+	pt_precise_palm0.y = mono_processor0.pt_palm.y * 4;
+	pt_precise_palm1.x = mono_processor1.pt_palm.x * 4;
+	pt_precise_palm1.y = mono_processor1.pt_palm.y * 4;
 
 	pt_precise_index0 = Point2f(-1, -1);
 	if (mono_processor0.pt_index.x != -1)

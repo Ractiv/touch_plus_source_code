@@ -35,6 +35,18 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 		thumb_down = false;
 
 	compute_pinch_to_zoom(hand_resolver);
+
+	Mat image_visualization_pointer_mapper = Mat::zeros(480, 640, CV_8UC1);
+
+	circle(image_visualization_pointer_mapper, hand_resolver.pt_precise_index0, 10, Scalar(127), 4);
+	circle(image_visualization_pointer_mapper, hand_resolver.pt_precise_palm0, 10, Scalar(127), 4);
+
+	// circle(image_visualization_pointer_mapper, Point(pt_palm.x + 320, pt_palm.y + 240), pow(pt_palm.z / 100, 2), Scalar(127), 4);
+	// circle(image_visualization_pointer_mapper, Point(pt_index.x + 320, pt_index.y + 240), pow(pt_index.z / 100, 2), Scalar(127), 4);
+	// if (pinch_to_zoom)
+	// 	circle(image_visualization_pointer_mapper, Point(pt_thumb.x + 320, pt_thumb.y + 240), pow(pt_thumb.z / 100, 2), Scalar(127), 4);
+
+	imshow("image_visualization_pointer_mapper", image_visualization_pointer_mapper);
 }
 
 void PointerMapper::add_calibration_point(const uchar index)
