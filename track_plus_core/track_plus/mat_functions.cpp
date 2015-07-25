@@ -186,8 +186,8 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 			image_out.ptr<uchar>(j, i)[0] = gray;
 		}
 
-	mat_functions_low_pass_filter.compute(gray_min, 0.1, "gray_min" + name);
-	mat_functions_low_pass_filter.compute(gray_max, 0.1, "gray_max" + name);
+	mat_functions_low_pass_filter.compute(gray_min, 0.1, "gray_min");
+	mat_functions_low_pass_filter.compute(gray_max, 0.1, "gray_max");
 
 	if (normalize && mode == "surface")
 		for (int i = 0; i < image_width_const; ++i)

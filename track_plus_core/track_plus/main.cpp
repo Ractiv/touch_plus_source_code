@@ -451,14 +451,7 @@ void compute()
 				pointer_mapper.compute(hand_resolver, reprojector);
 
 				if (pointer_mapper.calibrated)
-				{
-					if (enable_imshow)
-					{
-						enable_imshow = false;
-						destroyAllWindows();
-					}
 					show_cursor_index = true;
-				}
 
 				if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
 					show_cursor_thumb = true;
