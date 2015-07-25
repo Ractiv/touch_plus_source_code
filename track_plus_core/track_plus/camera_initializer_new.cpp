@@ -87,8 +87,6 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		sort(vec_leds_on.begin(), vec_leds_on.end());
 		sort(vec_leds_off.begin(), vec_leds_off.end());
 
-		// const int i_min = vec_leds_on.size() * 0.25;
-		// const int i_max = vec_leds_on.size() * 0.75;
 		const int i_min = 0;
 		const int i_max = vec_leds_on.size() - 1;
 
@@ -107,19 +105,19 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		gray_mean_off /= gray_mean_count;
 
 		int gray_diff = gray_mean_on - gray_mean_off;
-		if (gray_diff > 25)
-			gray_diff = 25;
+		if (gray_diff > 100)
+			gray_diff = 100;
 		else if (gray_diff < 0)
 			gray_diff = 0;
 
 		if (mode == "surface")
-			exposure_val = map_val(gray_diff, 0, 25, 1, 10);
+			exposure_val = map_val(gray_diff, 0, 100, 1, 10);
 		else
 			exposure_val = 3;
 
 		camera->setExposureTime(Camera::both, exposure_val);
 
-		float r_val = map_val(gray_diff, 0, 25, 1.5, 2.0);
+		float r_val = map_val(gray_diff, 0, 100, 1.5, 2.0);
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 

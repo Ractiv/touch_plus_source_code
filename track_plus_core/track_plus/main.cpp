@@ -383,7 +383,9 @@ void compute()
 	exposure_adjusted = true;
 
 	// imshow("image_small0", image_small0);
+	// imshow("image_small1", image_small1);
 	// imshow("image_preprocessed0", image_preprocessed0);
+	// imshow("image_preprocessed1", image_preprocessed1);
 
 	bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);
 	bool proceed1 = motion_processor1.compute(image_preprocessed_smoothed1, "1", false);
@@ -409,7 +411,7 @@ void compute()
 
 	if (mode == "surface" && proceed)
 	{
-		proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+		proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
 		proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
 		proceed = false;
 		proceed = proceed0 && proceed1;

@@ -162,13 +162,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
                         }
 				}
 
-				if (value_store.get_bool("left_hand_is_moving") &&
-					value_store.get_bool("right_hand_is_moving") &&
-					!value_store.get_bool("both_hands_are_moving"))
-				{
-					cout << "this fucking happens" << endl;
-				}
-
 				static float gray_threshold_stereo;
 				static float gray_threshold_left_stereo;
 				static float gray_threshold_right_stereo;

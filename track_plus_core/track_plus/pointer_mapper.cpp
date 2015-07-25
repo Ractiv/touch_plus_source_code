@@ -22,6 +22,15 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 {
 	active = false;
 
+	if (calibrated)
+	{
+		float dist_max = value_store.get_float("dist_max", 0);
+		float dist = get_distance(pt_palm, pt_index);
+		float ratio = dist / dist_max;
+
+		COUT << ratio << endl;
+	}
+
 	pt_palm = reprojector.reproject_to_3d(hand_resolver.pt_precise_palm0.x, hand_resolver.pt_precise_palm0.y,
 										  hand_resolver.pt_precise_palm1.x, hand_resolver.pt_precise_palm1.y);
 
@@ -31,19 +40,13 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 	compute_cursor_point(thumb_down, hand_resolver.pt_precise_thumb0, hand_resolver.pt_precise_thumb1,
 						 pt_thumb, reprojector, pt_cursor_thumb, dist_cursor_thumb_plane, actuate_dist + 10, "compute_thumb");
 
-	static float dist_max = 0;
-	float dist = get_distance(pt_palm, pt_index);
-	if (dist > dist_max)
-		dist_max = dist;
+	if (calibrated)
+	{
+		if (!index_down)
+			thumb_down = false;
 
-	COUT << (dist / dist_max) << endl;
-
-	if (!index_down)
-		thumb_down = false;
-
-	compute_pinch_to_zoom(hand_resolver);
-
-	Mat image_visualization_pointer_mapper = Mat::zeros(480, 640, CV_8UC1);
+		compute_pinch_to_zoom(hand_resolver);
+	}
 }
 
 void PointerMapper::add_calibration_point(const uchar index)
@@ -56,6 +59,13 @@ void PointerMapper::add_calibration_point(const uchar index)
 		pt_calib_vec2.push_back(pt_index);
 	else if (index == 3)
 		pt_calib_vec3.push_back(pt_index);
+
+	float dist_max = value_store.get_float("dist_max", 0);
+	float dist = get_distance(pt_palm, pt_index);
+	if (dist > dist_max)
+		dist_max = dist;
+	
+	value_store.set_float("dist_max", dist_max);
 }
 
 void PointerMapper::reset_calibration(const uchar index)
