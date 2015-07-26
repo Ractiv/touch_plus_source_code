@@ -38,6 +38,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	pt_palm = Point2f(0, 0);
 	int pt_palm_count = 0;
+	const int y_threshold = pt_hand_anchor.y - palm_radius;
 
 	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
 	{
@@ -45,11 +46,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		blob.fill(image_active_hand, 254);
 
 		for (Point& pt : blob.data)
-		{
-			pt_palm.x += pt.x;
-			pt_palm.y += pt.y;
-			++pt_palm_count;
-		}
+			if (pt.y > y_threshold)
+			{
+				pt_palm.x += pt.x;
+				pt_palm.y += pt.y;
+				++pt_palm_count;
+			}
 	}
 
 	pt_palm.x /= pt_palm_count;
