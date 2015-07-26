@@ -39,7 +39,6 @@ public:
 	int x_separator_motion_left_median = 0;
 	int x_separator_motion_right_median = WIDTH_SMALL;
 
-	uchar gray_threshold = 255;
 	uchar gray_threshold_left = 255;
 	uchar gray_threshold_right = 255;
 	uchar diff_threshold = 255;

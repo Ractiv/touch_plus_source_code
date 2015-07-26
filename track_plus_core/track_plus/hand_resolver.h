@@ -48,6 +48,9 @@ public:
 				 Mat& image0,                           Mat& image1,
 				 Reprojector& reprojector,              bool visualize);
 
-	Point2f increase_resolution(Point& pt_in,         Mat& image_in,        Mat& image_background_in,
-								uchar diff_threshold, uchar gray_threshold, Reprojector& reprojector, uchar side);
+	Point2f increase_resolution(Point& pt_in,                    Mat& image_in,
+		                        Mat& image_background_in,        const uchar diff_threshold,
+		                        const uchar gray_threshold_left, const uchar gray_threshold_right,
+								Reprojector& reprojector,        const uchar side,
+														         const int x_separator_middle_median);
 };

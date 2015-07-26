@@ -44,23 +44,35 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 
 	pt_precise_index0 = Point2f(-1, -1);
 	if (mono_processor0.pt_index.x != -1)
-		pt_precise_index0 = increase_resolution(mono_processor0.pt_index, image0, motion_processor0.image_background_static,
-											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector, 0);
+		pt_precise_index0 = increase_resolution(mono_processor0.pt_index,                  image0,
+											    motion_processor0.image_background_static, motion_processor0.diff_threshold,
+											    motion_processor0.gray_threshold_left,     motion_processor0.gray_threshold_right,
+											    reprojector,                               0,
+											    										   motion_processor0.x_separator_middle_median);
 
 	pt_precise_index1 = Point2f(-1, -1);
 	if (mono_processor1.pt_index.x != -1)
-		pt_precise_index1 = increase_resolution(mono_processor1.pt_index, image1, motion_processor1.image_background_static,
-											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector, 1);
+		pt_precise_index1 = increase_resolution(mono_processor1.pt_index,                  image1,
+											    motion_processor1.image_background_static, motion_processor1.diff_threshold,
+											    motion_processor1.gray_threshold_left,     motion_processor1.gray_threshold_right,
+											    reprojector,                               1,
+											    										   motion_processor1.x_separator_middle_median);
 
 	pt_precise_thumb0 = Point2f(-1, -1);
 	if (mono_processor0.pt_thumb.x != -1)
-		pt_precise_thumb0 = increase_resolution(mono_processor0.pt_thumb, image0, motion_processor0.image_background_static,
-											    motion_processor0.diff_threshold, motion_processor0.gray_threshold, reprojector, 0);
+		pt_precise_thumb0 = increase_resolution(mono_processor0.pt_thumb,                  image0,
+												motion_processor0.image_background_static, motion_processor0.diff_threshold,
+												motion_processor0.gray_threshold_left,     motion_processor0.gray_threshold_right,
+												reprojector,                               0,
+												                                           motion_processor1.x_separator_middle_median);
 
 	pt_precise_thumb1 = Point2f(-1, -1);
 	if (mono_processor1.pt_thumb.x != -1)
-		pt_precise_thumb1 = increase_resolution(mono_processor1.pt_thumb, image1, motion_processor1.image_background_static,
-											    motion_processor1.diff_threshold, motion_processor1.gray_threshold, reprojector, 1);
+		pt_precise_thumb1 = increase_resolution(mono_processor1.pt_thumb,                  image1,
+											    motion_processor1.image_background_static, motion_processor1.diff_threshold,
+											    motion_processor1.gray_threshold_left,     motion_processor1.gray_threshold_right,
+											    reprojector,                               1,
+											    									       motion_processor1.x_separator_middle_median);
 
 	if (pt_precise_index0.x == -1 || pt_precise_index1.x == -1)
 	{
@@ -91,8 +103,11 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 	}
 }
 
-Point2f HandResolver::increase_resolution(Point& pt_in,         Mat& image_in,        Mat& image_background_in,
-										  uchar diff_threshold, uchar gray_threshold, Reprojector& reprojector, uchar side)
+Point2f HandResolver::increase_resolution(Point& pt_in,                    Mat& image_in,
+										  Mat& image_background_in,        const uchar diff_threshold,
+										  const uchar gray_threshold_left, const uchar gray_threshold_right,
+										  Reprojector& reprojector,        const uchar side,
+										  							       const int x_separator_middle_median)
 {
 	Point pt_large = pt_in * 4;
 
@@ -163,10 +178,22 @@ Point2f HandResolver::increase_resolution(Point& pt_in,         Mat& image_in,  
 
 	Mat image_subtraction = Mat::zeros(image_height, image_width, CV_8UC1);
 	for (int i = 0; i < image_width; ++i)
-		for (int j = 0; j < image_height; ++j)
-			if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold)
-				image_subtraction.ptr<uchar>(j, i)[0] = abs(image_cropped_preprocessed.ptr<uchar>(j, i)[0] - 
-														    image_background_cropped_scaled.ptr<uchar>(j, i)[0]);
+	{
+		if (i <= x_separator_middle_median)
+		{
+			for (int j = 0; j < image_height; ++j)
+				if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold_left)
+					image_subtraction.ptr<uchar>(j, i)[0] = abs(image_cropped_preprocessed.ptr<uchar>(j, i)[0] - 
+															    image_background_cropped_scaled.ptr<uchar>(j, i)[0]);
+		}
+		else
+		{
+			for (int j = 0; j < image_height; ++j)
+				if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold_right)
+					image_subtraction.ptr<uchar>(j, i)[0] = abs(image_cropped_preprocessed.ptr<uchar>(j, i)[0] - 
+															    image_background_cropped_scaled.ptr<uchar>(j, i)[0]);
+		}
+	}
 
 	threshold(image_subtraction, image_subtraction, diff_threshold, 254, THRESH_BINARY);
 	blob_detector_image_subtraction.compute(image_subtraction, 254, 0, image_width, 0, image_height, true);
