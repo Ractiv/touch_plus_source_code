@@ -159,35 +159,64 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 
 void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name)
 {
+	static string channel_diff_image_primary_name = "";
+	if (channel_diff_image_primary_name == "")
+		channel_diff_image_primary_name = name;
+
 	const int image_width_const = image_in.cols;
 	const int image_height_const = image_in.rows;
 
 	image_out = Mat(image_height_const, image_width_const, CV_8UC1);
 
-	uchar gray_min = 9999;
-	uchar gray_max = 0;
-	for (int i = 0; i < image_width_const; ++i)
-		for (int j = 0; j < image_height_const; ++j)
-		{
-			int diff0 = image_in.ptr<uchar>(j, i)[0] - image_in.ptr<uchar>(j, i)[1];
-			int diff1 = image_in.ptr<uchar>(j, i)[2] - image_in.ptr<uchar>(j, i)[1];
+	static uchar gray_min;
+	static uchar gray_max;
+	if (name == channel_diff_image_primary_name)
+	{
+		uchar gray_min_temp = 9999;
+		uchar gray_max_temp = 0;
+		for (int i = 0; i < image_width_const; ++i)
+			for (int j = 0; j < image_height_const; ++j)
+			{
+				int diff0 = image_in.ptr<uchar>(j, i)[0] - image_in.ptr<uchar>(j, i)[1];
+				int diff1 = image_in.ptr<uchar>(j, i)[2] - image_in.ptr<uchar>(j, i)[1];
 
-			if (diff0 < 0)
-				diff0 = 0;
-			if (diff1 < 0)
-				diff1 = 0;
+				if (diff0 < 0)
+					diff0 = 0;
+				if (diff1 < 0)
+					diff1 = 0;
 
-			const uchar gray = min(diff0, diff1);
-			if (gray < gray_min)
-				gray_min = gray;
-			if (gray > gray_max)
-				gray_max = gray;
+				const uchar gray = min(diff0, diff1);
+				if (gray < gray_min_temp)
+					gray_min_temp = gray;
+				if (gray > gray_max_temp)
+					gray_max_temp = gray;
 
-			image_out.ptr<uchar>(j, i)[0] = gray;
-		}
+				image_out.ptr<uchar>(j, i)[0] = gray;
+			}
 
-	mat_functions_low_pass_filter.compute(gray_min, 0.1, "gray_min");
-	mat_functions_low_pass_filter.compute(gray_max, 0.1, "gray_max");
+		mat_functions_low_pass_filter.compute(gray_min_temp, 0.1, "gray_min_temp");
+		mat_functions_low_pass_filter.compute(gray_max_temp, 0.1, "gray_max_temp");
+
+		gray_min = gray_min_temp;
+		gray_max = gray_max_temp;
+	}
+	else
+	{
+		for (int i = 0; i < image_width_const; ++i)
+			for (int j = 0; j < image_height_const; ++j)
+			{
+				int diff0 = image_in.ptr<uchar>(j, i)[0] - image_in.ptr<uchar>(j, i)[1];
+				int diff1 = image_in.ptr<uchar>(j, i)[2] - image_in.ptr<uchar>(j, i)[1];
+
+				if (diff0 < 0)
+					diff0 = 0;
+				if (diff1 < 0)
+					diff1 = 0;
+
+				const uchar gray = min(diff0, diff1);
+				image_out.ptr<uchar>(j, i)[0] = gray;
+			}
+	}
 
 	if (normalize && mode == "surface")
 		for (int i = 0; i < image_width_const; ++i)

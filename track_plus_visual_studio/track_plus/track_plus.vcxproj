@@ -192,7 +192,7 @@
       <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(TURBOJPEG_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(SFML_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointModel>Precise</FloatingPointModel>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>

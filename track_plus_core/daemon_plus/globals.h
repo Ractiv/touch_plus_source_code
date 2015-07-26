@@ -25,6 +25,7 @@ using namespace std;
 
 #define COUT cout
 // #define COUT ostream(0).flush()
+#define SHOW_CONSOLE
 
 extern const double scale_factor;
 extern const int image_width_full;

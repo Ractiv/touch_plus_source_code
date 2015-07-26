@@ -87,7 +87,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				bool proceed1 = compute_x_separator_motion_left_right();
 				bool proceed2 = compute_y_separator_motion();
 
-				COUT << proceed0 << " " << proceed1 << " " << proceed2 << endl;
+				// COUT << proceed0 << " " << proceed1 << " " << proceed2 << endl;
 
 				if (value_store.get_bool("both_hands_are_moving"))
 					value_store.set_int("separator_timer", 0);
@@ -162,57 +162,75 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
                         }
 				}
 
-				static float gray_threshold_stereo;
-				static float gray_threshold_left_stereo;
-				static float gray_threshold_right_stereo;
+				static float gray_threshold_max = 0;
+				static float gray_threshold_left_stereo = 0;
+				static float gray_threshold_right_stereo = 0;
 
 				if (name == motion_processor_primary_name)
 				{
-					vector<uchar> gray_vec;
 					vector<uchar> gray_vec_left;
 					vector<uchar> gray_vec_right;
 
 					for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
 						if (blob.active)
 							if (blob.x < x_separator_middle_median)
+							{
 								for (Point pt : blob.data)
 								{
 									uchar gray = std::max(image_in.ptr<uchar>(pt.y, pt.x)[0], image_background.ptr<uchar>(pt.y, pt.x)[0]);
-									gray_vec.push_back(gray);
 									gray_vec_left.push_back(gray);
-									gray_vec_right.push_back(gray);
 								}
+							}
+							else
+							{
+								for (Point pt : blob.data)
+								{
+									uchar gray = std::max(image_in.ptr<uchar>(pt.y, pt.x)[0], image_background.ptr<uchar>(pt.y, pt.x)[0]);
+									gray_vec_right.push_back(gray);
+								}	
+							}
+
+					float gray_threshold_left_old = gray_threshold_left;
+					float gray_threshold_right_old = gray_threshold_right;
 
 					if (gray_vec_left.size() > 0)
 					{
-						sort(gray_vec.begin(), gray_vec.end());
-						float gray_max = gray_vec[gray_vec.size() * 0.9];
-						float gray_median = gray_vec[gray_vec.size() * 0.5];
-
 						sort(gray_vec_left.begin(), gray_vec_left.end());
-						float gray_max_left = gray_vec_left[gray_vec_left.size() * 0.9];
 						float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
 
-						sort(gray_vec_right.begin(), gray_vec_right.end());
-						float gray_max_right = gray_vec_right[gray_vec_right.size() * 0.9];
-						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
-
-						gray_threshold = gray_median - 10;
-						low_pass_filter->compute(gray_threshold, 0.1, "gray_threshold");
-						gray_threshold_stereo = gray_threshold;
-
-						gray_threshold_left = gray_median_left - 10;
+						gray_threshold_left = gray_median_left - 20;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
+					}
 
-						gray_threshold_right = gray_median_right - 10;
+					if (gray_vec_right.size() > 0)
+					{
+						sort(gray_vec_right.begin(), gray_vec_right.end());
+						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
+
+						gray_threshold_right = gray_median_right - 20;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
+					}
+
+					float gray_threshold_max_current = max(gray_threshold_left, gray_threshold_right);
+					if (gray_threshold_max_current > gray_threshold_max)
+						gray_threshold_max = gray_threshold_max_current;
+
+					if ((float)gray_threshold_left / gray_threshold_max < 0.8)
+					{
+						gray_threshold_left = gray_threshold_left_old;
+						gray_threshold_left_stereo = gray_threshold_left_old;
+					}
+
+					if ((float)gray_threshold_right / gray_threshold_max < 0.8)
+					{
+						gray_threshold_right = gray_threshold_right_old;
+						gray_threshold_right_stereo = gray_threshold_right_old;
 					}
 				}
 				else
 				{
-					gray_threshold = gray_threshold_stereo;
 					gray_threshold_left = gray_threshold_left_stereo;
 					gray_threshold_right = gray_threshold_right_stereo;
 				}
@@ -295,31 +313,34 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 								if (image_borders.ptr<uchar>(j, i)[0] > 0)
 									fill_image_background_static(i, j, image_in);
 
-						Mat image_visualization_motion_processor = image_in.clone();
+						if (visualize)
+						{
+							Mat image_visualization_motion_processor = image_in.clone();
 
-						circle(image_visualization_motion_processor, pt_top0, 5, Scalar(255), 2);
-						circle(image_visualization_motion_processor, pt_bottom0, 5, Scalar(127), 2);
-						circle(image_visualization_motion_processor, pt_top1, 5, Scalar(255), 2);
-						circle(image_visualization_motion_processor, pt_bottom1, 5, Scalar(127), 2);
+							circle(image_visualization_motion_processor, pt_top0, 5, Scalar(255), 2);
+							circle(image_visualization_motion_processor, pt_bottom0, 5, Scalar(127), 2);
+							circle(image_visualization_motion_processor, pt_top1, 5, Scalar(255), 2);
+							circle(image_visualization_motion_processor, pt_bottom1, 5, Scalar(127), 2);
 
-						circle(image_visualization_motion_processor, pt0, 2, Scalar(255), 2);
-						circle(image_visualization_motion_processor, pt1, 2, Scalar(127), 2);
-						circle(image_visualization_motion_processor, pt2, 2, Scalar(255), 2);
-						circle(image_visualization_motion_processor, pt3, 2, Scalar(127), 2);
+							circle(image_visualization_motion_processor, pt0, 2, Scalar(255), 2);
+							circle(image_visualization_motion_processor, pt1, 2, Scalar(127), 2);
+							circle(image_visualization_motion_processor, pt2, 2, Scalar(255), 2);
+							circle(image_visualization_motion_processor, pt3, 2, Scalar(127), 2);
 
-						line(image_visualization_motion_processor, pt_top0, pt_bottom0, Scalar(254), 1);
-						line(image_visualization_motion_processor, pt_top1, pt_bottom1, Scalar(254), 1);
+							line(image_visualization_motion_processor, pt_top0, pt_bottom0, Scalar(254), 1);
+							line(image_visualization_motion_processor, pt_top1, pt_bottom1, Scalar(254), 1);
 
-						line(image_visualization_motion_processor, Point(x_separator_motion_left_median, 0), 
-																   Point(x_separator_motion_left_median, 9999), Scalar(254), 1);
+							line(image_visualization_motion_processor, Point(x_separator_motion_left_median, 0), 
+																	   Point(x_separator_motion_left_median, 9999), Scalar(254), 1);
 
-						line(image_visualization_motion_processor, Point(x_separator_motion_right_median, 0), 
-																   Point(x_separator_motion_right_median, 9999), Scalar(254), 1);
+							line(image_visualization_motion_processor, Point(x_separator_motion_right_median, 0), 
+																	   Point(x_separator_motion_right_median, 9999), Scalar(254), 1);
 
-						line(image_visualization_motion_processor, Point(0, y_separator_motion_down_median),
-										                           Point(9999, y_separator_motion_down_median), Scalar(254), 1);
+							line(image_visualization_motion_processor, Point(0, y_separator_motion_down_median),
+											                           Point(9999, y_separator_motion_down_median), Scalar(254), 1);
 
-						// imshow("image_visualization_motion_processor" + name, image_visualization_motion_processor);
+							// imshow("image_visualization_motion_processor" + name, image_visualization_motion_processor);
+						}
 					}
 
 					value_store.set_int("push_count", 9999);
@@ -327,7 +348,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				}
 
 				Mat image_in_thresholded_dilated;
-				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 5);
+				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 10);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
@@ -392,9 +413,11 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 
 				if (visualize && enable_imshow)
 				{
+					Mat matt = image_background_static.clone();
+					line(matt, Point(0, y_separator_motion_down_median), Point(9999, y_separator_motion_down_median), Scalar(255), 1);
 					imshow("image_in_thresholded" + name, image_in_thresholded);
 					// imshow("image_subtraction", image_subtraction);
-					imshow("image_background_static" + name, image_background_static);
+					imshow("matt" + name, matt);
 					// imshow("image_foreground_motion_processor_new" + name, image_foreground);
 				}
 			}

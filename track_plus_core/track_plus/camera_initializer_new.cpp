@@ -105,19 +105,28 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		gray_mean_off /= gray_mean_count;
 
 		int gray_diff = gray_mean_on - gray_mean_off;
-		if (gray_diff > 100)
-			gray_diff = 100;
+		int gray_diff_max;
+
+		COUT << "gray diff is " << gray_diff << endl;
+
+		if (gray_diff < 20)
+			gray_diff_max = 100;
+		else
+			gray_diff_max = 25;
+
+		if (gray_diff > gray_diff_max)
+			gray_diff = gray_diff_max;
 		else if (gray_diff < 0)
 			gray_diff = 0;
 
 		if (mode == "surface")
-			exposure_val = map_val(gray_diff, 0, 100, 1, 10);
+			exposure_val = map_val(gray_diff, 0, gray_diff_max, 1, 10);
 		else
 			exposure_val = 3;
 
 		camera->setExposureTime(Camera::both, exposure_val);
 
-		float r_val = map_val(gray_diff, 0, 100, 1.5, 2.0);
+		float r_val = map_val(gray_diff, 0, gray_diff_max, 1.5, 2.0);
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 

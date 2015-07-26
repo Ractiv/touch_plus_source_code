@@ -22,6 +22,12 @@
 #include "ipc.h"
 #include "processes.h"
 
+#ifdef SHOW_CONSOLE
+#pragma comment( linker, "/subsystem:console" )
+#else
+#pragma comment( linker, "/subsystem:windows" )
+#endif
+
 using namespace std;
 
 IPC ipc("daemon_plus");
@@ -44,7 +50,13 @@ void guardian_thread_function()
 		if (process_running("track_plus.exe") == 0)
 		{
 			COUT << "track_plus created" << endl;
-			create_process(executable_path + "\\track_plus.exe", "track_plus.exe", true);
+
+#ifdef SHOW_CONSOLE
+			bool show_console = true;
+#else
+			bool show_console = false;
+#endif
+			create_process(executable_path + "\\track_plus.exe", "track_plus.exe", show_console);
 			ipc.send_message("menu_plus", "show stage", "");
 		}
 
@@ -58,8 +70,11 @@ void guardian_thread_function()
 	}
 }
 
+#ifdef SHOW_CONSOLE
 int main()
-//int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+#else
+int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+#endif
 {
 	char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);
