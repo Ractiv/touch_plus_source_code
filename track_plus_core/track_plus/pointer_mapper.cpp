@@ -220,7 +220,7 @@ void PointerMapper::compute_calibration_points()
 
 	    vector<float> angle_vec = { angle0_max, angle1_max, angle2_max, angle3_max };
 	    sort(angle_vec.begin(), angle_vec.end());
-	    float angle_selected = angle_vec[2];
+	    float angle_selected = angle_vec[1];
 
 	    float configuration0[10] = { angle0_max, x0_plane, y0_plane, z0_plane,
 	    									  	 x1_plane, y1_plane, z1_plane,
