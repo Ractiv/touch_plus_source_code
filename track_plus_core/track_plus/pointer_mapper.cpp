@@ -301,7 +301,7 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 	            else if (alpha > 1)
 	            	alpha = 1;
 
-	            low_pass_filter->compute(alpha, 0.5, "alpha" + name);
+	            // low_pass_filter->compute(alpha, 0.5, "alpha" + name);
 	            low_pass_filter->compute(pt_cursor, alpha, "pt_cursor" + name);
 	        }
 	        value_store.set_point2f("pt_cursor" + name, pt_cursor);
