@@ -31,8 +31,6 @@ public:
 	const int window_width_half = window_width / 2;
 	const int window_height_half = window_height / 2;
 
-	BlobDetectorNew blob_detector_image_subtraction;
-
 	Point2f pt_precise_palm0 = Point(-1, -1);
 	Point2f pt_precise_palm1 = Point(-1, -1);
 

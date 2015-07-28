@@ -96,7 +96,7 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 		circle(image_visualization1, pt_precise_thumb1, 5, Scalar(255), -1);
 	}
 
-	if (visualize)
+	if (visualize && enable_imshow)
 	{
 		imshow("image_visualization0", image_visualization0);
 		imshow("image_visualization1", image_visualization1);
@@ -195,22 +195,18 @@ Point2f HandResolver::increase_resolution(Point& pt_in,                    Mat& 
 		}
 	}
 
-	threshold(image_subtraction, image_subtraction, diff_threshold, 254, THRESH_BINARY);
-	blob_detector_image_subtraction.compute(image_subtraction, 254, 0, image_width, 0, image_height, true);
-
-	if (blob_detector_image_subtraction.blobs->size() == 0)
-		return Point(-1, -1);
-
 	float x_mean = 0;
 	float y_mean = 0;
 	int count = 0;
 
-	for (Point& pt : blob_detector_image_subtraction.blob_max_size->data)
-	{
-		x_mean += pt.x;
-		y_mean += pt.y;
-		++count;
-	}
+	for (int i = 0; i < image_width; ++i)
+		for (int j = 0; j < image_height; ++j)
+			if (image_subtraction.ptr<uchar>(j, i)[0] > diff_threshold)
+			{
+				x_mean += i;
+				y_mean += j;
+				++count;
+			}
 
 	x_mean /= count;
 	y_mean /= count;
