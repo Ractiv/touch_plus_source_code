@@ -23,9 +23,9 @@
 #include "processes.h"
 
 #ifdef SHOW_CONSOLE
-#pragma comment( linker, "/subsystem:console" )
+#pragma comment(linker, "/subsystem:console")
 #else
-#pragma comment( linker, "/subsystem:windows" )
+#pragma comment(linker, "/subsystem:windows")
 #endif
 
 using namespace std;

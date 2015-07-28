@@ -108,22 +108,21 @@ vector<Point> points_pool[points_pool_count_max];
 int points_pool_count = 0;
 vector<Point>* points_ptr = NULL;
 
+bool serial_verified = false;
 bool exposure_adjusted = false;
 bool initialized = false;
 bool calibrating = true;
 bool increment_keypress_count = false;
 bool first_frame = true;
-bool increment_wait_count = false;
 bool show_point_sent = false;
 bool show_calibration_sent = false;
 bool show_cursor_index = false;
 bool show_cursor_thumb = false;
-bool wait_for_device_bool = false;
 bool updated = false;
 
 int calibration_key_codes[4] { 56, 187, 161, 77 };
 int calibration_step = 0;
-int calibration_points_count = 10;
+int calibration_points_count = 20;
 int keypress_count = 0;
 int wait_count = 0;
 int accel_val_old = 0;
@@ -132,8 +131,24 @@ int val_diff_old = 9999;
 int frame_num = 0;
 //
 
+void hide_cursors()
+{
+	if ((!show_cursor_index && !show_cursor_thumb) || child_module_name == "")
+		return;
+
+	show_cursor_index = false;
+	show_cursor_thumb = false;
+
+	ipc->send_udp_message(child_module_name, "hide_cursor_index");
+	ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
+}
+
 void wait_for_device()
 {
+	COUT << "waiting for device" << endl;
+
+	hide_cursors();
+
 	ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
 	ipc->send_message("menu_plus", "show stage", "true");
 
@@ -168,18 +183,6 @@ void wait_for_device()
 	}
 }
 
-void hide_cursors()
-{
-	if (!show_cursor_index && !show_cursor_thumb)
-		return;
-
-	show_cursor_index = false;
-	show_cursor_thumb = false;
-
-	ipc->send_udp_message("win_cursor_plus", "hide_cursor_index");
-	ipc->send_udp_message("win_cursor_plus", "hide_cursor_thumb");
-}
-
 void update(Mat& image_in)
 {
 	image_current_frame = image_in;
@@ -210,7 +213,6 @@ void load_settings()
 	{
 		ifstream ifs(settings_file_path, ios::binary);
 		ifs.read((char*)&settings, sizeof(settings));
-
 		actuate_dist = actuate_dist_raw + atoi(settings.scroll_bar_adjust_click_height_step.c_str()) - 5;
 
 		COUT << "settings file loaded" << endl;
@@ -219,7 +221,6 @@ void load_settings()
 
 void on_first_frame()
 {
-	bool serial_verfied = false;
 	serial_number = camera->getSerialNumber();
 
 	if (serial_number.size() == 10)
@@ -236,20 +237,16 @@ void on_first_frame()
 		}
 
 		if (char_string == "0101")
-			serial_verfied = true;
+			serial_verified = true;
 	}
 
-	if (!serial_verfied)
+	if (!serial_verified)
 	{
-		hide_cursors();
-
 		COUT << "please reconnect your Touch+ sensor" << endl;
-		COUT << "restarting" << endl;
-
 		wait_for_device();
 	}
     
-    COUT << serial_number << endl;
+    COUT << "serial number: " << serial_number << endl;
 
 	data_path_current_module = data_path + "\\" + serial_number;
 
@@ -284,7 +281,7 @@ void on_first_frame()
         //todo: port to OSX
 #endif
 
-		ipc->open_udp_channel("win_cursor_plus");
+		ipc->open_udp_channel(child_module_name);
 		ipc->send_message("menu_plus", "show window", "");	
 		ipc->send_message("menu_plus", "show wiggle", "");
 	}
@@ -309,8 +306,6 @@ void on_first_frame()
 	{
 		load_settings();
 	});
-
-	increment_wait_count = true;
 }
 
 void compute()
@@ -318,9 +313,6 @@ void compute()
 	updated = false;
 
 	ipc->update();
-
-	if (wait_for_device_bool)
-		wait_for_device();
 
 	if (first_frame)
 	{
@@ -346,8 +338,6 @@ void compute()
 
 	if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
 	{
-		COUT << "exit 1" << endl;
-
 		if (child_module_name != "")
 			ipc->send_message(child_module_name, "exit", "");
 
@@ -411,7 +401,7 @@ void compute()
 
 	if (mode == "surface" && proceed)
 	{
-		proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+		proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
 		proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
 		proceed = false;
 		proceed = proceed0 && proceed1;
@@ -476,26 +466,26 @@ void compute()
 		{
 			if (show_cursor_index)
 			{
-				ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_cursor_index.x) + "!" +
+				ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_cursor_index.x) + "!" +
 														 to_string(pointer_mapper.pt_cursor_index.y) + "!" +
 														 to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
 														 to_string(pointer_mapper.index_down) + "!index");
 			}
 			else
-				ipc->send_udp_message("win_cursor_plus", "hide_cursor_index");
+				ipc->send_udp_message(child_module_name, "hide_cursor_index");
 
-			ipc->send_udp_message("win_cursor_plus", "hide_cursor_thumb");
+			ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
 		}
 		else
 		{
-			ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
+			ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
 													 to_string(pointer_mapper.pt_pinch_to_zoom_index.y) + "!0!1!index");
 
-			ipc->send_udp_message("win_cursor_plus", to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
+			ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
 													 to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
 		}
 
-		ipc->send_udp_message("win_cursor_plus", "update!" + to_string(frame_num));
+		ipc->send_udp_message(child_module_name, "update!" + to_string(frame_num));
 	}
 	else if (mode == "tool" && proceed)
 	{
@@ -685,18 +675,14 @@ void guardian_thread_function()
 {
 	while (true)
 	{
-		if (wait_count >= 2)
+		if (wait_count >= (serial_verified ? 2 : 4))
 		{
-			hide_cursors();
-			wait_for_device_bool = true;
-
 			COUT << "restarting" << endl;
 
-			break;
+			wait_for_device();
 		}
 
-		if (increment_wait_count)
-			++wait_count;
+		++wait_count;
 
 		if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
 			create_process(child_module_path, child_module_name + ".exe", true, true);
