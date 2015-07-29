@@ -87,6 +87,33 @@ void IPC::update()
 	updated = true;
 }
 
+void IPC::clear()
+{
+	vector<string> file_name_vec = list_files_in_directory(ipc_path);
+	for (string file_name_current : file_name_vec)
+	{
+		string file_name_everyone = "";
+		if (file_name_current.size() >= 8)
+			file_name_everyone = file_name_current.substr(0, 8);
+
+		if (file_name_current.size() > self_name.size() || file_name_everyone == "everyone")
+		{
+			string file_name = "";
+			string file_name_id_str = "";
+			if (file_name_everyone != "everyone")
+			{
+				file_name = file_name_current.substr(0, self_name.size());
+				file_name_id_str = file_name_current.substr(self_name.size(), file_name_current.size());
+			}
+			else
+				continue;
+
+			if (file_name == self_name || file_name_everyone == "everyone")
+				delete_file(ipc_path + "\\" + file_name_current);
+		}
+	}
+}
+
 void IPC::send_message(const string recipient, const string message_head, const string message_body)
 {
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);

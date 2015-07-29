@@ -181,6 +181,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	{
 		block_guardian = true;
 		ipc.send_message("everyone", "exit", "");
+		ipc.clear();
 		exit(0);
 	});
 

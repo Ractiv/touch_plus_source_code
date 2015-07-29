@@ -124,6 +124,7 @@ namespace win_cursor_plus
 
             ipc.MapFunction("exit", delegate(string messageBody)
             {
+                ipc.Clear();
                 Environment.Exit(0);
                 return 1;
             });

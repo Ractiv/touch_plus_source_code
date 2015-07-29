@@ -172,6 +172,7 @@ void wait_for_device()
 			if (child_module_name != "")
 				ipc->send_message(child_module_name, "exit", "");
 
+			ipc->clear();
 			exit(0);
 		}
 
@@ -341,6 +342,7 @@ void compute()
 		if (child_module_name != "")
 			ipc->send_message(child_module_name, "exit", "");
 
+		ipc->clear();
 		exit(0);
 	}
 
@@ -711,6 +713,7 @@ int main()
 		if (child_module_name != "")
 			ipc->send_message(child_module_name, "exit", "");
 
+		ipc->clear();
 		exit(0);
 	});
 

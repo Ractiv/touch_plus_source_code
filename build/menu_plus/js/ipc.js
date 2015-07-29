@@ -114,6 +114,37 @@ IPC.prototype.Update = function()
 	}
 };
 
+IPC.prototype.Clear = function()
+{
+	var self = this;
+
+	var fileNameVec = ListFilesInDirectory(IpcPath);
+	for (var fileNameVecIndex in fileNameVec)
+	{
+		var fileNameCurrent = fileNameVec[fileNameVecIndex];
+
+		var fileNameEveryone = "";
+		if (fileNameCurrent.length >= 8)
+			fileNameEveryone = fileNameCurrent.substring(0, 8);
+
+		if (fileNameCurrent.length > self.selfName.length || fileNameEveryone == "everyone")
+		{
+			var fileName = "";
+			var fileNameID = "";
+			if (fileNameEveryone != "everyone")
+			{
+				fileName = fileNameCurrent.substring(0, self.selfName.length);
+				fileNameID = fileNameCurrent.substring(self.selfName.length, fileNameCurrent.length);
+			}
+			else
+				continue;
+			
+			if (fileName == self.selfName || fileNameEveryone == "everyone")
+				DeleteFile(IpcPath + "/" + fileNameCurrent);
+		}
+	}
+};
+
 IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 {
 	var self = this;

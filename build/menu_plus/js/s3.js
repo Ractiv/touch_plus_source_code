@@ -37,7 +37,6 @@ S3.prototype.GetKeys = function(callback, errorCallback)
 			callback(data.Contents);
 		else if (error && errorCallback != null && errorCallback != undefined)
 			errorCallback();
-
 	});	
 };
 

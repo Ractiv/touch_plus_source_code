@@ -149,6 +149,7 @@ namespace win_cursor_plus_fallback
 
             ipc.MapFunction("exit", delegate(string messageBody)
             {
+                ipc.Clear();
                 Environment.Exit(0);
                 return 1;
             });

@@ -45,6 +45,7 @@ public:
 
 	IPC(const string self_name_in);
 	void update();
+	void clear();
 	void send_message(const string recipient, const string message_head, const string message_body);
 	
 	void get_response(const string recipient, const string message_head, const string message_body, 

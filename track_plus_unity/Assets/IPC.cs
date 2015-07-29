@@ -120,6 +120,33 @@ namespace Assets
             IPC.Updated = true;
         }
 
+        public void Clear()
+        {
+            List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
+            foreach (string fileNameCurrent in fileNameVec)
+            {
+                string fileNameEveryone = "";
+                if (fileNameCurrent.Length >= 8)
+                    fileNameEveryone = fileNameCurrent.Substring(0, 8);
+
+                if (fileNameCurrent.Length > selfName.Length || fileNameEveryone == "everyone")
+                {
+                    string fileName = "";
+                    string fileNameID = "";
+                    if (fileNameEveryone != "everyone")
+                    {
+                        fileName = fileNameCurrent.Substring(0, selfName.Length);
+                        fileNameID = fileNameCurrent.Substring(selfName.Length, fileNameCurrent.Length - selfName.Length);
+                    }
+                    else
+                        continue;
+
+                    if (fileName == selfName || fileNameEveryone == "everyone")
+                        FileSystem.DeleteFile(Globals.IpcPath + "\\" + fileNameCurrent);
+                }
+            }
+        }
+
         public void SendMessage(string recipient, string messageHead, string messageBody)
         {
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);

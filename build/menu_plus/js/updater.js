@@ -58,6 +58,7 @@ Updater.prototype.Run = function(manual)
 		for (var i in keys)
 		{
 			var key = keys[i];
+
 			if (key.Key == "software_update/version.txt")
 			{
 				self.s3.ReadTextKey(key.Key, function(targetVersion)

@@ -143,6 +143,7 @@
 
   ipc.MapFunction("exit", function(messageBody)
   {
+    ipc.Clear();
     process.exit(0);
   });
 
