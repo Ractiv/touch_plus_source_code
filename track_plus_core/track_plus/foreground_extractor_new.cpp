@@ -21,6 +21,8 @@
 bool ForegroundExtractorNew::compute(Mat& image_in, Mat& image_smoothed_in,
 									 MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
+	Mat image_foreground;
+
 	if (mode == "tool")
 	{
 		threshold(image_in, image_foreground, max(motion_processor.gray_threshold_left,
@@ -88,7 +90,6 @@ bool ForegroundExtractorNew::compute(Mat& image_in, Mat& image_smoothed_in,
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.count < motion_processor.noise_size ||
-			(blob.width <= 3 || blob.height <= 3) ||
 			blob.y > motion_processor.y_separator_motion_down_median ||
 			blob.x_max < motion_processor.x_separator_motion_left_median ||
 			blob.x_min > motion_processor.x_separator_motion_right_median)
@@ -96,6 +97,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, Mat& image_smoothed_in,
 			blob.active = false;
 			blob.fill(image_foreground, 0);
 		}
+		else if (blob.width <= 3 || blob.height <= 3)
+			blob.active = false;
 
 	if (visualize && enable_imshow)
 		imshow("image_foreground" + name, image_foreground);
