@@ -76,7 +76,7 @@
 
   menu.append(new gui.MenuItem({ type: "normal", label: "Update software", click: function()
   {
-    updater.CheckForUpdate(true)
+    updater.CheckForUpdate(true);
   }}));
 
   menu.append(new gui.MenuItem({ type: "normal", label: "Exit", click: function()

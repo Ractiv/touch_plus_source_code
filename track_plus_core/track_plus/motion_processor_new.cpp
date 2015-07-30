@@ -214,7 +214,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 					}
 
 					float gray_threshold_max_current = max(gray_threshold_left, gray_threshold_right);
-					if (gray_threshold_max_current > gray_threshold_max)
+					if (gray_threshold_max_current > gray_threshold_max && value_store.get_bool("both_hands_are_moving"))
 						gray_threshold_max = gray_threshold_max_current;
 
 					if ((float)gray_threshold_left / gray_threshold_max < 0.8)

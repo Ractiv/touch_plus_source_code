@@ -32,10 +32,14 @@ Updater.prototype.ipc = null;
 Updater.prototype.s3 = null;
 Updater.prototype.checkingForUpdate = false;
 Updater.prototype.manualInvoke = false;
+Updater.prototype.patching = false;
 
 Updater.prototype.CheckForUpdate = function(manual)
 {
 	var self = this;
+
+	if (self.patching)
+		return;
 
 	if (manual == true)
 	{
@@ -70,7 +74,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 					if (targetVersion != currentVersion)
 					{
 						if (self.manualInvoke)
-							self.patch();
+							self.patch(targetVersion);
 						else
 						{
 							self.NotificationHead = "A new version of Touch+ software is available";
@@ -79,7 +83,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 
 							notification.onclick = function()
 							{
-								patch();
+								self.patch(targetVersion);
 							};
 						}
 					}
@@ -119,13 +123,20 @@ Updater.prototype.CheckForUpdate = function(manual)
 	});
 };
 
-Updater.prototype.patch = function()
+Updater.prototype.patch = function(targetVersion)
 {
+	var self = this;
+
+	if (self.patching)
+		return;
+
+	self.checkingForUpdate = false;
+	self.manualInvoke = false;
+	self.patching = true;
+
 	self.NotificationHead = "Downloading update";
 	self.NotificationBody = "Please wait";
 	var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
-
-	menu.removeAt(1);
 
 	self.s3.DownloadKey("software_update/patch.zip", ExecutablePath, function(path)
 	{
@@ -138,7 +149,7 @@ Updater.prototype.patch = function()
 
 		setTimeout(function()
 		{
-			var AdmZip = require("./modules/adm-zip/adm-zip");
+			var AdmZip = require(process.cwd() + "/modules/adm-zip");
 			new AdmZip(path).extractAllTo(ExecutablePath, true);
 			DeleteFile(path);
 
@@ -148,7 +159,9 @@ Updater.prototype.patch = function()
 
 			BlockExit = false;
 			
+			self.patching = false;
 			console.log("update finished");
+
 		}, 1000);
 	},
 	function()
@@ -160,25 +173,12 @@ Updater.prototype.patch = function()
 			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 		}
 
+		self.patching = false;
 		console.log("update failed");
 	},
 	function(loaded, total)
 	{
-		/*var menuNew = new gui.Menu();
-
-		menuNew.append(new gui.MenuItem({ type: "normal", label: "Show control panel", click: function()
-		{
-			win.show();
-			winShow = true;
-		}}));
-
-		menuNew.append(new gui.MenuItem({ type: "normal", label: loaded + " of " + total + " bytes downloaded" }));
-
-		menuNew.append(new gui.MenuItem({ type: "normal", label: "Exit", click: function()
-		{
-			terminate();
-		}}));
-
-		tray.menu = menuNew;*/
+		menu.removeAt(1);
+		menu.insert(new gui.MenuItem({ type: "normal", label: loaded + " of " + total + " bytes downloaded" }), 1);
 	});
 }
