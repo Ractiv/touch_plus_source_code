@@ -109,7 +109,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 
 		COUT << "gray diff is " << gray_diff << endl;
 
-		if (gray_diff < 20)
+		if (gray_diff <= 20)
 			gray_diff_max = 100;
 		else
 			gray_diff_max = 25;

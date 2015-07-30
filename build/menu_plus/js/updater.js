@@ -101,7 +101,8 @@ Updater.prototype.Run = function(manual)
 								self.NotificationBody = "Please wait";
 								var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 
-								self.ipc.SendMessage("daemon_plus", "kill", "");
+								BlockExit = true;
+								self.ipc.SendMessage("daemon_plus", "exit", "");
 
 								setTimeout(function()
 								{
@@ -109,13 +110,15 @@ Updater.prototype.Run = function(manual)
 									new AdmZip(path).extractAllTo(ExecutablePath, true);
 									DeleteFile(path);
 
-									self.ipc.SendMessage("daemon_plus", "start", "");
+									// self.ipc.SendMessage("daemon_plus", "start", "");
 
 									self.NotificationHead = "Update finished";
 									self.NotificationBody = "Current version: " + targetVersion;
 									var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 
 									self.Running = false;
+									BlockExit = false;
+									
 									console.log("update finished");
 								}, 1000);
 							},

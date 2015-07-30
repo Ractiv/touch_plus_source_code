@@ -143,7 +143,12 @@
 
   ipc.MapFunction("exit", function(messageBody)
   {
+    if (BlockExit)
+      return;
+
     ipc.Clear();
+    DeleteFolder(gui.App.dataPath);
+
     process.exit(0);
   });
 

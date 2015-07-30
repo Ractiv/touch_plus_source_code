@@ -166,17 +166,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		ipc_ptr->send_message("track_plus", "load settings", "");
 	});
 
-	ipc.map_function("kill", [](const string message_body)
-	{
-		block_guardian = true;
-		ipc.send_message("track_plus", "exit", "");
-	});
-
-	ipc.map_function("start", [](const string message_body)
-	{
-		block_guardian = false;
-	});
-
 	ipc.map_function("exit", [](const string message_body)
 	{
 		block_guardian = true;

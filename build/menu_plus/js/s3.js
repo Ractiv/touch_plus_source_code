@@ -65,6 +65,25 @@ S3.prototype.WriteTextKey = function(keyName, keyString, callback)
     });
 }
 
+S3.prototype.UploadKey = function(keyName, path, callback)
+{
+	var self = this;
+
+	fs.readFile(path, function(err, data)
+	{
+		if (err) { throw err; }
+
+		var base64data = new Buffer(data, "binary");
+
+		var s3obj = new AWS.S3({ params: { Bucket: self.awsBucketName, Key: keyName } });
+		s3obj.upload({ Body: base64data }, function()
+		{
+			if (callback != null && callback != undefined)
+				callback();
+	    });
+	});
+}
+
 S3.prototype.DownloadKey = function(keyName, path, callback, errorCallback)
 {
 	var self = this;

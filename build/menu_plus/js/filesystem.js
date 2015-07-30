@@ -59,6 +59,38 @@ function DeleteFile(path)
 	fs.unlinkSync(path);
 }
 
+function DeleteFolder(path)
+{
+    var files = [];
+    if (fs.existsSync(path))
+    {
+        files = fs.readdirSync(path);
+        files.forEach(function(file, index)
+        {
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory())
+                DeleteFolder(curPath);
+            else
+            	try
+            	{
+                	fs.unlinkSync(curPath);
+            	}
+            	catch (e) {}
+        });
+
+        try
+        {
+        	fs.rmdirSync(path);
+        }
+        catch (e) {}
+    }
+}
+
+function DeleteAllFiles(path)
+{
+	DeleteFolder(path);
+}
+
 function Renamefile(pathOld, pathNew)
 {
 	fs.rename(pathOld, pathNew);
