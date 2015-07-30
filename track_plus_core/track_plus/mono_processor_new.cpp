@@ -213,6 +213,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	vector<Point> contour_sorted;
 	sort_contour(contours[0], contour_sorted, pivot);
 
+	if (contour_sorted.size() == 0)
+	{
+		value_store.set_bool("reset", true);
+		return false;
+	}
+
 	vector<Point> contour_approximated;
 	approxPolyDP(Mat(contour_sorted), contour_approximated, 2, true);
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);
@@ -222,12 +228,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		points_unwrapped_result = contour_approximated;
 		// points_unwrapped_result = vector<Point>();
 		// compute_unwrap2(contour_approximated, pivot, points_unwrapped_result);
-	}
-
-	if (image_active_hand.cols == 0)
-	{
-		value_store.set_bool("reset", true);
-		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------

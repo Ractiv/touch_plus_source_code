@@ -8,6 +8,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "daemon_plus", "daemon_plus\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "win_cursor_plus", "win_cursor_plus\win_cursor_plus.csproj", "{DAF43768-32EB-4554-92B0-4B51A8645E51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "win_cursor_plus_fallback", "win_cursor_plus_fallback\win_cursor_plus_fallback.csproj", "{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,17 @@ Global
 		{DAF43768-32EB-4554-92B0-4B51A8645E51}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DAF43768-32EB-4554-92B0-4B51A8645E51}.Release|Win32.ActiveCfg = Release|Any CPU
 		{DAF43768-32EB-4554-92B0-4B51A8645E51}.Release|Win32.Build.0 = Release|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Release|Win32.ActiveCfg = Release|Any CPU
+		{C8906923-A8E9-48E0-B8FC-AA3CEFC1E5E1}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

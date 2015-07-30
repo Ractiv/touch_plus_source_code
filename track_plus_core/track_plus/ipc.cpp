@@ -191,7 +191,7 @@ void IPC::open_udp_channel(const string recipient, const int port_num)
 
 			while (port_old == port_new)
 			{
-				Sleep(20);
+				Sleep(100);
 				update();
 			}
 		}

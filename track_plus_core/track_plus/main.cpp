@@ -147,7 +147,8 @@ void wait_for_device()
 {
 	COUT << "waiting for device" << endl;
 
-	hide_cursors();
+	if (child_module_name != "")
+		ipc->send_message(child_module_name, "exit", "");
 
 	ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
 	ipc->send_message("menu_plus", "show stage", "true");
@@ -164,9 +165,6 @@ void wait_for_device()
 
 		if (camera_count_new != camera_count_old)
 		{
-			if (child_module_name != "")
-				ipc->send_message(child_module_name, "exit", "");
-
 			ipc->clear();
 			exit(0);
 		}
@@ -395,7 +393,6 @@ void compute()
 	{
 		proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
 		proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
-		proceed = false;
 		proceed = proceed0 && proceed1;
 
 		if (proceed)
@@ -667,7 +664,7 @@ void guardian_thread_function()
 {
 	while (true)
 	{
-		if (wait_count >= (serial_verified ? 2 : 4))
+		if (wait_count >= (serial_verified ? 2 : 5))
 		{
 			COUT << "restarting" << endl;
 
@@ -728,7 +725,7 @@ int main()
 			destroyAllWindows();
 
 		enable_imshow_old = enable_imshow;
-		
+
 		if (!updated)
 		{
 			Sleep(1);

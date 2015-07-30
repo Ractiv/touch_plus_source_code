@@ -312,35 +312,6 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 							for (int j = 0; j < HEIGHT_SMALL; ++j)
 								if (image_borders.ptr<uchar>(j, i)[0] > 0)
 									fill_image_background_static(i, j, image_in);
-
-						if (visualize)
-						{
-							Mat image_visualization_motion_processor = image_in.clone();
-
-							circle(image_visualization_motion_processor, pt_top0, 5, Scalar(255), 2);
-							circle(image_visualization_motion_processor, pt_bottom0, 5, Scalar(127), 2);
-							circle(image_visualization_motion_processor, pt_top1, 5, Scalar(255), 2);
-							circle(image_visualization_motion_processor, pt_bottom1, 5, Scalar(127), 2);
-
-							circle(image_visualization_motion_processor, pt0, 2, Scalar(255), 2);
-							circle(image_visualization_motion_processor, pt1, 2, Scalar(127), 2);
-							circle(image_visualization_motion_processor, pt2, 2, Scalar(255), 2);
-							circle(image_visualization_motion_processor, pt3, 2, Scalar(127), 2);
-
-							line(image_visualization_motion_processor, pt_top0, pt_bottom0, Scalar(254), 1);
-							line(image_visualization_motion_processor, pt_top1, pt_bottom1, Scalar(254), 1);
-
-							line(image_visualization_motion_processor, Point(x_separator_motion_left_median, 0), 
-																	   Point(x_separator_motion_left_median, 9999), Scalar(254), 1);
-
-							line(image_visualization_motion_processor, Point(x_separator_motion_right_median, 0), 
-																	   Point(x_separator_motion_right_median, 9999), Scalar(254), 1);
-
-							line(image_visualization_motion_processor, Point(0, y_separator_motion_down_median),
-											                           Point(9999, y_separator_motion_down_median), Scalar(254), 1);
-
-							// imshow("image_visualization_motion_processor" + name, image_visualization_motion_processor);
-						}
 					}
 
 					value_store.set_int("push_count", 9999);
@@ -348,7 +319,12 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				}
 
 				Mat image_in_thresholded_dilated;
-				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 5);
+				if (value_store.get_bool("first_dilation", false) == false)
+					dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 20);
+				else
+					dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 5);
+
+				value_store.set_bool("first_dilation", true);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
