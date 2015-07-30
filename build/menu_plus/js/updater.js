@@ -22,178 +22,163 @@ var Updater = function(ipcIn, s3In)
 
 	self.ipc = ipcIn;
 	self.s3 = s3In;
-	setInterval(self.Run, 3600000);
+	setInterval(self.CheckForUpdate, 3600000);
 };
 
-Updater.prototype.Running = false;
+Updater.prototype.Enabled = false;
 Updater.prototype.NotificationHead = "";
 Updater.prototype.NotificationBody = "";
 Updater.prototype.ipc = null;
 Updater.prototype.s3 = null;
-Updater.prototype.waitingForAction = false;
-Updater.prototype.Enabled = true;
+Updater.prototype.checkingForUpdate = false;
+Updater.prototype.manualInvoke = false;
 
-Updater.prototype.Run = function(manual)
+Updater.prototype.CheckForUpdate = function(manual)
 {
 	var self = this;
 
-	if (!self.Enabled)
-		return;
-
-	if (manual == true && !self.waitingForAction)
+	if (manual == true)
 	{
+		self.manualInvoke = true;
 		self.NotificationHead = "Checking for updates";
 		self.NotificationBody = "Please wait";
 		var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 	}
 
-	if (self.Running)
+	if (!self.Enabled && !manual)
 		return;
 
-	self.Running = true;
+	if (self.checkingForUpdate)
+		return;
+
+	self.checkingForUpdate = true;
 	console.log("checking for updates");
 
 	self.s3.GetKeys(function(keys)
 	{
+		var found = false;
 		for (var i in keys)
 		{
 			var key = keys[i];
-
 			if (key.Key == "software_update/version.txt")
 			{
+				found = true;
+
 				self.s3.ReadTextKey(key.Key, function(targetVersion)
 				{
 					var currentVersion = ReadTextFile(ExecutablePath + "/version.nrocinunerrad")[0];
 					if (targetVersion != currentVersion)
 					{
-						if (manual == true)
-							patch();
+						if (self.manualInvoke)
+							self.patch();
 						else
 						{
-							self.waitingForAction = true;
-
 							self.NotificationHead = "A new version of Touch+ software is available";
 							self.NotificationBody = "Click here to update";
 							var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 
 							notification.onclick = function()
 							{
-								self.waitingForAction = false;
 								patch();
 							};
-
-							notification.onclose = function()
-							{
-								self.waitingForAction = false;
-								self.Running = false;
-							};
-						}
-
-						function patch()
-						{
-							self.NotificationHead = "Downloading update";
-							self.NotificationBody = "Please wait";
-							var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
-
-							self.s3.DownloadKey("software_update/patch.zip", ExecutablePath, function(path)
-							{
-								self.NotificationHead = "Installing update";
-								self.NotificationBody = "Please wait";
-								var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
-
-								BlockExit = true;
-								self.ipc.SendMessage("daemon_plus", "exit", "");
-
-								setTimeout(function()
-								{
-									var AdmZip = require("./modules/adm-zip/adm-zip");
-									new AdmZip(path).extractAllTo(ExecutablePath, true);
-									DeleteFile(path);
-
-									// self.ipc.SendMessage("daemon_plus", "start", "");
-
-									self.NotificationHead = "Update finished";
-									self.NotificationBody = "Current version: " + targetVersion;
-									var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
-
-									self.Running = false;
-									BlockExit = false;
-									
-									console.log("update finished");
-								}, 1000);
-							},
-							function()
-							{
-								if (manual == true)
-								{
-									self.NotificationHead = "Update failed";
-									self.NotificationBody = "please check your internet connection";
-									var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
-								}
-
-								self.Running = false;
-								console.log("update failed");
-							});
 						}
 					}
-					else
-					{
-						if (manual == true)
-						{
-							self.NotificationHead = "Touch+ software is already up to date";
-							self.NotificationBody = "Current version: " + currentVersion;
-							var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
-						}
-
-						self.Running = false;
-						console.log("already up to date");
-					}
+					self.checkingForUpdate = false;
 				},
 				function()
 				{
-					if (manual == true)
+					if (self.manualInvoke)
 					{
 						self.NotificationHead = "Update failed";
 						self.NotificationBody = "please check your internet connection";
 						var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 					}
 
-					self.Running = false;
+					self.checkingForUpdate = false;
 					console.log("update failed");
 				});
 
 				break;
 			}
 		}
+
+		if (!found)
+			self.checkingForUpdate = false;
 	},
 	function()
 	{
-		if (manual == true)
+		if (self.manualInvoke)
 		{
 			self.NotificationHead = "Update failed";
 			self.NotificationBody = "please check your internet connection";
 			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 		}
 
-		self.Running = false;
+		self.checkingForUpdate = false;
 		console.log("update failed");
 	});
 };
 
-Updater.prototype.runcmd = function(executable, args, callback)
+Updater.prototype.patch = function()
 {
-    var spawn = require("child_process").spawn;
-    console.log(executable, args);
-    var child = spawn(executable, args);
-    
-    child.stdout.on("data", function(chunk)
-    {
-        if (typeof callback === "function")
-            callback(chunk);
-    });
+	self.NotificationHead = "Downloading update";
+	self.NotificationBody = "Please wait";
+	var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
 
-    child.stderr.on("data", function (data)
-    {
-        console.log("stderr: " + data);
-    });
-};
+	menu.removeAt(1);
+
+	self.s3.DownloadKey("software_update/patch.zip", ExecutablePath, function(path)
+	{
+		self.NotificationHead = "Installing update";
+		self.NotificationBody = "Please wait";
+		var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
+
+		BlockExit = true;
+		self.ipc.SendMessage("daemon_plus", "exit", "");
+
+		setTimeout(function()
+		{
+			var AdmZip = require("./modules/adm-zip/adm-zip");
+			new AdmZip(path).extractAllTo(ExecutablePath, true);
+			DeleteFile(path);
+
+			self.NotificationHead = "Update finished";
+			self.NotificationBody = "Current version: " + targetVersion;
+			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
+
+			BlockExit = false;
+			
+			console.log("update finished");
+		}, 1000);
+	},
+	function()
+	{
+		if (self.manualInvoke == true)
+		{
+			self.NotificationHead = "Update failed";
+			self.NotificationBody = "please check your internet connection";
+			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
+		}
+
+		console.log("update failed");
+	},
+	function(loaded, total)
+	{
+		/*var menuNew = new gui.Menu();
+
+		menuNew.append(new gui.MenuItem({ type: "normal", label: "Show control panel", click: function()
+		{
+			win.show();
+			winShow = true;
+		}}));
+
+		menuNew.append(new gui.MenuItem({ type: "normal", label: loaded + " of " + total + " bytes downloaded" }));
+
+		menuNew.append(new gui.MenuItem({ type: "normal", label: "Exit", click: function()
+		{
+			terminate();
+		}}));
+
+		tray.menu = menuNew;*/
+	});
+}

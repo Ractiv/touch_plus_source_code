@@ -1,5 +1,5 @@
 {
-	"main": "index.html",
+	"main": "gui/index.html",
 	"name": "Touch+ control panel",
 	"description": "Touch+ control panel",
 	"version": "0.5a",

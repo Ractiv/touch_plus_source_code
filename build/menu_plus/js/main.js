@@ -48,6 +48,8 @@
   var $calibCircle = $('.js-calib-circle');
   var $tutorialStage = $('.js-tutorial-stage');
 
+  //----------------------------------------------------------------------------------------------------
+
   $("body").css("overflow", "hidden");
 
   $(document).ready(function()
@@ -61,29 +63,10 @@
 
   //----------------------------------------------------------------------------------------------------
 
-  var ipc = new IPC("menu_plus");
-
-  require("nw.gui").Window.get().evalNWBin(null, ExecutablePath + "/menu_plus/js/s3.nrocinunerrad");
   var s3 = new S3();
-
   var updater = new Updater(ipc, s3);
 
-  ipc.SendMessage("daemon_plus", "start", "");
-
   //----------------------------------------------------------------------------------------------------
-
-  var gui = require("nw.gui");
-  var win = gui.Window.get();
-  var tray = new gui.Tray({ icon: "./ractiv_tray.png" });
-  var menu = new gui.Menu();
-
-  //----------------------------------------------------------------------------------------------------
-
-  var winShow = false;
-  var winShowOld = false;
-
-  win.hide();
-  winShow = false;
 
   menu.append(new gui.MenuItem({ type: "normal", label: "Show control panel", click: function()
   {
@@ -93,12 +76,12 @@
 
   menu.append(new gui.MenuItem({ type: "normal", label: "Update software", click: function()
   {
-    updater.Run(true)
+    updater.CheckForUpdate(true)
   }}));
 
   menu.append(new gui.MenuItem({ type: "normal", label: "Exit", click: function()
   {
-    ipc.SendMessage("daemon_plus", "exit", "");
+    terminate();
   }}));
 
   tray.menu = menu;
@@ -120,6 +103,8 @@
     win.show();
     winShow = true;
   });
+
+  //----------------------------------------------------------------------------------------------------
 
   ipc.MapFunction("show window", function(messageBody)
   {
@@ -155,7 +140,7 @@
   ipc.MapFunction("download failed", function(messageBody)
   {
     alert("Download failed, cannot connect to server");
-    ipc.SendMessage("daemon_plus", "exit", "");
+    terminate();
   });
 
   ipc.MapFunction("download", function(messageBody)
@@ -209,7 +194,7 @@
   setToggle($toggle2, "toggleCheckForUpdates", function()
   {
     updater.Enabled = true;
-    updater.Run();
+    updater.CheckForUpdate();
   },
   function()
   {
