@@ -87,6 +87,14 @@ Updater.prototype.CheckForUpdate = function(manual)
 							};
 						}
 					}
+					else if (self.manualInvoke)
+					{
+						self.NotificationHead = "Touch+ software is up to date";
+						self.NotificationBody = "Current vesion: " + currentVersion;
+						var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
+
+						self.manualInvoke = false;
+					}
 					self.checkingForUpdate = false;
 				},
 				function()
@@ -130,8 +138,6 @@ Updater.prototype.patch = function(targetVersion)
 	if (self.patching)
 		return;
 
-	self.checkingForUpdate = false;
-	self.manualInvoke = false;
 	self.patching = true;
 
 	self.NotificationHead = "Downloading update";
@@ -160,6 +166,8 @@ Updater.prototype.patch = function(targetVersion)
 			BlockExit = false;
 			
 			self.patching = false;
+			self.manualInvoke = false;
+
 			console.log("update finished");
 
 		}, 1000);
@@ -171,6 +179,8 @@ Updater.prototype.patch = function(targetVersion)
 			self.NotificationHead = "Update failed";
 			self.NotificationBody = "please check your internet connection";
 			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody });
+
+			self.manualInvoke = false;
 		}
 
 		self.patching = false;
