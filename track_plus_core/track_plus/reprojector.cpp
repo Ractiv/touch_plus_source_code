@@ -84,10 +84,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		});
 		
 		while (block_thread)
-		{
-			ipc.update();
 			Sleep(100);
-		}
 
         create_directory(data_path);
         create_directory(data_path_current_module);
@@ -157,10 +154,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		block_thread = true;
 
 		while (block_thread)
-		{
-			ipc.update();
 			Sleep(100);
-		}
 	}
 
 	ifstream file_stereo_calib_data(data_path_current_module + "\\stereoCalibData.txt");

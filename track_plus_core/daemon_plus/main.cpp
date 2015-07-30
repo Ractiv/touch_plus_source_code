@@ -70,6 +70,15 @@ void guardian_thread_function()
 	}
 }
 
+void ipc_thread_function()
+{
+	while (true)
+	{
+		ipc.update();
+		Sleep(100);
+	}
+}
+
 #ifdef SHOW_CONSOLE
 int main()
 #else
@@ -175,11 +184,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	});
 
 	thread guardian_thread(guardian_thread_function);
+	thread ipc_thread(ipc_thread_function);
 
 	while (true)
 	{
-		ipc.update();
-
 		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + "\\Touch+ Software.lnk"))
 			create_shortcut(executable_path + "\\daemon_plus.exe", get_startup_folder_path() + "\\Touch+ Software.lnk", executable_path);
 		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + "\\Touch+ Software.lnk"))

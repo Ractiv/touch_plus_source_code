@@ -348,7 +348,7 @@ bool MotionProcessorNew::compute(Mat& image_in, const string name, const bool vi
 				}
 
 				Mat image_in_thresholded_dilated;
-				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 10);
+				dilate(image_in_thresholded, image_in_thresholded_dilated, Mat(), Point(-1, -1), 5);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)

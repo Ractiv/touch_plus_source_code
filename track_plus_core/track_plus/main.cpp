@@ -154,13 +154,8 @@ void wait_for_device()
 
 	while (true)
 	{
-		ipc->update();
-
 		if (enable_imshow)
-		{
 			enable_imshow = false;
-			destroyAllWindows();
-		}
 		
 #ifdef _WIN32
 		CCameraDS camera_ds;
@@ -295,10 +290,7 @@ void on_first_frame()
 	ipc->map_function("toggle imshow", [](const string message_body)
 	{
 		if (enable_imshow)
-		{
 			enable_imshow = false;
-			destroyAllWindows();
-		}
 		else
 			enable_imshow = true;
 	});
@@ -312,8 +304,6 @@ void on_first_frame()
 void compute()
 {
 	updated = false;
-
-	ipc->update();
 
 	if (first_frame)
 	{
@@ -693,6 +683,15 @@ void guardian_thread_function()
 	}
 }
 
+void ipc_thread_function()
+{
+	while (true)
+	{
+		ipc->update();
+		Sleep(100);
+	}
+}
+
 int main()
 // int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -717,11 +716,19 @@ int main()
 		exit(0);
 	});
 
+	thread ipc_thread(ipc_thread_function);
+
 	camera = new Camera(true, 1280, 480, update);
 	load_settings();
 
 	while (true)
 	{
+		static bool enable_imshow_old = enable_imshow;
+		if (enable_imshow_old && !enable_imshow)
+			destroyAllWindows();
+
+		enable_imshow_old = enable_imshow;
+		
 		if (!updated)
 		{
 			Sleep(1);

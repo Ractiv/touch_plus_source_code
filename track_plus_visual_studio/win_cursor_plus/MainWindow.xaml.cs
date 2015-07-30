@@ -202,12 +202,18 @@ namespace win_cursor_plus
                 return 1;
             });
 
+            Timer ipcTimer = new Timer();
+            ipcTimer.Interval = 100;
+            ipcTimer.Tick += delegate(object o, EventArgs e)
+            {
+                ipc.Update();
+            };
+            ipcTimer.Start();
+
             Timer timer = new Timer();
             timer.Interval = 20;
             timer.Tick += delegate(object o, EventArgs e)
             {
-                ipc.Update();
-
                 if (updateNumNew == updateNumOld && showCursorIndex)
                     return;
 
