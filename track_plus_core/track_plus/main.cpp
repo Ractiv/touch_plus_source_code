@@ -147,8 +147,7 @@ void wait_for_device()
 {
 	COUT << "waiting for device" << endl;
 
-	if (child_module_name != "")
-		ipc->send_message(child_module_name, "exit", "");
+	hide_cursors();
 
 	ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
 	ipc->send_message("menu_plus", "show stage", "true");
