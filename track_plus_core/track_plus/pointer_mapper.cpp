@@ -312,9 +312,9 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 			low_pass_filter->compute(dist_cursor_target_plane, 0.2, "dist_cursor_target_plane");
 
 			float hit_dist_processed = hit_dist;
-			float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
-			hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.25);
-			value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
+			// float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
+			// hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.25);
+			// value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
 
 			float dist_cursor_target_plane_no_lowpass = dist_target_plane - hit_dist_processed;
 

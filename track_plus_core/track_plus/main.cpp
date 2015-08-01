@@ -364,9 +364,9 @@ void compute()
 
 	exposure_adjusted = true;
 
-	// imshow("image_small0", image_small0);
+	imshow("image_small0", image_small0);
 	// imshow("image_small1", image_small1);
-	// imshow("image_preprocessed0", image_preprocessed0);
+	imshow("image_preprocessed0", image_preprocessed0);
 	// imshow("image_preprocessed1", image_preprocessed1);
 
 	bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);
@@ -677,6 +677,9 @@ void guardian_thread_function()
 
 		if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
 			create_process(child_module_path, child_module_name + ".exe", true, true);
+
+		if (process_running("daemon_plus.exe") == 0)
+			ipc->send_message("everyone", "exit", "");
 
 		Sleep(500);
 	}
