@@ -78,6 +78,8 @@ namespace win_cursor_plus
         private static bool cursorThumbDownOld = false;
 
         private static bool useTUIO = false;
+        private static bool useFallback = !(Environment.OSVersion.Version.Major >= 6 &&
+                                            Environment.OSVersion.Version.Minor >= 2);
 
         private static int tuioFSeq = 0;
         private static OSCTransmitter transmitter = new OSCTransmitter("127.0.0.1", 3333);
@@ -89,6 +91,34 @@ namespace win_cursor_plus
 
         private static int updateNumNew = 0;
         private static int updateNumOld = 0;
+
+        [DllImport("user32.dll",CharSet=CharSet.Auto, CallingConvention=CallingConvention.StdCall)]
+        public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
+        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const int MOUSEEVENTF_RIGHTUP = 0x10;
+
+        private bool mouseIsDown = false;
+
+        public void mouseDown()
+        {
+            if (!mouseIsDown)
+            {
+                mouse_event(MOUSEEVENTF_LEFTDOWN, (uint)xCursorIndex, (uint)yCursorIndex, 0, 0);
+                mouseIsDown = true;
+            }
+        }
+
+        public void mouseUp()
+        {
+            if (mouseIsDown)
+            {
+                mouse_event(MOUSEEVENTF_LEFTUP, (uint)xCursorIndex, (uint)yCursorIndex, 0, 0);
+                mouseIsDown = false;
+            }
+        }
 
         public MainWindow()
         {
@@ -221,47 +251,59 @@ namespace win_cursor_plus
 
                 if (!useTUIO && showCursorIndex)
                 {
-                    List<PointerTouchInfo> contacts = new List<PointerTouchInfo>();
+                    if (!useFallback)
+                    {
+                        List<PointerTouchInfo> contacts = new List<PointerTouchInfo>();
 
-                    if (cursorIndexDown && !cursorIndexDownOld)
-                    {
-                        PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorIndex, (int)yCursorIndex, 2, 1);
-                        contact.PointerInfo.PointerFlags = PointerFlags.DOWN | PointerFlags.INRANGE | PointerFlags.INCONTACT;
-                        contacts.Add(contact);
-                    }
-                    else if (cursorIndexDown && cursorIndexDownOld)
-                    {
-                        PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorIndex, (int)yCursorIndex, 2, 1);
-                        contact.PointerInfo.PointerFlags = PointerFlags.UPDATE | PointerFlags.INRANGE | PointerFlags.INCONTACT;
-                        contacts.Add(contact);
-                    }
-                    else if (!cursorIndexDown && cursorIndexDownOld)
-                    {
-                        PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorIndexOld, (int)yCursorIndexOld, 2, 1);
-                        contact.PointerInfo.PointerFlags = PointerFlags.UP;
-                        contacts.Add(contact);
-                    }
+                        if (cursorIndexDown && !cursorIndexDownOld)
+                        {
+                            PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorIndex, (int)yCursorIndex, 2, 1);
+                            contact.PointerInfo.PointerFlags = PointerFlags.DOWN | PointerFlags.INRANGE | PointerFlags.INCONTACT;
+                            contacts.Add(contact);
+                        }
+                        else if (cursorIndexDown && cursorIndexDownOld)
+                        {
+                            PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorIndex, (int)yCursorIndex, 2, 1);
+                            contact.PointerInfo.PointerFlags = PointerFlags.UPDATE | PointerFlags.INRANGE | PointerFlags.INCONTACT;
+                            contacts.Add(contact);
+                        }
+                        else if (!cursorIndexDown && cursorIndexDownOld)
+                        {
+                            PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorIndexOld, (int)yCursorIndexOld, 2, 1);
+                            contact.PointerInfo.PointerFlags = PointerFlags.UP;
+                            contacts.Add(contact);
+                        }
 
-                    if (cursorThumbDown && !cursorThumbDownOld)
-                    {
-                        PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorThumb, (int)yCursorThumb, 2, 2);
-                        contact.PointerInfo.PointerFlags = PointerFlags.DOWN | PointerFlags.INRANGE | PointerFlags.INCONTACT;
-                        contacts.Add(contact);
-                    }
-                    else if (cursorThumbDown && cursorThumbDownOld)
-                    {
-                        PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorThumb, (int)yCursorThumb, 2, 2);
-                        contact.PointerInfo.PointerFlags = PointerFlags.UPDATE | PointerFlags.INRANGE | PointerFlags.INCONTACT;
-                        contacts.Add(contact);
-                    }
-                    else if (!cursorThumbDown && cursorThumbDownOld)
-                    {
-                        PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorThumbOld, (int)yCursorThumbOld, 2, 2);
-                        contact.PointerInfo.PointerFlags = PointerFlags.UP;
-                        contacts.Add(contact);
-                    }
+                        if (cursorThumbDown && !cursorThumbDownOld)
+                        {
+                            PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorThumb, (int)yCursorThumb, 2, 2);
+                            contact.PointerInfo.PointerFlags = PointerFlags.DOWN | PointerFlags.INRANGE | PointerFlags.INCONTACT;
+                            contacts.Add(contact);
+                        }
+                        else if (cursorThumbDown && cursorThumbDownOld)
+                        {
+                            PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorThumb, (int)yCursorThumb, 2, 2);
+                            contact.PointerInfo.PointerFlags = PointerFlags.UPDATE | PointerFlags.INRANGE | PointerFlags.INCONTACT;
+                            contacts.Add(contact);
+                        }
+                        else if (!cursorThumbDown && cursorThumbDownOld)
+                        {
+                            PointerTouchInfo contact = MakePointerTouchInfo((int)xCursorThumbOld, (int)yCursorThumbOld, 2, 2);
+                            contact.PointerInfo.PointerFlags = PointerFlags.UP;
+                            contacts.Add(contact);
+                        }
 
-                    bool success = TouchInjector.InjectTouchInput(contacts.Count, contacts.ToArray());
+                        bool success = TouchInjector.InjectTouchInput(contacts.Count, contacts.ToArray());
+                    }
+                    else
+                    {
+                        System.Windows.Forms.Cursor.Position = new System.Drawing.Point((int)xCursorIndex, (int)yCursorIndex);
+
+                        if (cursorIndexDown)
+                            mouseDown();
+                        else
+                            mouseUp();
+                    }
                 }
                 else if (showCursorIndex)
                 {

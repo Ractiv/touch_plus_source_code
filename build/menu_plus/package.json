@@ -21,6 +21,6 @@
 	    "show": true 
 	},
 	"webkit": {
-		"plugin": false
+		"plugin": true
 	}
 }
