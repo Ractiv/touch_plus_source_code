@@ -364,9 +364,9 @@ void compute()
 
 	exposure_adjusted = true;
 
-	imshow("image_small0", image_small0);
+	// imshow("image_small0", image_small0);
 	// imshow("image_small1", image_small1);
-	imshow("image_preprocessed0", image_preprocessed0);
+	// imshow("image_preprocessed0", image_preprocessed0);
 	// imshow("image_preprocessed1", image_preprocessed1);
 
 	bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);
