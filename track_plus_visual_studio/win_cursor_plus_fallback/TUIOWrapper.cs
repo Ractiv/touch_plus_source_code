@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using OSC.NET;
 
-namespace win_cursor_plus_fallback
+namespace win_cursor_plus
 {
     public class TUIO
     {

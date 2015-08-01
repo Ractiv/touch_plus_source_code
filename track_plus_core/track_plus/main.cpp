@@ -266,9 +266,9 @@ void on_first_frame()
 		child_module_name = "win_cursor_plus";
 
 #ifdef _WIN32
-		if (IsWindows8OrGreater())
-			child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
-		else
+		// if (IsWindows8OrGreater())
+			// child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
+		// else
 			child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
 #elif __APPLE__
         //todo: port to OSX
@@ -333,6 +333,9 @@ void compute()
 		exit(0);
 	}
 
+	if (image_current_frame.cols == 0)
+		return;
+
 	//----------------------------------------core algorithm----------------------------------------
 
 	Mat image_flipped;
@@ -361,9 +364,9 @@ void compute()
 
 	exposure_adjusted = true;
 
-	// imshow("image_small0", image_small0);
+	imshow("image_small0", image_small0);
 	// imshow("image_small1", image_small1);
-	// imshow("image_preprocessed0", image_preprocessed0);
+	imshow("image_preprocessed0", image_preprocessed0);
 	// imshow("image_preprocessed1", image_preprocessed1);
 
 	bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);

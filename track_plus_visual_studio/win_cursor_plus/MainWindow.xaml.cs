@@ -44,7 +44,7 @@ namespace win_cursor_plus
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow:Window
+    public partial class MainWindow : Window
     {
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -52,7 +52,7 @@ namespace win_cursor_plus
             var hwnd = new WindowInteropHelper(this).Handle;
             WindowsServices.SetWindowExTransparent(hwnd);
         }
-        
+
         private static float xCursorIndex = 9999;
         private static float yCursorIndex = 9999;
         private static float zCursorIndex = 9999;
@@ -77,7 +77,7 @@ namespace win_cursor_plus
         private static bool cursorThumbDown = false;
         private static bool cursorThumbDownOld = false;
 
-        private static bool useTUIO = true;
+        private static bool useTUIO = false;
 
         private static int tuioFSeq = 0;
         private static OSCTransmitter transmitter = new OSCTransmitter("127.0.0.1", 3333);
@@ -134,7 +134,7 @@ namespace win_cursor_plus
                 if (message != "hide_cursor_index" || message != "hide_cursor_thumb")
                 {
                     string[] xyStr = message.Split('!');
-                    
+
                     if (xyStr.Length == 5)
                     {
                         cursorIndexDown = false;
@@ -276,7 +276,8 @@ namespace win_cursor_plus
                         bundle.Append(TUIO.TUIO2DcurExt(0, xCursorIndex / screenWidth, yCursorIndex / screenHeight, 0, 0, 0, 10, 10));
                         TUIOSessions.Add(0);
                     }
-                    if (cursorThumbDown) {
+                    if (cursorThumbDown)
+                    {
                         bundle.Append(TUIO.TUIO2DcurExt(1, xCursorThumb / screenWidth, yCursorThumb / screenHeight, 0, 0, 0, 10, 10));
                         TUIOSessions.Add(1);
                     }
@@ -424,13 +425,13 @@ namespace win_cursor_plus
 
             IntPtr hWndHiddenOwner = GetWindow(hwnd, GetWindowCmd.GW_OWNER);
 
-            if ( hWndHiddenOwner != IntPtr.Zero )
+            if (hWndHiddenOwner != IntPtr.Zero)
             {
                 IntPtr HWND_TOPMOST = new IntPtr(-1);
-                SetWindowPos( hWndHiddenOwner, HWND_TOPMOST, 0, 0, 0, 0,
+                SetWindowPos(hWndHiddenOwner, HWND_TOPMOST, 0, 0, 0, 0,
                 SetWindowPosFlags.SWP_NOMOVE |
                 SetWindowPosFlags.SWP_NOSIZE |
-                SetWindowPosFlags.SWP_NOACTIVATE );
+                SetWindowPosFlags.SWP_NOACTIVATE);
             }
         }
 
@@ -445,8 +446,8 @@ namespace win_cursor_plus
             GW_ENABLEDPOPUP = 6
         }
 
-        [DllImport( "user32.dll" )]
-        public static extern IntPtr GetWindow( IntPtr hWnd, GetWindowCmd uCmd );
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetWindow(IntPtr hWnd, GetWindowCmd uCmd);
 
         [Flags]
         public enum SetWindowPosFlags
@@ -464,7 +465,7 @@ namespace win_cursor_plus
             SWP_NOSENDCHANGING = 0x0400
         }
 
-        [DllImport( "user32.dll" )]
-        public static extern int SetWindowPos( IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, SetWindowPosFlags uFlags );
+        [DllImport("user32.dll")]
+        public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, SetWindowPosFlags uFlags);
     }
 }

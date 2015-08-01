@@ -90,9 +90,9 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		const int i_min = 0;
 		const int i_max = vec_leds_on.size() - 1;
 
-		int gray_mean_on = 0;
-		int gray_mean_off = 0;
-		int gray_mean_count = 0;
+		float gray_mean_on = 0;
+		float gray_mean_off = 0;
+		float gray_mean_count = 0;
 
 		for (int i = i_min; i <= i_max; ++i)
 		{
@@ -104,15 +104,11 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		gray_mean_on /= gray_mean_count;
 		gray_mean_off /= gray_mean_count;
 
-		int gray_diff = gray_mean_on - gray_mean_off;
-		int gray_diff_max;
+		float gray_diff = gray_mean_on - gray_mean_off;
+		float gray_diff_max = linear(gray_diff);//200;//exponential(gray_diff);
 
 		COUT << "gray diff is " << gray_diff << endl;
-
-		if (gray_diff <= 20)
-			gray_diff_max = 100;
-		else
-			gray_diff_max = 25;
+		COUT << "gray diff max is " << gray_diff_max << endl;
 
 		if (gray_diff > gray_diff_max)
 			gray_diff = gray_diff_max;
@@ -120,9 +116,14 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 			gray_diff = 0;
 
 		if (mode == "surface")
-			exposure_val = map_val(gray_diff, 0, gray_diff_max, 1, 10);
+			exposure_val = map_val(gray_diff, 0, 30, 1, 10);
 		else
 			exposure_val = 3;
+
+		if (exposure_val > 10)
+			exposure_val = 10;
+		else if (exposure_val < 1)
+			exposure_val = 1;
 
 		camera->setExposureTime(Camera::both, exposure_val);
 
@@ -135,6 +136,27 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 	}
 
 	return false;
+}
+
+float CameraInitializerNew::exponential(float x)
+{
+	//data points: 1:500, 23:100, 30:25
+	float a = -243.5611;
+	float b = 772.0816;
+	float c = 0.03495307;
+	float e = 2.718;
+
+	return a + (b * pow(e, (-c * x)));
+}
+
+float CameraInitializerNew::linear(float x)
+{
+	// float m = -35;
+	float m = -15.15257;
+	// float c = 1075;
+	float c = 524.5146;
+
+	return (m * x) + c;
 }
 
 void CameraInitializerNew::preset0(Camera* camera)
