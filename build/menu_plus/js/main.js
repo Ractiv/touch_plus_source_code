@@ -429,15 +429,11 @@
 
   //----------------------------------------------------------------------------------------------------
 
-  setInterval(ipcThreadFunction, 100);
-  function ipcThreadFunction()
-  {
-    ipc.Update();
-  }
-
   setInterval(loop, 15);
   function loop()
   {
+    ipc.Update();
+    
     if (winShow && !winShowOld)
     {
       toggleMenuButton("buttonSettings");
