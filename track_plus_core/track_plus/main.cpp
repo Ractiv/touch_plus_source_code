@@ -266,9 +266,9 @@ void on_first_frame()
 		child_module_name = "win_cursor_plus";
 
 #ifdef _WIN32
-		// if (IsWindows8OrGreater())
-			// child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
-		// else
+		if (IsWindows8OrGreater())
+			child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
+		else
 			child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
 #elif __APPLE__
         //todo: port to OSX
