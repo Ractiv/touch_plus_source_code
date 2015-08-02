@@ -105,7 +105,10 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		gray_mean_off /= gray_mean_count;
 
 		float gray_diff = gray_mean_on - gray_mean_off;
-		float gray_diff_max = linear(gray_diff);//200;//exponential(gray_diff);
+		if (gray_diff > 30)
+			gray_diff = 30;
+
+		float gray_diff_max = linear(gray_diff);
 
 		COUT << "gray diff is " << gray_diff << endl;
 		COUT << "gray diff max is " << gray_diff_max << endl;
@@ -138,22 +141,9 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 	return false;
 }
 
-float CameraInitializerNew::exponential(float x)
-{
-	//data points: 1:500, 23:100, 30:25
-	float a = -243.5611;
-	float b = 772.0816;
-	float c = 0.03495307;
-	float e = 2.718;
-
-	return a + (b * pow(e, (-c * x)));
-}
-
 float CameraInitializerNew::linear(float x)
 {
-	// float m = -35;
 	float m = -15.15257;
-	// float c = 1075;
 	float c = 524.5146;
 
 	return (m * x) + c;

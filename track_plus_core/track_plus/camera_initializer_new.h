@@ -39,7 +39,6 @@ public:
 	
 	static void init(Camera* camera);
 	static bool adjust_exposure(Camera* camera, Mat& image_in);
-	static float exponential(float x);
 	static float linear(float x);
 	static void preset0(Camera* camera);
 	static void preset1(Camera* camera);
