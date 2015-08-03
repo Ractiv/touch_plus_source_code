@@ -275,10 +275,10 @@ void compute_color_segmented_image(Mat& image_in, Mat& image_out)
 {
 	const int width = image_in.cols;
 	const int height = image_in.rows;
-	const int reduce_size = 32;
+	const int reduce_size = 16;
 
-	Mat image_smoothed = image_in;
-	// GaussianBlur(image_in, image_smoothed, Size(9, 9), 0, 0);
+	Mat image_smoothed;
+	GaussianBlur(image_in, image_smoothed, Size(9, 9), 0, 0);
 
 	Mat image_reduced = Mat(height, width, CV_8UC3);
 

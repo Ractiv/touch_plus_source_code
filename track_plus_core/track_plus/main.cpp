@@ -364,7 +364,7 @@ void compute()
 
 	exposure_adjusted = true;
 
-	/*{
+	{
 		Mat image_segmented0;
 		Mat image_segmented1; 
 		compute_color_segmented_image(image_small0, image_segmented0);
@@ -375,21 +375,17 @@ void compute()
 		imshow("image_preprocessed0", image_preprocessed0);
 
 
-		// Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
-		// Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);
+		Mat image_remapped0 = reprojector.remap(&image_segmented0, 0, true);
+		Mat image_remapped1 = reprojector.remap(&image_segmented1, 1, true);
 
-		// reprojector.compute_stereo_pair(image_remapped0, image_remapped1, false);
+		reprojector.y_align(image_remapped0, image_remapped1, false);
 
-		// imshow("image_remapped0", image_remapped0);
-		// imshow("image_remapped1", image_remapped1);
+		imshow("image_remapped0", image_remapped0);
+		imshow("image_remapped1", image_remapped1);
 
 		waitKey(1);
-
-		// imwrite("F:\\image_remapped0.png", image_remapped0);
-		// imwrite("F:\\image_remapped1.png", image_remapped1);
-
 		return;
-	}*/
+	}
 
 	// imshow("image_small0", image_small0);
 	// imshow("image_small1", image_small1);
@@ -701,6 +697,21 @@ void guardian_thread_function()
 		}
 
 		++wait_count;
+
+		if (child_module_name != "")
+		{
+			static bool first = true;
+			if (first && (process_running(child_module_name + ".exe") > 0))
+			{
+				kill_process(child_module_name + ".exe");
+				while (process_running(child_module_name + ".exe") > 0)
+				{
+					COUT << "wait kill" << endl;
+					Sleep(100);
+				}
+			}
+			first = false;
+		}
 
 		if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
 			create_process(child_module_path, child_module_name + ".exe", true, true);
