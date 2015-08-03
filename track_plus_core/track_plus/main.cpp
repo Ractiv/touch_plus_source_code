@@ -17,6 +17,7 @@
  */
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 #include <thread>
 
 #include "globals.h"
@@ -49,13 +50,13 @@ using namespace cv;
 
 struct Settings
 {
-	string launch_on_startup;
-	string power_saving_mode;
-	string check_for_updates;
-	string touch_control;
-	string table_mode;
-	string auto_detect_interaction_plane;
-	string scroll_bar_adjust_click_height_step;
+    string launch_on_startup;
+    string power_saving_mode;
+    string check_for_updates;
+    string touch_control;
+    string table_mode;
+    string auto_detect_interaction_plane;
+    string scroll_bar_adjust_click_height_step;
 };
 
 //----------------------------------------instances----------------------------------------
@@ -133,515 +134,517 @@ int frame_num = 0;
 
 void hide_cursors()
 {
-	if ((!show_cursor_index && !show_cursor_thumb) || child_module_name == "")
-		return;
+    if ((!show_cursor_index && !show_cursor_thumb) || child_module_name == "")
+        return;
 
-	show_cursor_index = false;
-	show_cursor_thumb = false;
+    show_cursor_index = false;
+    show_cursor_thumb = false;
 
-	ipc->send_udp_message(child_module_name, "hide_cursor_index");
-	ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
+    ipc->send_udp_message(child_module_name, "hide_cursor_index");
+    ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
 }
 
 void wait_for_device()
 {
-	COUT << "waiting for device" << endl;
+    COUT << "waiting for device " << endl;
 
-	hide_cursors();
+    hide_cursors();
 
-	ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
-	ipc->send_message("menu_plus", "show stage", "true");
+    ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
+    ipc->send_message("menu_plus", "show stage", "true");
 
-	while (true)
-	{
-		if (enable_imshow)
-			enable_imshow = false;
-		
+    while (true)
+    {
+        if (enable_imshow)
+            enable_imshow = false;
+        
 #ifdef _WIN32
-		CCameraDS camera_ds;
-		int camera_count_new = camera_ds.CameraCount();
-		static int camera_count_old = camera_count_new;
+        CCameraDS camera_ds;
+        int camera_count_new = camera_ds.CameraCount();
+        static int camera_count_old = camera_count_new;
 
-		if (camera_count_new != camera_count_old)
-		{
-			ipc->clear();
-			exit(0);
-		}
+        if (camera_count_new != camera_count_old)
+        {
+            ipc->clear();
+            exit(0);
+        }
 
-		camera_count_old = camera_count_new;
+        camera_count_old = camera_count_new;
 #elif __APPLE__
       //todo:: port to OSX
 #endif
-		Sleep(500);
-	}
+        Sleep(500);
+    }
 }
 
 void update(Mat& image_in)
 {
-	image_current_frame = image_in;
-	wait_count = 0;
-	updated = true;
+    image_current_frame = image_in;
+    wait_count = 0;
+    updated = true;
 }
 
 void init_paths()
 {
 #ifdef _WIN32
-	char buffer[MAX_PATH];
+    char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
 #elif __APPLE__
     //todo: port to OSX
 #endif
-	data_path = executable_path + "\\userdata";
-	settings_file_path = data_path + "\\settings.nrocinunerrad";
-	menu_file_path = executable_path + "\\menu_plus\\menu_plus.exe";
-	ipc_path = executable_path + "\\ipc";
-	pose_database_path = executable_path + "\\database";
+    data_path = executable_path + "\\userdata";
+    settings_file_path = data_path + "\\settings.nrocinunerrad";
+    menu_file_path = executable_path + "\\menu_plus\\menu_plus.exe";
+    ipc_path = executable_path + "\\ipc";
+    pose_database_path = executable_path + "\\database";
 }
 
 void load_settings()
 {
-	if (file_exists(settings_file_path))
-	{
-		ifstream ifs(settings_file_path, ios::binary);
-		ifs.read((char*)&settings, sizeof(settings));
-		actuate_dist = actuate_dist_raw + atoi(settings.scroll_bar_adjust_click_height_step.c_str()) - 5;
+    if (file_exists(settings_file_path))
+    {
+        ifstream ifs(settings_file_path, ios::binary);
+        ifs.read((char*)&settings, sizeof(settings));
+        actuate_dist = actuate_dist_raw + atoi(settings.scroll_bar_adjust_click_height_step.c_str()) - 5;
 
-		COUT << "settings file loaded" << endl;
-	}
+        COUT << "settings file loaded" << endl;
+    }
 }
 
 void on_first_frame()
 {
-	serial_number = camera->getSerialNumber();
+    serial_number = camera->getSerialNumber();
 
-	if (serial_number.size() == 10)
-	{
-		string char_string = "";
-		int char_count = 0;
-		for (char& c : serial_number)
-		{
-			char_string += c;
+    if (serial_number.size() == 10)
+    {
+        string char_string = "";
+        int char_count = 0;
+        for (char& c : serial_number)
+        {
+            char_string += c;
 
-			++char_count;
-			if (char_count == 4)
-				break;
-		}
+            ++char_count;
+            if (char_count == 4)
+                break;
+        }
 
-		if (char_string == "0101")
-			serial_verified = true;
-	}
+        if (char_string == "0101")
+            serial_verified = true;
+    }
 
-	if (!serial_verified)
-	{
-		COUT << "please reconnect your Touch+ sensor" << endl;
-		wait_for_device();
-	}
+    if (!serial_verified)
+    {
+        COUT << "please reconnect your Touch+ sensor" << endl;
+        wait_for_device();
+    }
     
     COUT << "serial number: " << serial_number << endl;
 
-	data_path_current_module = data_path + "\\" + serial_number;
+    data_path_current_module = data_path + "\\" + serial_number;
 
-	int x_accel;
-	int y_accel;
-	int z_accel;
-	camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
-	
-	Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
+    int x_accel;
+    int y_accel;
+    int z_accel;
+    camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
+    
+    Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
 
-	// if (heading.y > 60)
-		// mode = "tool";
-	// else
-		mode = "surface";
+    // if (heading.y > 60)
+        // mode = "tool";
+    // else
+        mode = "surface";
 
-	ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
+    ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
 
-	reprojector.load(*ipc, true);
-	CameraInitializerNew::init(camera);
-	pose_estimator.init();
+    reprojector.load(*ipc, true);
+    CameraInitializerNew::init(camera);
+    pose_estimator.init();
 
-	if (mode == "surface")
-	{
-		child_module_name = "win_cursor_plus";
+    if (mode == "surface")
+    {
+        child_module_name = "win_cursor_plus";
 
 #ifdef _WIN32
-		if (IsWindows8OrGreater())
-			child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
-		else
-			child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
+        if (IsWindows8OrGreater())
+            child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
+        else
+            child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
 #elif __APPLE__
         //todo: port to OSX
 #endif
 
-		ipc->open_udp_channel(child_module_name);
-		ipc->send_message("menu_plus", "show window", "");	
-		ipc->send_message("menu_plus", "show wiggle", "");
-	}
-	else
-	{
-		ipc->open_udp_channel("unity_demo", 3333);
-		ipc->send_message("menu_plus", "hide window", "");
-	}
+        ipc->open_udp_channel(child_module_name);
+        ipc->send_message("menu_plus", "show window", "");  
+        ipc->send_message("menu_plus", "show wiggle", "");
+    }
+    else
+    {
+        ipc->open_udp_channel("unity_demo", 3333);
+        ipc->send_message("menu_plus", "hide window", "");
+    }
 
-	ipc->map_function("toggle imshow", [](const string message_body)
-	{
-		if (enable_imshow)
-			enable_imshow = false;
-		else
-			enable_imshow = true;
-	});
+    ipc->map_function("toggle imshow", [](const string message_body)
+    {
+        if (enable_imshow)
+            enable_imshow = false;
+        else
+            enable_imshow = true;
+    });
 
-	ipc->map_function("load settings", [](const string message_body)
-	{
-		load_settings();
-	});
+    ipc->map_function("load settings", [](const string message_body)
+    {
+        load_settings();
+    });
 }
 
 void compute()
 {
-	updated = false;
+    updated = false;
 
-	if (first_frame)
-	{
-		on_first_frame();
-		first_frame = false;
-	}
+    if (first_frame)
+    {
+        on_first_frame();
+        first_frame = false;
+    }
 
-	if (!play || settings.touch_control != "1")
-	{
-		hide_cursors();
+    if (!play || settings.touch_control != "1")
+    {
+        hide_cursors();
 
-		if (enable_imshow)
-			waitKey(1);
+        if (enable_imshow)
+            waitKey(1);
 
-		return;
-	}
+        return;
+    }
 
-	int x_accel;
-	int y_accel;
-	int z_accel;
-	camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
-	imu.compute(x_accel, y_accel, z_accel);
+    int x_accel;
+    int y_accel;
+    int z_accel;
+    camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
+    imu.compute(x_accel, y_accel, z_accel);
 
-	if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
-	{
-		if (child_module_name != "")
-			ipc->send_message(child_module_name, "exit", "");
+    // if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
+    // {
+    //     if (child_module_name != "")
+    //         ipc->send_message(child_module_name, "exit", "");
 
-		ipc->clear();
-		exit(0);
-	}
+    //     ipc->clear();
+    //     exit(0);
+    // }
 
-	if (image_current_frame.cols == 0)
-		return;
+    if (image_current_frame.cols == 0)
+        return;
 
-	//----------------------------------------core algorithm----------------------------------------
+    //----------------------------------------core algorithm----------------------------------------
 
-	Mat image_flipped;
+    Mat image_flipped;
     flip(image_current_frame, image_flipped, 0);
 
-	Mat image0 = image_flipped(Rect(0, 0, 640, 480));
-	Mat image1 = image_flipped(Rect(640, 0, 640, 480));
+    Mat image0 = image_flipped(Rect(0, 0, 640, 480));
+    Mat image1 = image_flipped(Rect(640, 0, 640, 480));
 
-	Mat image_small0;
-	Mat image_small1;
-	resize(image0, image_small0, Size(160, 120), 0, 0, INTER_LINEAR);
-	resize(image1, image_small1, Size(160, 120), 0, 0, INTER_LINEAR);
+    Mat image_small0;
+    Mat image_small1;
+    resize(image0, image_small0, Size(160, 120), 0, 0, INTER_LINEAR);
+    resize(image1, image_small1, Size(160, 120), 0, 0, INTER_LINEAR);
 
-	Mat image_preprocessed0;
-	Mat image_preprocessed1;
-	compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
-	compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1");
+    Mat image_preprocessed0;
+    Mat image_preprocessed1;
+    compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
+    compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1");
 
-	Mat image_preprocessed_smoothed0;
-	Mat image_preprocessed_smoothed1;
-	GaussianBlur(image_preprocessed0, image_preprocessed_smoothed0, Size(1, 19), 0, 0);
-	GaussianBlur(image_preprocessed1, image_preprocessed_smoothed1, Size(1, 19), 0, 0);
+    Mat image_preprocessed_smoothed0;
+    Mat image_preprocessed_smoothed1;
+    GaussianBlur(image_preprocessed0, image_preprocessed_smoothed0, Size(1, 19), 0, 0);
+    GaussianBlur(image_preprocessed1, image_preprocessed_smoothed1, Size(1, 19), 0, 0);
 
-	if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
-		return;
+    if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
+        return;
 
-	exposure_adjusted = true;
+    exposure_adjusted = true;
 
-	/*{
-		Mat image_segmented0;
-		Mat image_segmented1; 
-		compute_color_segmented_image(image_small0, image_segmented0);
-		compute_color_segmented_image(image_small1, image_segmented1);
+    /*{
+        Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
+        Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);
 
-		imshow("image_segmented0", image_segmented0);
-		imshow("image_small0", image_small0);
-		imshow("image_preprocessed0", image_preprocessed0);
+        reprojector.y_align(image_remapped0, image_remapped1, false);
+
+        GaussianBlur(image_remapped0, image_remapped0, Size(9, 9), 0, 0);
+        GaussianBlur(image_remapped1, image_remapped1, Size(9, 9), 0, 0);
 
 
-		Mat image_remapped0 = reprojector.remap(&image_segmented0, 0, true);
-		Mat image_remapped1 = reprojector.remap(&image_segmented1, 1, true);
+		Mat image_disparity;
 
-		reprojector.y_align(image_remapped0, image_remapped1, false);
+		static StereoSGBM stereo_sgbm(0, 32, 21, 0, 0, 0, 0, 20, 0, 0, false);
+		stereo_sgbm(image_remapped0, image_remapped1, image_disparity);
+
+        Mat image_disparity_8u;
+        double minVal, maxVal;
+        minMaxLoc(image_disparity, &minVal, &maxVal);
+        image_disparity.convertTo(image_disparity_8u, CV_8UC1, 255 / (maxVal - minVal));
 
 		imshow("image_remapped0", image_remapped0);
 		imshow("image_remapped1", image_remapped1);
+		imshow("image_disparity_8u", image_disparity_8u);
+    }*/
 
-		waitKey(1);
-		return;
-	}*/
+    // imshow("image_small0", image_small0);
+    // imshow("image_small1", image_small1);
+    // imshow("image_preprocessed0", image_preprocessed0);
+    // imshow("image_preprocessed1", image_preprocessed1);
 
-	// imshow("image_small0", image_small0);
-	// imshow("image_small1", image_small1);
-	// imshow("image_preprocessed0", image_preprocessed0);
-	// imshow("image_preprocessed1", image_preprocessed1);
+    bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);
+    bool proceed1 = motion_processor1.compute(image_preprocessed_smoothed1, "1", false);
+    bool proceed = proceed0 && proceed1;
 
-	bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);
-	bool proceed1 = motion_processor1.compute(image_preprocessed_smoothed1, "1", false);
-	bool proceed = proceed0 && proceed1;
+    if (proceed)
+    {
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, image_preprocessed_smoothed0, motion_processor0, "0", true);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, image_preprocessed_smoothed1, motion_processor1, "1", true);
+        proceed = proceed0 && proceed1;
+    }
+    else
+        hide_cursors();
 
-	if (proceed)
-	{
-		proceed0 = foreground_extractor0.compute(image_preprocessed0, image_preprocessed_smoothed0, motion_processor0, "0", true);
-		proceed1 = foreground_extractor1.compute(image_preprocessed1, image_preprocessed_smoothed1, motion_processor1, "1", true);
-		proceed = proceed0 && proceed1;
-	}
-	else
-		hide_cursors();
+    if (proceed)
+    {
+        proceed0 = hand_splitter0.compute(foreground_extractor0, motion_processor0, "0");
+        proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1");
+        proceed = proceed0 && proceed1;
+    }
+    else
+        hide_cursors();
 
-	if (proceed)
-	{
-		proceed0 = hand_splitter0.compute(foreground_extractor0, motion_processor0, "0");
-		proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1");
-		proceed = proceed0 && proceed1;
-	}
-	else
-		hide_cursors();
+    if (mode == "surface" && proceed)
+    {
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
+        proceed = proceed0 && proceed1;
 
-	if (mode == "surface" && proceed)
-	{
-		proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
-		proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
-		proceed = proceed0 && proceed1;
+        if (proceed)
+        {
+            // stereo_processor.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1);
 
-		if (proceed)
-		{
-			// stereo_processor.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1);
+            points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
+            points_ptr = &(points_pool[points_pool_count]);
 
-			points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
-			points_ptr = &(points_pool[points_pool_count]);
+            ++points_pool_count;
+            if (points_pool_count == points_pool_count_max)
+                points_pool_count = 0;
 
-			++points_pool_count;
-			if (points_pool_count == points_pool_count_max)
-				points_pool_count = 0;
+            initialized = true;
 
-			initialized = true;
+            if (!show_point_sent)
+            {
+                ipc->send_message("menu_plus", "show point", "");
+                show_point_sent = true;
+            }
 
-			if (!show_point_sent)
-			{
-				ipc->send_message("menu_plus", "show point", "");
-				show_point_sent = true;
-			}
+            if (pose_name == "point")
+            {
+                if (!show_calibration_sent)
+                {
+                    ipc->send_message("menu_plus", "show calibration", "");
+                    show_calibration_sent = true;
+                }
 
-			if (pose_name == "point")
-			{
-				if (!show_calibration_sent)
-				{
-					ipc->send_message("menu_plus", "show calibration", "");
-					show_calibration_sent = true;
-				}
+                hand_resolver.compute(mono_processor0,   mono_processor1,
+                                      motion_processor0, motion_processor1,
+                                      image0,            image1,
+                                      reprojector,       false);
 
-				hand_resolver.compute(mono_processor0,   mono_processor1,
-									  motion_processor0, motion_processor1,
-									  image0,            image1,
-									  reprojector,       false);
+                pointer_mapper.compute(hand_resolver, reprojector);
 
-				pointer_mapper.compute(hand_resolver, reprojector);
+                if (pointer_mapper.calibrated)
+                    show_cursor_index = true;
 
-				if (pointer_mapper.calibrated)
-					show_cursor_index = true;
+                if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
+                    show_cursor_thumb = true;
+                else
+                    show_cursor_thumb = false;
+            }
+            else
+            {
+                pointer_mapper.reset();
 
-				if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
-					show_cursor_thumb = true;
-				else
-					show_cursor_thumb = false;
-			}
-			else
-			{
-				pointer_mapper.reset();
+                if (pose_name != "point")
+                {
+                    show_cursor_index = false;
+                    show_cursor_thumb = false;
+                }
+            }
+        }
+        else
+            hide_cursors();
 
-				if (pose_name != "point")
-				{
-					show_cursor_index = false;
-					show_cursor_thumb = false;
-				}
-			}
-		}
-		else
-			hide_cursors();
+        if (!pinch_to_zoom)
+        {
+            if (show_cursor_index)
+            {
+                ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_cursor_index.x) + "!" +
+                                                         to_string(pointer_mapper.pt_cursor_index.y) + "!" +
+                                                         to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
+                                                         to_string(pointer_mapper.index_down) + "!index");
+            }
+            else
+                ipc->send_udp_message(child_module_name, "hide_cursor_index");
 
-		if (!pinch_to_zoom)
-		{
-			if (show_cursor_index)
-			{
-				ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_cursor_index.x) + "!" +
-														 to_string(pointer_mapper.pt_cursor_index.y) + "!" +
-														 to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
-														 to_string(pointer_mapper.index_down) + "!index");
-			}
-			else
-				ipc->send_udp_message(child_module_name, "hide_cursor_index");
+            ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
+        }
+        else
+        {
+            ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
+                                                     to_string(pointer_mapper.pt_pinch_to_zoom_index.y) + "!0!1!index");
 
-			ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
-		}
-		else
-		{
-			ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
-													 to_string(pointer_mapper.pt_pinch_to_zoom_index.y) + "!0!1!index");
+            ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
+                                                     to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
+        }
 
-			ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
-													 to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
-		}
+        ipc->send_udp_message(child_module_name, "update!" + to_string(frame_num));
+    }
+    else if (mode == "tool" && proceed)
+    {
+        enable_imshow = true;
 
-		ipc->send_udp_message(child_module_name, "update!" + to_string(frame_num));
-	}
-	else if (mode == "tool" && proceed)
-	{
-		enable_imshow = true;
+        Mat image_active_light0;
+        Mat image_active_light1;
+        compute_active_light_image(image_small0, image_preprocessed0, image_active_light0);
+        compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
 
-		Mat image_active_light0;
-		Mat image_active_light1;
-		compute_active_light_image(image_small0, image_preprocessed0, image_active_light0);
-		compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
+        proceed0 = tool_mono_processor0.compute(image_active_light0, image_preprocessed0, "0");
+        proceed1 = tool_mono_processor1.compute(image_active_light1, image_preprocessed1, "1");
+        proceed = proceed0 && proceed1;
 
-		proceed0 = tool_mono_processor0.compute(image_active_light0, image_preprocessed0, "0");
-		proceed1 = tool_mono_processor1.compute(image_active_light1, image_preprocessed1, "1");
-		proceed = proceed0 && proceed1;
+        if (proceed)
+        {
+            proceed0 = tool_stereo_processor.compute(tool_mono_processor0, tool_mono_processor1);
+            proceed1 = tool_stereo_processor.matches.size() >= 4;
+            proceed = proceed0 && proceed1;
 
-		if (proceed)
-		{
-			proceed0 = tool_stereo_processor.compute(tool_mono_processor0, tool_mono_processor1);
-			proceed1 = tool_stereo_processor.matches.size() >= 4;
-			proceed = proceed0 && proceed1;
+            if (proceed)
+            {
+                tool_pointer_mapper.compute(reprojector, tool_stereo_processor, image0, image1);
 
-			if (proceed)
-			{
-				tool_pointer_mapper.compute(reprojector, tool_stereo_processor, image0, image1);
+                string data = "";
+                data += to_string(tool_pointer_mapper.pt0.x) + "!" +
+                        to_string(tool_pointer_mapper.pt0.y) + "!" +
+                        to_string(tool_pointer_mapper.pt0.z) + "!";
+                data += to_string(tool_pointer_mapper.pt1.x) + "!" +
+                        to_string(tool_pointer_mapper.pt1.y) + "!" +
+                        to_string(tool_pointer_mapper.pt1.z) + "!";
+                data += to_string(tool_pointer_mapper.pt2.x) + "!" +
+                        to_string(tool_pointer_mapper.pt2.y) + "!" +
+                        to_string(tool_pointer_mapper.pt2.z) + "!";
+                data += to_string(tool_pointer_mapper.pt3.x) + "!" +
+                        to_string(tool_pointer_mapper.pt3.y) + "!" +
+                        to_string(tool_pointer_mapper.pt3.z) + "!";
+                data += to_string(tool_pointer_mapper.pt_center.x) + "!" +
+                        to_string(tool_pointer_mapper.pt_center.y) + "!" +
+                        to_string(tool_pointer_mapper.pt_center.z);
 
-				string data = "";
-				data += to_string(tool_pointer_mapper.pt0.x) + "!" +
-						to_string(tool_pointer_mapper.pt0.y) + "!" +
-						to_string(tool_pointer_mapper.pt0.z) + "!";
-				data += to_string(tool_pointer_mapper.pt1.x) + "!" +
-						to_string(tool_pointer_mapper.pt1.y) + "!" +
-						to_string(tool_pointer_mapper.pt1.z) + "!";
-				data += to_string(tool_pointer_mapper.pt2.x) + "!" +
-						to_string(tool_pointer_mapper.pt2.y) + "!" +
-						to_string(tool_pointer_mapper.pt2.z) + "!";
-				data += to_string(tool_pointer_mapper.pt3.x) + "!" +
-						to_string(tool_pointer_mapper.pt3.y) + "!" +
-						to_string(tool_pointer_mapper.pt3.z) + "!";
-				data += to_string(tool_pointer_mapper.pt_center.x) + "!" +
-						to_string(tool_pointer_mapper.pt_center.y) + "!" +
-						to_string(tool_pointer_mapper.pt_center.z);
+                ipc->send_udp_message("unity_demo", data);
+            }
+        }
+    }
 
-				ipc->send_udp_message("unity_demo", data);
-			}
-		}
-	}
+    ++frame_num;
 
-	++frame_num;
+    if (increment_keypress_count)
+    {
+        if (keypress_count == calibration_points_count)
+        {
+            ipc->send_message("menu_plus", "show calibration next", "");
 
-	if (increment_keypress_count)
-	{
-		if (keypress_count == calibration_points_count)
-		{
-			ipc->send_message("menu_plus", "show calibration next", "");
+            COUT << "step " << calibration_step << " complete" << endl; 
 
-			COUT << "step " << calibration_step << " complete" << endl; 
+            ++calibration_step;
+        }
+        else if (keypress_count < calibration_points_count)
+        {
+            float percentage = (keypress_count * 100.0 / calibration_points_count);
+            COUT << percentage << endl;
+            pointer_mapper.add_calibration_point(calibration_step);
+        }
 
-			++calibration_step;
-		}
-		else if (keypress_count < calibration_points_count)
-		{
-			float percentage = (keypress_count * 100.0 / calibration_points_count);
-			COUT << percentage << endl;
-			pointer_mapper.add_calibration_point(calibration_step);
-		}
+        if (calibration_step == 4)
+        {
+            ipc->send_message("menu_plus", "show stage", "");
 
-		if (calibration_step == 4)
-		{
-			ipc->send_message("menu_plus", "show stage", "");
+            pointer_mapper.compute_calibration_points();
+            calibrating = false;
+            increment_keypress_count = false;
 
-			pointer_mapper.compute_calibration_points();
-			calibrating = false;
-			increment_keypress_count = false;
+            COUT << "calibration finished" << endl;
+        }
 
-			COUT << "calibration finished" << endl;
-		}
+        ++keypress_count;
+    }
 
-		++keypress_count;
-	}
-
-	if (enable_imshow)
-		waitKey(1);
+    if (enable_imshow)
+        waitKey(1);
 }
 
 void pose_estimator_thread_function()
 {
-	while (true)
-	{
-		if (initialized)
-			pose_estimator.compute(*points_ptr);
+    while (true)
+    {
+        if (initialized)
+            pose_estimator.compute(*points_ptr);
 
-		Sleep(500);
-	}
+        Sleep(500);
+    }
 }
 
 void on_key_down(int code)
 {
-	if (target_pose_name != "")
-	{
-		if (code == 192)
-			record_pose = true;
-		else if (code == 49)
-			record_pose = false;
-	}
-	else if (calibrating)
-	{
-		if (code == calibration_key_codes[calibration_step] && pointer_mapper.active && pose_name == "point")
-			increment_keypress_count = true;
-	}
-	else
-		pose_name = "";
+    if (target_pose_name != "")
+    {
+        if (code == 192)
+            record_pose = true;
+        else if (code == 49)
+            record_pose = false;
+    }
+    else if (calibrating)
+    {
+        if (code == calibration_key_codes[calibration_step] && pointer_mapper.active && pose_name == "point")
+            increment_keypress_count = true;
+    }
+    else
+        pose_name = "";
 }
 
 void on_key_up(int code)
 {
-	if (calibrating)
-	{
-		keypress_count = 0;
-		increment_keypress_count = false;
-		pointer_mapper.reset_calibration(calibration_step);
-	}
+    if (calibrating)
+    {
+        keypress_count = 0;
+        increment_keypress_count = false;
+        pointer_mapper.reset_calibration(calibration_step);
+    }
 }
 
 #ifdef _WIN32
 HHOOK keyboard_hook_handle;
 LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
 {
-	KBDLLHOOKSTRUCT* keyboard_hook_stuct = (KBDLLHOOKSTRUCT*)l_param;
-	const int code = keyboard_hook_stuct->vkCode;
+    KBDLLHOOKSTRUCT* keyboard_hook_stuct = (KBDLLHOOKSTRUCT*)l_param;
+    const int code = keyboard_hook_stuct->vkCode;
 
-	if (w_param == WM_KEYDOWN)
-		on_key_down(code);
-	else if (w_param == WM_KEYUP)
-		on_key_up(code);
+    if (w_param == WM_KEYDOWN)
+        on_key_down(code);
+    else if (w_param == WM_KEYUP)
+        on_key_up(code);
 
-	return CallNextHookEx(keyboard_hook_handle, n_code, w_param, l_param);
+    return CallNextHookEx(keyboard_hook_handle, n_code, w_param, l_param);
 }
 
 void keyboard_hook_thread_function()
 {
-	keyboard_hook_handle = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_handler, NULL, 0);
+    keyboard_hook_handle = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_handler, NULL, 0);
 
-	MSG msg;
+    MSG msg;
     while (!GetMessage(&msg, NULL, NULL, NULL))
     {
         TranslateMessage(&msg);
@@ -657,131 +660,129 @@ void keyboard_hook_thread_function()
 
 void input_thread_function()
 {
-	while (true)
-	{
-		string str;
-		getline(cin, str);
+    while (true)
+    {
+        string str;
+        getline(cin, str);
 
-		if (str == "set pose name")
-		{
-			COUT << "please enter name of the pose" << endl;
+        if (str == "set pose name")
+        {
+            COUT << "please enter name of the pose" << endl;
 
-			getline(cin, str);
-			target_pose_name = str;
+            getline(cin, str);
+            target_pose_name = str;
 
-			COUT << "pose name set to: " + target_pose_name << endl;
-		}
-		else if (str == "show pose name")
-		{
-			COUT << "started showing pose name" << endl;
+            COUT << "pose name set to: " + target_pose_name << endl;
+        }
+        else if (str == "show pose name")
+        {
+            COUT << "started showing pose name" << endl;
 
-			pose_estimator.show = true;
-			getline(cin, str);
+            pose_estimator.show = true;
+            getline(cin, str);
 
-			COUT << "stopped showing pose name" << endl;
+            COUT << "stopped showing pose name" << endl;
 
-			pose_estimator.show = false;
-		}
-	}
+            pose_estimator.show = false;
+        }
+    }
 }
 
 void guardian_thread_function()
 {
-	while (true)
-	{
-		if (wait_count >= (serial_verified ? 2 : 5))
-		{
-			COUT << "restarting" << endl;
+    while (true)
+    {
+        if (wait_count >= (serial_verified ? 2 : 5))
+        {
+            COUT << "restarting" << endl;
 
-			wait_for_device();
-		}
+            wait_for_device();
+        }
 
-		++wait_count;
+        ++wait_count;
 
-		if (child_module_name != "")
-		{
-			static bool first = true;
-			if (first && (process_running(child_module_name + ".exe") > 0))
-			{
-				kill_process(child_module_name + ".exe");
-				while (process_running(child_module_name + ".exe") > 0)
-				{
-					COUT << "wait kill" << endl;
-					Sleep(100);
-				}
-			}
-			first = false;
-		}
+        if (child_module_name != "")
+        {
+            static bool first = true;
+            if (first && (process_running(child_module_name + ".exe") > 0))
+            {
+                kill_process(child_module_name + ".exe");
+                while (process_running(child_module_name + ".exe") > 0)
+                {
+                    COUT << "wait kill" << endl;
+                    Sleep(100);
+                }
+            }
+            first = false;
+        }
 
-		if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
-			create_process(child_module_path, child_module_name + ".exe", true, true);
+        if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
+            create_process(child_module_path, child_module_name + ".exe", true, true);
 
-		if (process_running("daemon_plus.exe") == 0)
-			ipc->send_message("everyone", "exit", "");
+        if (process_running("daemon_plus.exe") == 0)
+            ipc->send_message("everyone", "exit", "");
 
-		Sleep(500);
-	}
+        Sleep(500);
+    }
 }
 
 void ipc_thread_function()
 {
-	while (true)
-	{
-		ipc->update();
-		Sleep(100);
-	}
+    while (true)
+    {
+        ipc->update();
+        Sleep(100);
+    }
 }
 
 int main()
-// int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
-	init_paths();
+    init_paths();
+
+    ipc = new IPC("track_plus");
+    ipc->map_function("exit", [](const string message_body)
+    {
+        if (child_module_name != "")
+            ipc->send_message(child_module_name, "exit", "");
+
+        ipc->clear();
+        exit(0);
+    });
 
 #ifdef _WIN32
-	thread keyboard_hook_thread(keyboard_hook_thread_function);
+    thread keyboard_hook_thread(keyboard_hook_thread_function);
 #elif __APPLE__
     //todo: port to OSX
 #endif
-	thread guardian_thread(guardian_thread_function);
-	thread input_thread(input_thread_function);
-	thread pose_estimator_thread(pose_estimator_thread_function);
+    thread guardian_thread(guardian_thread_function);
+    thread input_thread(input_thread_function);
+    thread pose_estimator_thread(pose_estimator_thread_function);
+    thread ipc_thread(ipc_thread_function);
 
-	ipc = new IPC("track_plus");
-	ipc->map_function("exit", [](const string message_body)
-	{
-		if (child_module_name != "")
-			ipc->send_message(child_module_name, "exit", "");
+    camera = new Camera(true, 1280, 480, update);
+    load_settings();
 
-		ipc->clear();
-		exit(0);
-	});
+    while (true)
+    {
+        static bool enable_imshow_old = enable_imshow;
+        if (enable_imshow_old && !enable_imshow)
+            destroyAllWindows();
 
-	thread ipc_thread(ipc_thread_function);
+        enable_imshow_old = enable_imshow;
 
-	camera = new Camera(true, 1280, 480, update);
-	load_settings();
+        if (!updated)
+        {
+            Sleep(1);
+            continue;
+        }
 
-	while (true)
-	{
-		static bool enable_imshow_old = enable_imshow;
-		if (enable_imshow_old && !enable_imshow)
-			destroyAllWindows();
+        compute();
 
-		enable_imshow_old = enable_imshow;
+        if (settings.power_saving_mode != "1")
+            Sleep(1);
+        else
+            Sleep(50);
+    }
 
-		if (!updated)
-		{
-			Sleep(1);
-			continue;
-		}
-
-		compute();
-
-		if (settings.power_saving_mode != "1")
-			Sleep(1);
-		else
-			Sleep(50);
-	}
-
-	return 0;
+    return 0;
 }

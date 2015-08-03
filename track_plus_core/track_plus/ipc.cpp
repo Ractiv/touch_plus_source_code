@@ -39,7 +39,6 @@ void IPC::update()
 	for (string file_name_current : file_name_vec)
 		if (file_name_current == "lock")
 		{
-			COUT << "locked" << endl;
 			updated = true;
 			return;
 		}
