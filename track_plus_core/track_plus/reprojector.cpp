@@ -100,7 +100,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		//http://s3-us-west-2.amazonaws.com/ractiv.com/data/
 		//http://d2i9bzz66ghms6.cloudfront.net/data/
 
-		string param0 = "http://s3-us-west-2.amazonaws.com/ractiv.com/data/" + serial + "/0.jpg";
+		string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + serial + "/0.jpg";
 		string param1 = data_path_current_module + "\\0.jpg";
 
 		string* serial_ptr = &serial;
@@ -111,7 +111,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 				ipc_ptr->send_message("daemon_plus", "exit", "");
 			else
 			{
-				string param0 = "http://s3-us-west-2.amazonaws.com/ractiv.com/data/" + *serial_ptr + "/1.jpg";
+				string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + *serial_ptr + "/1.jpg";
 				string param1 = data_path_current_module + "\\1.jpg";
 
 				ipc_ptr->get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)
@@ -120,7 +120,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 						ipc_ptr->send_message("daemon_plus", "exit", "");
 					else
 					{
-						string param0 = "http://s3-us-west-2.amazonaws.com/ractiv.com/data/" + *serial_ptr + "/stereoCalibData.txt";
+						string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + *serial_ptr + "/stereoCalibData.txt";
 						string param1 = data_path_current_module + "\\stereoCalibData.txt";
 
 						ipc_ptr->get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)

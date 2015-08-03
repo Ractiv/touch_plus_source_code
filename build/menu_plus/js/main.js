@@ -156,7 +156,12 @@
     var request = http.get(url, function(response)
     {
       response.pipe(file);
-      ipc.SendMessage("track_plus", "download", "true");
+
+      file.on("finish", function()
+      {
+        file.close();
+        ipc.SendMessage("track_plus", "download", "true");
+      });
 
     }).on("error", function(err)
     {
