@@ -70,6 +70,13 @@ namespace win_cursor_plus
 
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
             foreach (string fileNameCurrent in fileNameVec)
+                if (fileNameCurrent == "lock")
+                {
+                    IPC.Updated = true;
+                    return;
+                }
+
+            foreach (string fileNameCurrent in fileNameVec)
             {
                 string fileNameEveryone = "";
                 if (fileNameCurrent.Length >= 8)
@@ -150,6 +157,7 @@ namespace win_cursor_plus
 
         public void SendMessage(string recipient, string messageHead, string messageBody)
         {
+            FileSystem.WriteStringToFile(Globals.IpcPath + "\\lock", "");
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
 
             bool found = true;
@@ -174,6 +182,7 @@ namespace win_cursor_plus
             FileSystem.RenameFile(pathOld, pathNew);
 
             ++IPC.SentCount;
+            FileSystem.DeleteFile(Globals.IpcPath + "\\lock");
 
             Console.WriteLine("message sent: " + recipient + " " + messageHead + " " + messageBody);
         }

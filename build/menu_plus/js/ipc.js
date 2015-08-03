@@ -62,6 +62,16 @@ IPC.prototype.Update = function()
 	for (var fileNameVecIndex in fileNameVec)
 	{
 		var fileNameCurrent = fileNameVec[fileNameVecIndex];
+		if (fileNameCurrent == "lock")
+		{
+			IPC.Updated = 0;
+			return;
+		}
+	}
+
+	for (var fileNameVecIndex in fileNameVec)
+	{
+		var fileNameCurrent = fileNameVec[fileNameVecIndex];
 
 		var fileNameEveryone = "";
 		if (fileNameCurrent.length >= 8)
@@ -149,6 +159,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 {
 	var self = this;
 
+	WriteStringToFile(IpcPath + "/lock", "");
 	var fileNameVec = ListFilesInDirectory(IpcPath);
 
 	var found = true;
@@ -177,6 +188,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 	Renamefile(pathOld, pathNew);
 
 	++IPC.SentCount;
+	DeleteFile(IpcPath + "/lock");
 
 	console.log("message sent: " + recipient + " " + messageHead + " " + messageBody);
 };

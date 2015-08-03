@@ -37,6 +37,14 @@ void IPC::update()
 
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);
 	for (string file_name_current : file_name_vec)
+		if (file_name_current == "lock")
+		{
+			COUT << "locked" << endl;
+			updated = true;
+			return;
+		}
+
+	for (string file_name_current : file_name_vec)
 	{
 		string file_name_everyone = "";
 		if (file_name_current.size() >= 8)
@@ -116,6 +124,7 @@ void IPC::clear()
 
 void IPC::send_message(const string recipient, const string message_head, const string message_body)
 {
+	write_string_to_file(ipc_path + "\\lock", "");
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);
 
 	bool found = true;
@@ -142,7 +151,8 @@ void IPC::send_message(const string recipient, const string message_head, const 
 	rename_file(path_old, path_new);
 
 	++sent_count;
-
+	delete_file(ipc_path + "\\lock");
+	
 	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
 }
 
@@ -170,7 +180,6 @@ void IPC::open_udp_channel(const string recipient, const int port_num)
 	for (string file_name_current : file_name_vec)
 		if (file_name_current == "udp_port")
 			file_found = true;
-
 
 	if (!file_found)
 	{
