@@ -364,7 +364,7 @@ void compute()
 
 	exposure_adjusted = true;
 
-	{
+	/*{
 		Mat image_segmented0;
 		Mat image_segmented1; 
 		compute_color_segmented_image(image_small0, image_segmented0);
@@ -385,7 +385,7 @@ void compute()
 
 		waitKey(1);
 		return;
-	}
+	}*/
 
 	// imshow("image_small0", image_small0);
 	// imshow("image_small1", image_small1);
