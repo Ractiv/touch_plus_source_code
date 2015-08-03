@@ -33,4 +33,5 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name);
 void compute_max_image(Mat& image_in, Mat& image_out);
 void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out);
+void compute_color_segmented_image(Mat& image_in, Mat& image_out);
 void print_mat_type(Mat& image_in);

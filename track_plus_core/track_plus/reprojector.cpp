@@ -334,6 +334,8 @@ void Reprojector::load(IPC& ipc, bool flipped)
 			is_number_old = is_number_new;
 		}
 	}
+
+	compute_y_bounds();
 }
 
 Mat Reprojector::remap(Mat* const image_in, const uchar side, const bool interpolate)
@@ -499,23 +501,125 @@ Point Reprojector::remap_point(Point& pt_in, const uchar side, const uchar scale
 	return rect_mat[pt_in.x * scale][pt_in.y * scale];
 }
 
-Mat Reprojector::compute_gray_image(Mat* const image)
+void Reprojector::compute_y_bounds()
 {
-	Mat image_gray = Mat(image->size(), CV_8UC1);
+	Mat image_checker0 = imread(data_path_current_module + "\\0.jpg");
+	Mat image_checker1 = imread(data_path_current_module + "\\1.jpg");
+	flip(image_checker0, image_checker0, 0);
+	flip(image_checker1, image_checker1, 0);
 
-	const int image_width_const = image->cols;
-	const int image_height_const = image->rows;
+	Mat image_checker_remapped0 = remap(&image_checker0, 0, true);
+	Mat image_checker_remapped1 = remap(&image_checker1, 1, true);
 
-	for (int i = 0; i < image_width_const; ++i)
-		for (int j = 0; j < image_height_const; ++j)
+	threshold(image_checker_remapped0, image_checker_remapped0, 50, 254, THRESH_BINARY);
+	threshold(image_checker_remapped1, image_checker_remapped1, 50, 254, THRESH_BINARY);
+
+	const int i = WIDTH_LARGE / 2;
+
+	int j_hit_top0 = 0;
+	bool is_white_old0 = true;
+	for (int j = 0; j < HEIGHT_LARGE; ++j)
+	{
+		bool is_white = image_checker_remapped0.ptr<uchar>(j, i)[0] == 254;
+		if (is_white && !is_white_old0)
 		{
-			int val = max(image->ptr<uchar>(j, i)[0], max(image->ptr<uchar>(j, i)[1], image->ptr<uchar>(j, i)[2]));
-			val = pow(val, 2) / 20;
-			if (val > 255)
-				val = 255;
-
-			image_gray.ptr<uchar>(j, i)[0] = val;
+			j_hit_top0 = j;
+			break;
 		}
+		is_white_old0 = is_white;
+	}
 
-	return image_gray;
+	int j_hit_top1 = 0;
+	bool is_white_old1 = true;
+	for (int j = 0; j < HEIGHT_LARGE; ++j)
+	{
+		bool is_white = image_checker_remapped1.ptr<uchar>(j, i)[0] == 254;
+		if (is_white && !is_white_old1)
+		{
+			j_hit_top1 = j;
+			break;
+		}
+		is_white_old1 = is_white;
+	}
+
+	int j_hit_bottom0 = 0;
+	is_white_old0 = true;
+	for (int j = HEIGHT_LARGE - 1; j >= 0; --j)
+	{
+		bool is_white = image_checker_remapped0.ptr<uchar>(j, i)[0] == 254;
+		if (is_white && !is_white_old0)
+		{
+			j_hit_bottom0 = j;
+			break;
+		}
+		is_white_old0 = is_white;
+	}
+
+	int j_hit_bottom1 = 0;
+	is_white_old1 = true;
+	for (int j = HEIGHT_LARGE - 1; j >= 0; --j)
+	{
+		bool is_white = image_checker_remapped1.ptr<uchar>(j, i)[0] == 254;
+		if (is_white && !is_white_old1)
+		{
+			j_hit_bottom1 = j;
+			break;
+		}
+		is_white_old1 = is_white;
+	}
+
+	y_top0 = j_hit_top0;
+	y_top1 = j_hit_top1;
+	y_bottom0 = j_hit_bottom0;
+	y_bottom1 = j_hit_bottom1;
+}
+
+void Reprojector::compute_stereo_pair(Mat& image0, Mat& image1, bool interpolate)
+{
+	float scale = (float)image0.cols / WIDTH_LARGE;
+
+	int top0;
+	int top1;
+	int bottom0;
+	int bottom1;
+	Mat* image_to_correct;
+
+	int y_diff0 = y_bottom0 - y_top0;
+	int y_diff1 = y_bottom1 - y_top1;
+
+	if (y_diff0 > y_diff1)
+	{
+		top0 = y_top0 * scale;
+		top1 = y_top1 * scale;
+		bottom0 = y_bottom0 * scale;
+		bottom1 = y_bottom1 * scale;
+		image_to_correct = &image0;
+	}
+	else
+	{
+		top0 = y_top1 * scale;
+		top1 = y_top0 * scale;
+		bottom0 = y_bottom1 * scale;
+		bottom1 = y_bottom0 * scale;
+		image_to_correct = &image1;
+	}
+
+	const int width = image0.cols;
+	const int height = image0.rows;
+
+	Mat image_corrected = Mat(image0.size(), CV_8UC1, Scalar(255));
+	for (int j = 0; j < height; ++j)
+	{
+		int j_new = map_val(j, top0, bottom0, top1, bottom1);
+		if (j_new < 0 || j_new >= height)
+			continue;
+
+		for (int i = 0; i < width; ++i)
+		{
+			uchar gray = image_to_correct->ptr<uchar>(j, i)[0];
+			image_corrected.ptr<uchar>(j_new, i)[0] = gray;
+		}
+	}
+
+	*image_to_correct = image_corrected;
 }

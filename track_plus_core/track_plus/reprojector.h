@@ -48,6 +48,11 @@ public:
 	Point** rect_mat0 = NULL;
 	Point** rect_mat1 = NULL;
 
+	int y_top0;
+	int y_top1;
+	int y_bottom0;
+	int y_bottom1;
+
 	void load(IPC& ipc, bool flipped);
 	void proceed();
 	float compute_depth(float disparity_in);
@@ -56,7 +61,8 @@ public:
 	Mat remap(Mat* const image_in, const uchar side, const bool interpolate);
 	Mat remap(Mat* const image_in, const int x_offset, const int y_offset, const uchar side, Point& pt_offset);
 	Point remap_point(Point& pt_in, const uchar side, const uchar scale);
-	Mat compute_gray_image(Mat* const image);
+	void compute_y_bounds();
+	void compute_stereo_pair(Mat& image0, Mat& image1, bool interpolate);
 
 private:
 	struct compare_point_x

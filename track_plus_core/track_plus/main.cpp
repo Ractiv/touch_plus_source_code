@@ -349,6 +349,31 @@ void compute()
 	resize(image0, image_small0, Size(160, 120), 0, 0, INTER_LINEAR);
 	resize(image1, image_small1, Size(160, 120), 0, 0, INTER_LINEAR);
 
+	{
+		Mat image_segmented0;
+		Mat image_segmented1; 
+		compute_color_segmented_image(image_small0, image_segmented0);
+		compute_color_segmented_image(image_small1, image_segmented1);
+
+		imshow("image_segmented0", image_segmented0);
+		imshow("image_segmented1", image_segmented1);
+
+		// Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
+		// Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);
+
+		// reprojector.compute_stereo_pair(image_remapped0, image_remapped1, false);
+
+		// imshow("image_remapped0", image_remapped0);
+		// imshow("image_remapped1", image_remapped1);
+
+		waitKey(1);
+
+		// imwrite("F:\\image_remapped0.png", image_remapped0);
+		// imwrite("F:\\image_remapped1.png", image_remapped1);
+
+		return;
+	}
+
 	Mat image_preprocessed0;
 	Mat image_preprocessed1;
 	compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
