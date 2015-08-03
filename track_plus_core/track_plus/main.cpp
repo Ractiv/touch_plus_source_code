@@ -349,6 +349,21 @@ void compute()
 	resize(image0, image_small0, Size(160, 120), 0, 0, INTER_LINEAR);
 	resize(image1, image_small1, Size(160, 120), 0, 0, INTER_LINEAR);
 
+	Mat image_preprocessed0;
+	Mat image_preprocessed1;
+	compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
+	compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1");
+
+	Mat image_preprocessed_smoothed0;
+	Mat image_preprocessed_smoothed1;
+	GaussianBlur(image_preprocessed0, image_preprocessed_smoothed0, Size(1, 19), 0, 0);
+	GaussianBlur(image_preprocessed1, image_preprocessed_smoothed1, Size(1, 19), 0, 0);
+
+	if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
+		return;
+
+	exposure_adjusted = true;
+
 	{
 		Mat image_segmented0;
 		Mat image_segmented1; 
@@ -356,7 +371,9 @@ void compute()
 		compute_color_segmented_image(image_small1, image_segmented1);
 
 		imshow("image_segmented0", image_segmented0);
-		imshow("image_segmented1", image_segmented1);
+		imshow("image_small0", image_small0);
+		imshow("image_preprocessed0", image_preprocessed0);
+
 
 		// Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
 		// Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);
@@ -373,21 +390,6 @@ void compute()
 
 		return;
 	}
-
-	Mat image_preprocessed0;
-	Mat image_preprocessed1;
-	compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
-	compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1");
-
-	Mat image_preprocessed_smoothed0;
-	Mat image_preprocessed_smoothed1;
-	GaussianBlur(image_preprocessed0, image_preprocessed_smoothed0, Size(1, 19), 0, 0);
-	GaussianBlur(image_preprocessed1, image_preprocessed_smoothed1, Size(1, 19), 0, 0);
-
-	if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
-		return;
-
-	exposure_adjusted = true;
 
 	// imshow("image_small0", image_small0);
 	// imshow("image_small1", image_small1);
