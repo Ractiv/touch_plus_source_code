@@ -177,9 +177,6 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 
 			bool both_hands_are_moving = (total_width > 80 && (gap_width / hand_width_max) > 0.3);
 
-			if (both_hands_are_moving)
-				x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
-
 			int blobs_count_left = 0;
 			int blobs_count_right = 0;
 			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
@@ -199,6 +196,22 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 
 			if (value_store.get_bool("left_hand_is_moving_false") && value_store.get_bool("right_hand_is_moving_false"))
 			{
+				if (both_hands_are_moving)
+				{
+					x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
+					value_store.set_bool("x_separator_middle_set", true);
+				}
+				else if (left_hand_is_moving && !value_store.get_bool("x_separator_middle_set"))
+				{
+					x_separator_middle = x_max - 10;
+					value_store.set_bool("x_separator_middle_set", true);
+				}
+				else if (right_hand_is_moving && !value_store.get_bool("x_separator_middle_set"))
+				{
+					x_separator_middle = x_min + 10;
+					value_store.set_bool("x_separator_middle_set", true);
+				}
+
 				static float gray_threshold_left_stereo = 0;
 				static float gray_threshold_right_stereo = 0;
 
@@ -266,6 +279,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				// 		blob.active = false;
 				// 		blob.fill(image_subtraction, 0);
 				// 	}
+
+				line(image_subtraction, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
 
 				imshow("image_subtractionTTT" + name, image_subtraction);
 				imshow("image_in_thresholdedTTT" + name, image_in_thresholded);
