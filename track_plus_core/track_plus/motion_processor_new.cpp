@@ -208,18 +208,31 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 			{
 				if (both_hands_are_moving)
 				{
+					x_separator_motion_left_median = x_min;
+					x_separator_motion_right_median = x_max;
+
 					x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
 					value_store.set_bool("x_separator_middle_set", true);
 				}
-				else if (left_hand_is_moving && !value_store.get_bool("x_separator_middle_set"))
+				else if (left_hand_is_moving)
 				{
-					x_separator_middle = x_max + 10;
-					value_store.set_bool("x_separator_middle_set", true);
+					x_separator_motion_left_median = x_min;
+
+					if (!value_store.get_bool("x_separator_middle_set"))
+					{
+						x_separator_middle = x_max + 10;
+						value_store.set_bool("x_separator_middle_set", true);
+					}
 				}
-				else if (right_hand_is_moving && !value_store.get_bool("x_separator_middle_set"))
+				else if (right_hand_is_moving)
 				{
-					x_separator_middle = x_min - 10;
-					value_store.set_bool("x_separator_middle_set", true);
+					x_separator_motion_right_median = x_max;
+
+					if (!value_store.get_bool("x_separator_middle_set"))
+					{
+						x_separator_middle = x_min - 10;
+						value_store.set_bool("x_separator_middle_set", true);
+					}
 				}
 
 				int intensity_array0[HEIGHT_SMALL] { 0 };
@@ -348,7 +361,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				// 		blob.fill(image_subtraction, 0);
 				// 	}
 
-				line(image_in_thresholded, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
+				line(image_in_thresholded, Point(x_separator_motion_left_median, 0), Point(x_separator_motion_left_median, 9999), Scalar(254), 1);
+				line(image_in_thresholded, Point(x_separator_motion_right_median, 0), Point(x_separator_motion_right_median, 9999), Scalar(254), 1);
 				line(image_in_thresholded, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
 				line(image_in_thresholded, Point(0, y_separator_motion_down_median), Point(9999, y_separator_motion_down_median), Scalar(254), 1);
 
