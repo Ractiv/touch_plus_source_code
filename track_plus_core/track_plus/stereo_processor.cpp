@@ -3,8 +3,8 @@
 bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
 							  MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1)
 {
-	int x_diff = motion_processor0.x_separator_middle_median - motion_processor1.x_separator_middle_median;
-	int y_diff = motion_processor0.y_separator_motion_down_median - motion_processor1.y_separator_motion_down_median;
+	int x_diff = motion_processor0.x_separator_middle - motion_processor1.x_separator_middle;
+	int y_diff = motion_processor0.y_separator_down - motion_processor1.y_separator_down;
 
 	vector<OverlappingBlobPair> overlapping_blob_pair_vec;
 

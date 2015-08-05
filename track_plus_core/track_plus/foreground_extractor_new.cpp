@@ -35,7 +35,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		return true;
 	}
 
-	const int x_separator_middle_median = motion_processor.x_separator_middle_median;
+	const int x_separator_middle = motion_processor.x_separator_middle;
 	const uchar gray_threshold_left = motion_processor.gray_threshold_left;
 	const uchar gray_threshold_right = motion_processor.gray_threshold_right;
 	const uchar diff_threshold = motion_processor.diff_threshold;
@@ -47,8 +47,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		{
 			const uchar gray_current = image_in.ptr<uchar>(j, i)[0];
 
-			if ((i <= x_separator_middle_median && gray_current > gray_threshold_left) ||
-				(i > x_separator_middle_median && gray_current > gray_threshold_right))
+			if ((i <= x_separator_middle && gray_current > gray_threshold_left) ||
+				(i > x_separator_middle && gray_current > gray_threshold_right))
 			{
 				if (image_background_static.ptr<uchar>(j, i)[0] == 255)
 					image_foreground.ptr<uchar>(j, i)[0] = 254;
@@ -62,9 +62,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.count < motion_processor.noise_size ||
-			blob.y > motion_processor.y_separator_motion_down_median ||
-			blob.x_max < motion_processor.x_separator_motion_left_median ||
-			blob.x_min > motion_processor.x_separator_motion_right_median)
+			blob.y > motion_processor.y_separator_down ||
+			blob.x_max < motion_processor.x_separator_left ||
+			blob.x_min > motion_processor.x_separator_right)
 		{
 			blob.active = false;
 			blob.fill(image_foreground, 0);

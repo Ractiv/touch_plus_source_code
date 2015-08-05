@@ -50,5 +50,5 @@ public:
 		                        Mat& image_background_in,        const uchar diff_threshold,
 		                        const uchar gray_threshold_left, const uchar gray_threshold_right,
 								Reprojector& reprojector,        const uchar side,
-														         const int x_separator_middle_median);
+														         const int x_separator_middle);
 };

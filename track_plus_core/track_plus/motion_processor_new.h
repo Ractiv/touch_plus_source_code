@@ -32,12 +32,11 @@ public:
 
 	int vector_completion_size = 5;
 
-	int y_separator_motion_down_median = -1;
-	int y_separator_motion_up_median = -1;
+	int y_separator_down = -1;
+	int y_separator_up = -1;
 	int x_separator_middle = WIDTH_SMALL / 2;
-	int x_separator_middle_median = -1;
-	int x_separator_motion_left_median = 0;
-	int x_separator_motion_right_median = WIDTH_SMALL;
+	int x_separator_left = 0;
+	int x_separator_right = WIDTH_SMALL;
 
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;

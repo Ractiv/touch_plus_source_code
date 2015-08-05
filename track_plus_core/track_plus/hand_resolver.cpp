@@ -48,7 +48,7 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 											    motion_processor0.image_background_static, motion_processor0.diff_threshold,
 											    motion_processor0.gray_threshold_left,     motion_processor0.gray_threshold_right,
 											    reprojector,                               0,
-											    										   motion_processor0.x_separator_middle_median);
+											    										   motion_processor0.x_separator_middle);
 
 	pt_precise_index1 = Point2f(-1, -1);
 	if (mono_processor1.pt_index.x != -1)
@@ -56,7 +56,7 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 											    motion_processor1.image_background_static, motion_processor1.diff_threshold,
 											    motion_processor1.gray_threshold_left,     motion_processor1.gray_threshold_right,
 											    reprojector,                               1,
-											    										   motion_processor1.x_separator_middle_median);
+											    										   motion_processor1.x_separator_middle);
 
 	pt_precise_thumb0 = Point2f(-1, -1);
 	if (mono_processor0.pt_thumb.x != -1)
@@ -64,7 +64,7 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 												motion_processor0.image_background_static, motion_processor0.diff_threshold,
 												motion_processor0.gray_threshold_left,     motion_processor0.gray_threshold_right,
 												reprojector,                               0,
-												                                           motion_processor1.x_separator_middle_median);
+												                                           motion_processor1.x_separator_middle);
 
 	pt_precise_thumb1 = Point2f(-1, -1);
 	if (mono_processor1.pt_thumb.x != -1)
@@ -72,7 +72,7 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 											    motion_processor1.image_background_static, motion_processor1.diff_threshold,
 											    motion_processor1.gray_threshold_left,     motion_processor1.gray_threshold_right,
 											    reprojector,                               1,
-											    									       motion_processor1.x_separator_middle_median);
+											    									       motion_processor1.x_separator_middle);
 
 	if (pt_precise_index0.x == -1 || pt_precise_index1.x == -1)
 	{
@@ -107,7 +107,7 @@ Point2f HandResolver::increase_resolution(Point& pt_in,                    Mat& 
 										  Mat& image_background_in,        const uchar diff_threshold,
 										  const uchar gray_threshold_left, const uchar gray_threshold_right,
 										  Reprojector& reprojector,        const uchar side,
-										  							       const int x_separator_middle_median)
+										  							       const int x_separator_middle)
 {
 	Point pt_large = pt_in * 4;
 
@@ -179,7 +179,7 @@ Point2f HandResolver::increase_resolution(Point& pt_in,                    Mat& 
 	Mat image_subtraction = Mat::zeros(image_height, image_width, CV_8UC1);
 	for (int i = 0; i < image_width; ++i)
 	{
-		if (i <= x_separator_middle_median)
+		if (i <= x_separator_middle)
 		{
 			for (int j = 0; j < image_height; ++j)
 				if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold_left)
