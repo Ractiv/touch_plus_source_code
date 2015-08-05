@@ -34,7 +34,7 @@ public:
 
 	int y_separator_motion_down_median = -1;
 	int y_separator_motion_up_median = -1;
-	int x_separator_middle = -1;
+	int x_separator_middle = WIDTH_SMALL / 2;
 	int x_separator_middle_median = -1;
 	int x_separator_motion_left_median = 0;
 	int x_separator_motion_right_median = WIDTH_SMALL;
@@ -47,11 +47,12 @@ public:
 
 	ValueStore value_store;
 
-	bool compute(Mat& image_in, const string name, const bool visualize);
+	bool compute(Mat& image_in, Mat& image_raw_in, const string name, const bool visualize);
 	bool compute_y_separator_motion();
 	bool compute_x_separator_middle();
 	bool compute_x_separator_motion_left_right();
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
+	Mat compute_image_foreground(Mat& image_in);
 
 private:
 	struct compare_point_x

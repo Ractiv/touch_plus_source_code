@@ -355,11 +355,6 @@ void compute()
     compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
     compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1");
 
-    Mat image_preprocessed_smoothed0;
-    Mat image_preprocessed_smoothed1;
-    GaussianBlur(image_preprocessed0, image_preprocessed_smoothed0, Size(1, 19), 0, 0);
-    GaussianBlur(image_preprocessed1, image_preprocessed_smoothed1, Size(1, 19), 0, 0);
-
     if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
         return;
 
@@ -390,19 +385,21 @@ void compute()
 		imshow("image_disparity_8u", image_disparity_8u);
     }*/
 
-    // imshow("image_small0", image_small0);
+    imshow("image_small0", image_small0);
     // imshow("image_small1", image_small1);
-    // imshow("image_preprocessed0", image_preprocessed0);
+    imshow("image_preprocessed0", image_preprocessed0);
     // imshow("image_preprocessed1", image_preprocessed1);
 
-    bool proceed0 = motion_processor0.compute(image_preprocessed_smoothed0, "0", false);
-    bool proceed1 = motion_processor1.compute(image_preprocessed_smoothed1, "1", false);
+    bool proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, "0", false);
+    bool proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, "1", false);
     bool proceed = proceed0 && proceed1;
+
+    proceed = false;
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, image_preprocessed_smoothed0, motion_processor0, "0", true);
-        proceed1 = foreground_extractor1.compute(image_preprocessed1, image_preprocessed_smoothed1, motion_processor1, "1", true);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
         proceed = proceed0 && proceed1;
     }
     else
