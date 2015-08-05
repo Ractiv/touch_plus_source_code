@@ -63,8 +63,11 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 		BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
 		blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 
-		if (blob_detector_image_subtraction->blobs->size() < 100)
+		motion_state = 0;
+		if (blob_detector_image_subtraction->blobs->size() < 100 && blob_detector_image_subtraction->blobs->size() > 0)
 		{
+			motion_state = 1;
+
 			int intensity_array[WIDTH_SMALL] { 0 };
 			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
 				for (Point& pt : blob.data)
@@ -188,13 +191,20 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 			bool left_hand_is_moving = blobs_count_left / x_separator_middle >= 10 || blobs_count_left >= 500;
 			bool right_hand_is_moving = blobs_count_right / (WIDTH_SMALL - x_separator_middle) >= 10 || blobs_count_right >= 500;
 
+			if (both_hands_are_moving)
+			{
+				left_hand_is_moving = true;
+				right_hand_is_moving = true;
+			}
+
 			if (left_hand_is_moving == false)
 				value_store.set_bool("left_hand_is_moving_false", true);
 
 			if (right_hand_is_moving == false)
 				value_store.set_bool("right_hand_is_moving_false", true);
 
-			if (value_store.get_bool("left_hand_is_moving_false") && value_store.get_bool("right_hand_is_moving_false"))
+			if (value_store.get_bool("left_hand_is_moving_false") && value_store.get_bool("right_hand_is_moving_false") &&
+				(left_hand_is_moving || right_hand_is_moving || both_hands_are_moving))
 			{
 				if (both_hands_are_moving)
 				{
@@ -203,17 +213,14 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				}
 				else if (left_hand_is_moving && !value_store.get_bool("x_separator_middle_set"))
 				{
-					x_separator_middle = x_max - 10;
+					x_separator_middle = x_max + 10;
 					value_store.set_bool("x_separator_middle_set", true);
 				}
 				else if (right_hand_is_moving && !value_store.get_bool("x_separator_middle_set"))
 				{
-					x_separator_middle = x_min + 10;
+					x_separator_middle = x_min - 10;
 					value_store.set_bool("x_separator_middle_set", true);
 				}
-
-
-
 
 				int intensity_array0[HEIGHT_SMALL] { 0 };
 				for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
@@ -248,13 +255,33 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				BlobDetectorNew* blob_detector_image_histogram = value_store.get_blob_detector("blob_detector_image_histogram");
 				blob_detector_image_histogram->compute(image_histogram, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-				y_separator_motion_down_median = blob_detector_image_histogram->blob_max_size->y_max;
+				if (both_hands_are_moving)
+				{
+					y_separator_motion_down_median = blob_detector_image_histogram->blob_max_size->y_max;
+					value_store.set_int("y_separator_motion_down_median_left", y_separator_motion_down_median);
+					value_store.set_int("y_separator_motion_down_median_right", y_separator_motion_down_median);
+				}
+				else if (left_hand_is_moving)
+				{
+					int y_separator_motion_down_median_left = blob_detector_image_histogram->blob_max_size->y_max;
+					int y_separator_motion_down_median_right = value_store.get_int("y_separator_motion_down_median_right", 0);
+					value_store.set_int("y_separator_motion_down_median_left", y_separator_motion_down_median_left);
 
+					if (y_separator_motion_down_median_left > y_separator_motion_down_median_right)
+						y_separator_motion_down_median = y_separator_motion_down_median_left;
+				}
+				else if (right_hand_is_moving)
+				{
+					int y_separator_motion_down_median_right = blob_detector_image_histogram->blob_max_size->y_max;
+					int y_separator_motion_down_median_left = value_store.get_int("y_separator_motion_down_median_left", 0);
+					value_store.set_int("y_separator_motion_down_median_right", y_separator_motion_down_median_right);
 
+					if (y_separator_motion_down_median_right > y_separator_motion_down_median_left)
+						y_separator_motion_down_median = y_separator_motion_down_median_right;
+				}
 
-
-				static float gray_threshold_left_stereo = 0;
-				static float gray_threshold_right_stereo = 0;
+				static float gray_threshold_left_stereo = 9999;
+				static float gray_threshold_right_stereo = 9999;
 
 				if (name == motion_processor_primary_name)
 				{
@@ -285,7 +312,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 						sort(gray_vec_left.begin(), gray_vec_left.end());
 						float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
 
-						gray_threshold_left = gray_median_left - 20;
+						gray_threshold_left = gray_median_left - 64;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
 					}
@@ -295,7 +322,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 						sort(gray_vec_right.begin(), gray_vec_right.end());
 						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
 
-						gray_threshold_right = gray_median_right - 20;
+						gray_threshold_right = gray_median_right - 64;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
 					}
@@ -315,15 +342,15 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 							image_in_thresholded.ptr<uchar>(j, i)[0] = 254;
 
 				// for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
-				// 	if (blob.count < noise_size || (y_separator_motion_down_median > -1 && blob.y > y_separator_motion_down_median))
+				// 	if ((y_separator_motion_down_median > -1 && blob.y > y_separator_motion_down_median) || blob.count < noise_size)
 				// 	{
 				// 		blob.active = false;
 				// 		blob.fill(image_subtraction, 0);
 				// 	}
 
-				line(image_subtraction, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
-				line(image_subtraction, Point(0, y_separator_motion_down_median), Point(9999, y_separator_motion_down_median), Scalar(254), 1);
-
+				line(image_in_thresholded, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
+				line(image_in_thresholded, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
+				line(image_in_thresholded, Point(0, y_separator_motion_down_median), Point(9999, y_separator_motion_down_median), Scalar(254), 1);
 
 				imshow("image_subtractionTTT" + name, image_subtraction);
 				imshow("image_in_thresholdedTTT" + name, image_in_thresholded);

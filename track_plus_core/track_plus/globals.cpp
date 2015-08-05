@@ -41,6 +41,8 @@ extern bool record_pose = false;
 extern bool pinch_to_zoom = false;
 extern bool has_plate = false;
 extern bool has_pen = false;
+extern bool motion_detected = false;
 
 extern int actuate_dist_raw = 7;
 extern int actuate_dist = actuate_dist_raw;
+extern int motion_state = -1;

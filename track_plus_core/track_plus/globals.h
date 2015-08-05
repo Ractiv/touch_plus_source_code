@@ -74,3 +74,4 @@ extern bool has_pen;
 
 extern int actuate_dist_raw;
 extern int actuate_dist;
+extern int motion_state;

@@ -39,9 +39,9 @@ public:
 	int x_separator_motion_left_median = 0;
 	int x_separator_motion_right_median = WIDTH_SMALL;
 
-	uchar gray_threshold_left = 255;
-	uchar gray_threshold_right = 255;
-	uchar diff_threshold = 255;
+	float gray_threshold_left = 9999;
+	float gray_threshold_right = 9999;
+	float diff_threshold = 9999;
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 

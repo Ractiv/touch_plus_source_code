@@ -175,7 +175,7 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 
 	static uchar gray_min;
 	static uchar gray_max;
-	if (name == channel_diff_image_primary_name)
+	if (name == channel_diff_image_primary_name && motion_state != 0)
 	{
 		vector<uchar> gray_vec;
 		for (int i = 0; i < image_width_const; ++i)
@@ -195,8 +195,8 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 			}
 
 		sort(gray_vec.begin(), gray_vec.end());
-		uchar gray_min_temp = gray_vec[gray_vec.size() * 0.05];
-		uchar gray_max_temp = gray_vec[gray_vec.size() * 0.95];
+		uchar gray_min_temp = gray_vec[gray_vec.size() * 0.01];
+		uchar gray_max_temp = gray_vec[gray_vec.size() * 0.99];
 
 		mat_functions_low_pass_filter.compute(gray_min_temp, 0.1, "gray_min_temp");
 		mat_functions_low_pass_filter.compute(gray_max_temp, 0.1, "gray_max_temp");
