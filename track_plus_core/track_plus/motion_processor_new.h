@@ -30,10 +30,8 @@ class MotionProcessorNew
 public:
 	int noise_size = 0;
 
-	int vector_completion_size = 5;
-
 	int y_separator_down = -1;
-	int y_separator_up = -1;
+	int y_separator_up = 0;
 	int x_separator_middle = WIDTH_SMALL / 2;
 	int x_separator_left = 0;
 	int x_separator_right = WIDTH_SMALL;
@@ -47,18 +45,6 @@ public:
 	ValueStore value_store;
 
 	bool compute(Mat& image_in, Mat& image_raw_in, const string name, const bool visualize);
-	bool compute_y_separator_motion();
-	bool compute_x_separator_middle();
-	bool compute_x_separator_motion_left_right();
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 	Mat compute_image_foreground(Mat& image_in);
-
-private:
-	struct compare_point_x
-	{
-		bool operator() (const Point& pt0, const Point& pt1)
-		{
-			return (pt0.x < pt1.x);
-		}
-	};
 };

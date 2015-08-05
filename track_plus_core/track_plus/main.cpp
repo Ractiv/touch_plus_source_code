@@ -390,11 +390,9 @@ void compute()
     imshow("image_preprocessed0", image_preprocessed0);
     // imshow("image_preprocessed1", image_preprocessed1);
 
-    bool proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, "0", false);
+    bool proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, "0", true);
     bool proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, "1", false);
     bool proceed = proceed0 && proceed1;
-
-    proceed = false;
 
     if (proceed)
     {

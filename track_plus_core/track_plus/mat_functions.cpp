@@ -198,8 +198,8 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 		uchar gray_min_temp = gray_vec[gray_vec.size() * 0.01];
 		uchar gray_max_temp = gray_vec[gray_vec.size() * 0.99];
 
-		mat_functions_low_pass_filter.compute(gray_min_temp, 0.1, "gray_min_temp");
-		mat_functions_low_pass_filter.compute(gray_max_temp, 0.1, "gray_max_temp");
+		// mat_functions_low_pass_filter.compute(gray_min_temp, 0.1, "gray_min_temp");
+		// mat_functions_low_pass_filter.compute(gray_max_temp, 0.1, "gray_max_temp");
 
 		gray_min = gray_min_temp;
 		gray_max = gray_max_temp;
