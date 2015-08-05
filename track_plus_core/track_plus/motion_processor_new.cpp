@@ -348,6 +348,33 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 						else if (i > x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_right)
 							image_in_thresholded.ptr<uchar>(j, i)[0] = 254;
 
+				uchar static_diff_max = 0;
+				uchar static_diff_max_left = 0;
+				uchar static_diff_max_right = 0;
+				for (int i = 0; i < WIDTH_SMALL; ++i)
+					for (int j = 0; j < HEIGHT_SMALL; ++j)
+						if (image_in_thresholded.ptr<uchar>(j, i)[0] > 0)
+							if (image_background_static.ptr<uchar>(j, i)[0] < 255)
+							{
+								const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background_static.ptr<uchar>(j, i)[0]);
+								if (diff > static_diff_max)
+									static_diff_max = diff;
+								if (diff > static_diff_max_left && i < x_separator_middle)
+									static_diff_max_left = diff;
+								else if (diff > static_diff_max_right && i > x_separator_middle)
+									static_diff_max_right = diff;
+							}
+
+				static float diff_threshold_stereo;
+				if (name == motion_processor_primary_name)
+				{
+					diff_threshold = static_diff_max * 0.3;
+					low_pass_filter->compute(diff_threshold, 0.1, "diff_threshold");
+					diff_threshold_stereo = diff_threshold;
+				}
+				else
+					diff_threshold = diff_threshold_stereo;
+
 				Mat image_canny;
 				Canny(image_raw_in, image_canny, 50, 50, 3);
 
