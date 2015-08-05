@@ -212,6 +212,47 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 					value_store.set_bool("x_separator_middle_set", true);
 				}
 
+
+
+
+				int intensity_array0[HEIGHT_SMALL] { 0 };
+				for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+					for (Point& pt : blob.data)
+						++intensity_array0[pt.y];
+
+				int y_min = 9999;
+				int y_max = 0;
+
+				vector<Point> hist_pt_vec0;
+				for (int i = 0; i < HEIGHT_SMALL; ++i)
+				{
+					int j = intensity_array0[i];
+					low_pass_filter->compute(j, 0.5, "histogram_j");
+
+					if (j < 10)
+						continue;
+
+					for (int j_current = 0; j_current < j; ++j_current)
+						hist_pt_vec0.push_back(Point(j_current, i));
+
+					if (i < y_min)
+						y_min = i;
+					if (i > y_max)
+						y_max = i;
+				}
+
+				Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+				for (Point& pt : hist_pt_vec0)
+					line(image_histogram, pt, Point(0, pt.y), Scalar(254), 1);
+
+				BlobDetectorNew* blob_detector_image_histogram = value_store.get_blob_detector("blob_detector_image_histogram");
+				blob_detector_image_histogram->compute(image_histogram, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+				y_separator_motion_down_median = blob_detector_image_histogram->blob_max_size->y_max;
+
+
+
+
 				static float gray_threshold_left_stereo = 0;
 				static float gray_threshold_right_stereo = 0;
 
@@ -281,6 +322,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				// 	}
 
 				line(image_subtraction, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
+				line(image_subtraction, Point(0, y_separator_motion_down_median), Point(9999, y_separator_motion_down_median), Scalar(254), 1);
+
 
 				imshow("image_subtractionTTT" + name, image_subtraction);
 				imshow("image_in_thresholdedTTT" + name, image_in_thresholded);
