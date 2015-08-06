@@ -66,11 +66,11 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	bool has_complete_calib_data = false;
 
 	if (directory_exists(data_path_current_module))
-		if (file_exists(data_path_current_module + "\\0.jpg"))
-			if (file_exists(data_path_current_module + "\\1.jpg"))
-				if (file_exists(data_path_current_module + "\\stereoCalibData.txt"))
-					if (file_exists(data_path_current_module + "\\rect0.txt"))
-						if (file_exists(data_path_current_module + "\\rect1.txt"))
+		if (file_exists(data_path_current_module + slash + "0.jpg"))
+			if (file_exists(data_path_current_module + slash + "1.jpg"))
+				if (file_exists(data_path_current_module + slash + "stereoCalibData.txt"))
+					if (file_exists(data_path_current_module + slash + "rect0.txt"))
+						if (file_exists(data_path_current_module + slash + "rect1.txt"))
 							has_complete_calib_data = true;
 
 	if (!has_complete_calib_data)
@@ -89,19 +89,19 @@ void Reprojector::load(IPC& ipc, bool flipped)
         create_directory(data_path);
         create_directory(data_path_current_module);
 
-		copy_file(executable_path + "\\rectifier.exe", data_path_current_module + "\\rectifier.exe");
-		copy_file(executable_path + "\\opencv_core249.dll", data_path_current_module + "\\opencv_core249.dll");
-		copy_file(executable_path + "\\opencv_highgui249.dll", data_path_current_module + "\\opencv_highgui249.dll");
-		copy_file(executable_path + "\\opencv_imgproc249.dll", data_path_current_module + "\\opencv_imgproc249.dll");
-		copy_file(executable_path + "\\opencv_calib3d249.dll", data_path_current_module + "\\opencv_calib3d249.dll");
-		copy_file(executable_path + "\\opencv_flann249.dll", data_path_current_module + "\\opencv_flann249.dll");
-		copy_file(executable_path + "\\opencv_features2d249.dll", data_path_current_module + "\\opencv_features2d249.dll");
+		copy_file(executable_path + slash + "rectifier.exe", data_path_current_module + slash + "rectifier.exe");
+		copy_file(executable_path + slash + "opencv_core249.dll", data_path_current_module + slash + "opencv_core249.dll");
+		copy_file(executable_path + slash + "opencv_highgui249.dll", data_path_current_module + slash + "opencv_highgui249.dll");
+		copy_file(executable_path + slash + "opencv_imgproc249.dll", data_path_current_module + slash + "opencv_imgproc249.dll");
+		copy_file(executable_path + slash + "opencv_calib3d249.dll", data_path_current_module + slash + "opencv_calib3d249.dll");
+		copy_file(executable_path + slash + "opencv_flann249.dll", data_path_current_module + slash + "opencv_flann249.dll");
+		copy_file(executable_path + slash + "opencv_features2d249.dll", data_path_current_module + slash + "opencv_features2d249.dll");
 
 		//http://s3-us-west-2.amazonaws.com/ractiv.com/data/
 		//http://d2i9bzz66ghms6.cloudfront.net/data/
 
 		string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + serial + "/0.jpg";
-		string param1 = data_path_current_module + "\\0.jpg";
+		string param1 = data_path_current_module + slash + "0.jpg";
 
 		string* serial_ptr = &serial;
 		IPC* ipc_ptr = &ipc;
@@ -112,7 +112,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 			else
 			{
 				string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + *serial_ptr + "/1.jpg";
-				string param1 = data_path_current_module + "\\1.jpg";
+				string param1 = data_path_current_module + slash + "1.jpg";
 
 				ipc_ptr->get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)
 				{
@@ -121,7 +121,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 					else
 					{
 						string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + *serial_ptr + "/stereoCalibData.txt";
-						string param1 = data_path_current_module + "\\stereoCalibData.txt";
+						string param1 = data_path_current_module + slash + "stereoCalibData.txt";
 
 						ipc_ptr->get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)
 						{
@@ -135,11 +135,11 @@ void Reprojector::load(IPC& ipc, bool flipped)
 									system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier.exe").c_str());
 
 									if (directory_exists(data_path_current_module))
-										if (file_exists(data_path_current_module + "\\0.jpg"))
-											if (file_exists(data_path_current_module + "\\1.jpg"))
-												if (file_exists(data_path_current_module + "\\stereoCalibData.txt"))
-													if (file_exists(data_path_current_module + "\\rect0.txt"))
-														if (file_exists(data_path_current_module + "\\rect1.txt"))
+										if (file_exists(data_path_current_module + slash + "0.jpg"))
+											if (file_exists(data_path_current_module + slash + "1.jpg"))
+												if (file_exists(data_path_current_module + slash + "stereoCalibData.txt"))
+													if (file_exists(data_path_current_module + slash + "rect0.txt"))
+														if (file_exists(data_path_current_module + slash + "rect1.txt"))
 															has_complete_calib_data = true;
 								}
 
@@ -157,7 +157,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 			Sleep(100);
 	}
 
-	ifstream file_stereo_calib_data(data_path_current_module + "\\stereoCalibData.txt");
+	ifstream file_stereo_calib_data(data_path_current_module + slash + "stereoCalibData.txt");
 
 	bool is_number_new = false;
 	bool is_number_old = false;
@@ -240,7 +240,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	delete []t;
 	delete []y;
 
-	ifstream file0(data_path_current_module + "\\rect0.txt");
+	ifstream file0(data_path_current_module + slash + "rect0.txt");
 	is_number_new = false;
 	is_number_old = false;
 	block_count = 0;
@@ -287,7 +287,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 			is_number_old = is_number_new;
 		}
 	}
-	ifstream file1(data_path_current_module + "\\rect1.txt");
+	ifstream file1(data_path_current_module + slash + "rect1.txt");
 	is_number_new = false;
 	is_number_old = false;
 	block_count = 0;
@@ -503,8 +503,8 @@ Point Reprojector::remap_point(Point& pt_in, const uchar side, const uchar scale
 
 void Reprojector::compute_y_bounds()
 {
-	Mat image_checker0 = imread(data_path_current_module + "\\0.jpg");
-	Mat image_checker1 = imread(data_path_current_module + "\\1.jpg");
+	Mat image_checker0 = imread(data_path_current_module + slash + "0.jpg");
+	Mat image_checker1 = imread(data_path_current_module + slash + "1.jpg");
 	flip(image_checker0, image_checker0, 0);
 	flip(image_checker1, image_checker1, 0);
 

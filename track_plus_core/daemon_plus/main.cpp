@@ -56,14 +56,14 @@ void guardian_thread_function()
 #else
 			bool show_console = false;
 #endif
-			create_process(executable_path + "\\track_plus.exe", "track_plus.exe", show_console);
+			create_process(executable_path + slash + "track_plus.exe", "track_plus.exe", show_console);
 			ipc.send_message("menu_plus", "show stage", "");
 		}
 
 		if (process_running("menu_plus.exe") == 0)
 		{
 			COUT << "menu_plus created" << endl;
-			create_process(executable_path + "\\menu_plus\\menu_plus.exe", "menu_plus.exe");
+			create_process(executable_path + slash + "menu_plus" + slash + "menu_plus.exe", "menu_plus.exe");
 		}
 
 		Sleep(500);
@@ -89,9 +89,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
     GetModuleFileName(NULL, buffer, MAX_PATH);
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
-	data_path = executable_path + "\\userdata";
-	settings_file_path = data_path + "\\settings.nrocinunerrad";
-	ipc_path = executable_path + "\\ipc";
+	data_path = executable_path + slash + "userdata";
+	settings_file_path = data_path + slash + "settings.nrocinunerrad";
+	ipc_path = executable_path + slash + "ipc";
 
 	if (!directory_exists(ipc_path))
 		create_directory(ipc_path);
@@ -188,10 +188,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 	while (true)
 	{
-		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + "\\Touch+ Software.lnk"))
-			create_shortcut(executable_path + "\\daemon_plus.exe", get_startup_folder_path() + "\\Touch+ Software.lnk", executable_path);
-		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + "\\Touch+ Software.lnk"))
-			delete_file(get_startup_folder_path() + "\\Touch+ Software.lnk");
+		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
+			create_shortcut(executable_path + slash + "daemon_plus.exe", get_startup_folder_path() + slash + "Touch+ Software.lnk", executable_path);
+		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
+			delete_file(get_startup_folder_path() + slash + "Touch+ Software.lnk");
 
 		Sleep(20);
 	}

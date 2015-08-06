@@ -216,7 +216,7 @@ void PoseEstimator::save(const string name)
 
 	data.pop_back();
 
-	const string path = pose_database_path + "\\" + name + to_string(name_count) + ".";
+	const string path = pose_database_path + slash + name + to_string(name_count) + ".";
 	write_string_to_file(path + extension, data);
 
 	points_collection.push_back(points_current);
@@ -248,7 +248,7 @@ void PoseEstimator::load()
 
 		if (name_extension_vec.size() > 1 && name_extension_vec[1] == "nrocinunerrad")
 		{
-			const string path = pose_database_path + "\\" + name_current;
+			const string path = pose_database_path + slash + name_current;
 			vector<string> data = read_text_file(path);
 
 			vector<Point> points;
@@ -279,7 +279,7 @@ void PoseEstimator::load()
 		}
 		else if (name_extension_vec.size() > 1 && name_extension_vec[1] == "png")
 		{
-			const string path = pose_database_path + "\\" + name_current;
+			const string path = pose_database_path + slash + name_current;
 			Mat image_loaded = imread(path);
 		}
 	}

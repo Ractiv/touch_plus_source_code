@@ -194,11 +194,11 @@ void init_paths()
 #elif __APPLE__
     //todo: port to OSX
 #endif
-    data_path = executable_path + "\\userdata";
-    settings_file_path = data_path + "\\settings.nrocinunerrad";
-    menu_file_path = executable_path + "\\menu_plus\\menu_plus.exe";
-    ipc_path = executable_path + "\\ipc";
-    pose_database_path = executable_path + "\\database";
+    data_path = executable_path + slash + "userdata";
+    settings_file_path = data_path + slash + "settings.nrocinunerrad";
+    menu_file_path = executable_path + slash + "menu_pluslash + smenu_plus.exe";
+    ipc_path = executable_path + slash + "ipc";
+    pose_database_path = executable_path + slash + "database";
 }
 
 void load_settings()
@@ -242,7 +242,7 @@ void on_first_frame()
     
     COUT << "serial number: " << serial_number << endl;
 
-    data_path_current_module = data_path + "\\" + serial_number;
+    data_path_current_module = data_path + slash + serial_number;
 
     int x_accel;
     int y_accel;
@@ -268,14 +268,14 @@ void on_first_frame()
 
 #ifdef _WIN32
         if (IsWindows8OrGreater())
-            child_module_path = executable_path + "\\win_cursor_plus\\win_cursor_plus.exe";
+            child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus.exe";
         else
-            child_module_path = executable_path + "\\win_cursor_plus_fallback\\win_cursor_plus.exe";
+            child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus.exe";
 #elif __APPLE__
         //todo: port to OSX
 #endif
 
-        ipc->open_udp_channel(child_module_name);
+        //ipc->open_udp_channel(child_module_name);
         ipc->send_message("menu_plus", "show window", "");  
         ipc->send_message("menu_plus", "show wiggle", "");
     }
@@ -749,12 +749,13 @@ int main()
 #elif __APPLE__
     //todo: port to OSX
 #endif
-    thread guardian_thread(guardian_thread_function);
+    //thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);
     thread ipc_thread(ipc_thread_function);
 
     camera = new Camera(true, 1280, 480, update);
+    
     load_settings();
 
     while (true)

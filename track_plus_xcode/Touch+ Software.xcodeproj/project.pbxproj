@@ -10,6 +10,9 @@
 		2B29EC031B5F9E380085AD70 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B29EC021B5F9E380085AD70 /* main.cpp */; };
 		2B29EC051B5FA1F90085AD70 /* globals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B29EC041B5FA1F90085AD70 /* globals.cpp */; };
 		2B29EC091B5FA2320085AD70 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B29EC071B5FA2320085AD70 /* Camera.cpp */; };
+		2B5A72961B73798F0020C8CD /* libusb-1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5A72951B73798F0020C8CD /* libusb-1.0.0.dylib */; };
+		2B5A72981B7379A30020C8CD /* libuvc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5A72971B7379A30020C8CD /* libuvc.dylib */; };
+		2B5A729E1B7380FA0020C8CD /* libsfml-network.2.3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5A729D1B7380FA0020C8CD /* libsfml-network.2.3.1.dylib */; };
 		2B7228E91B6104ED00772824 /* filesystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7228E71B6104ED00772824 /* filesystem.cpp */; };
 		2B7228EC1B61050B00772824 /* string_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7228EA1B61050B00772824 /* string_functions.cpp */; };
 		2B7228EF1B61052900772824 /* udp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7228ED1B61052900772824 /* udp.cpp */; };
@@ -44,9 +47,6 @@
 		2B96406C1B6100DA00E1A968 /* blob_new.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B96406A1B6100DA00E1A968 /* blob_new.cpp */; };
 		2B96406F1B6100FB00E1A968 /* foreground_extractor_new.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B96406D1B6100FB00E1A968 /* foreground_extractor_new.cpp */; };
 		2B9640721B61011B00E1A968 /* ipc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B9640701B61011B00E1A968 /* ipc.cpp */; };
-		2B96407F1B61040300E1A968 /* libsfml-network.2.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B96407E1B61040300E1A968 /* libsfml-network.2.1.dylib */; };
-		2B9640811B61041200E1A968 /* libusb-1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B9640801B61041200E1A968 /* libusb-1.0.0.dylib */; };
-		2B9640831B61042300E1A968 /* libuvc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B9640821B61042300E1A968 /* libuvc.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -67,6 +67,9 @@
 		2B29EC061B5FA2090085AD70 /* globals.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = globals.h; path = ../../track_plus_core/track_plus/globals.h; sourceTree = "<group>"; };
 		2B29EC071B5FA2320085AD70 /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../track_plus_core/track_plus/Camera.cpp; sourceTree = "<group>"; };
 		2B29EC081B5FA2320085AD70 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../track_plus_core/track_plus/Camera.h; sourceTree = "<group>"; };
+		2B5A72951B73798F0020C8CD /* libusb-1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libusb-1.0.0.dylib"; path = "../dependencies/OSX/LibUSB/lib/libusb-1.0.0.dylib"; sourceTree = "<group>"; };
+		2B5A72971B7379A30020C8CD /* libuvc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libuvc.dylib; path = ../dependencies/OSX/LibUVC/lib/libuvc.dylib; sourceTree = "<group>"; };
+		2B5A729D1B7380FA0020C8CD /* libsfml-network.2.3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.2.3.1.dylib"; path = "../dependencies/OSX/SFML/lib/libsfml-network.2.3.1.dylib"; sourceTree = "<group>"; };
 		2B7228E71B6104ED00772824 /* filesystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = filesystem.cpp; path = ../../track_plus_core/track_plus/filesystem.cpp; sourceTree = "<group>"; };
 		2B7228E81B6104ED00772824 /* filesystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filesystem.h; path = ../../track_plus_core/track_plus/filesystem.h; sourceTree = "<group>"; };
 		2B7228EA1B61050B00772824 /* string_functions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string_functions.cpp; path = ../../track_plus_core/track_plus/string_functions.cpp; sourceTree = "<group>"; };
@@ -135,9 +138,6 @@
 		2B96406E1B6100FB00E1A968 /* foreground_extractor_new.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = foreground_extractor_new.h; path = ../../track_plus_core/track_plus/foreground_extractor_new.h; sourceTree = "<group>"; };
 		2B9640701B61011B00E1A968 /* ipc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ipc.cpp; path = ../../track_plus_core/track_plus/ipc.cpp; sourceTree = "<group>"; };
 		2B9640711B61011B00E1A968 /* ipc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ipc.h; path = ../../track_plus_core/track_plus/ipc.h; sourceTree = "<group>"; };
-		2B96407E1B61040300E1A968 /* libsfml-network.2.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.2.1.dylib"; path = "../dependencies/OSX/SFML/lib/libsfml-network.2.1.dylib"; sourceTree = "<group>"; };
-		2B9640801B61041200E1A968 /* libusb-1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libusb-1.0.0.dylib"; path = "../dependencies/OSX/LibUSB/lib/libusb-1.0.0.dylib"; sourceTree = "<group>"; };
-		2B9640821B61042300E1A968 /* libuvc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libuvc.dylib; path = ../dependencies/OSX/LibUVC/lib/libuvc.dylib; sourceTree = "<group>"; };
 		2BF697271B5F599C00DD757B /* Touch+ Software */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Touch+ Software"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -146,9 +146,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B9640831B61042300E1A968 /* libuvc.dylib in Frameworks */,
-				2B9640811B61041200E1A968 /* libusb-1.0.0.dylib in Frameworks */,
-				2B96407F1B61040300E1A968 /* libsfml-network.2.1.dylib in Frameworks */,
+				2B5A729E1B7380FA0020C8CD /* libsfml-network.2.3.1.dylib in Frameworks */,
+				2B5A72981B7379A30020C8CD /* libuvc.dylib in Frameworks */,
+				2B5A72961B73798F0020C8CD /* libusb-1.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,9 +158,9 @@
 		2BF6971E1B5F599C00DD757B = {
 			isa = PBXGroup;
 			children = (
-				2B9640821B61042300E1A968 /* libuvc.dylib */,
-				2B9640801B61041200E1A968 /* libusb-1.0.0.dylib */,
-				2B96407E1B61040300E1A968 /* libsfml-network.2.1.dylib */,
+				2B5A729D1B7380FA0020C8CD /* libsfml-network.2.3.1.dylib */,
+				2B5A72971B7379A30020C8CD /* libuvc.dylib */,
+				2B5A72951B73798F0020C8CD /* libusb-1.0.0.dylib */,
 				2BF697291B5F599C00DD757B /* Touch+ Software */,
 				2BF697281B5F599C00DD757B /* Products */,
 			);
@@ -435,19 +435,19 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/";
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../dependencies/OSX/**",
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					"../dependencies/OSX/**",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../dependencies/OSX/**",
 					/usr/local/lib,
+					"../dependencies/OSX/**",
+					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/OpenCV/lib,
 					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/SFML/lib,
-					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/LibUSB/lib,
-					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/LibUVC/lib,
 				);
 				OTHER_LDFLAGS = (
 					"-lopencv_calib3d",
@@ -477,19 +477,19 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/";
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../dependencies/OSX/**",
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/usr/local/include,
+					"../dependencies/OSX/**",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../dependencies/OSX/**",
 					/usr/local/lib,
+					"../dependencies/OSX/**",
+					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/OpenCV/lib,
 					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/SFML/lib,
-					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/LibUSB/lib,
-					/Users/Lai/Projects/touch_plus_source_code/dependencies/OSX/LibUVC/lib,
 				);
 				OTHER_LDFLAGS = (
 					"-lopencv_calib3d",

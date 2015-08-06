@@ -37,10 +37,10 @@ Camera::Camera(){}
 
 Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in)
 {
-	height	= _height;
-	width	= _width;
-	callback = callback_in;
-	doSetup(1);
+    height	= _height;
+    width	= _width;
+    callback = callback_in;
+    doSetup(1);
     
 #ifdef __APPLE__
     startVideoStream(_width, _height, 60, MJPEG);
@@ -50,14 +50,14 @@ Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& imag
 Camera::~Camera()
 {
 #ifdef _WIN32
-	if (ds_camera_)
-	{
-		ds_camera_->CloseCamera();
-		ds_camera_ = NULL;
-	}
-	free(&buffer);
-	free(&bufferRGB);
-	free(&depth);
+    if (ds_camera_)
+    {
+        ds_camera_->CloseCamera();
+        ds_camera_ = NULL;
+    }
+    free(&buffer);
+    free(&bufferRGB);
+    free(&depth);
     
 #elif __APPLE__
     stopVideoStream();
@@ -112,7 +112,7 @@ int Camera::readFlash(unsigned char* data, int length)
     read_ADDR_81(dev_handle,count,0x0a00,1);
     read_ADDR_85(dev_handle,0x0b00);
     unsigned char mystery[16]= { count[0], 0x41, 0x05, 0x00, 0x00, 0xc8, 0x00, 0x00, 0x00,
-                                (unsigned char)length, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        (unsigned char)length, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     
     write_ADDR_01(dev_handle, mystery, 0x0b00, 16);
     
@@ -128,6 +128,7 @@ void cb(uvc_frame_t *frame, void *ptr)
 {
     uvc_error_t ret;
     /* Do the BGR conversion */
+    
     if (decompressJPEG == 0)
         ret = uvc_any2bgr(frame, bgr);
     else
@@ -139,18 +140,20 @@ void cb(uvc_frame_t *frame, void *ptr)
             uvc_free_frame(bgr);
             return;
         }
-        unsigned char tmp;
-        //swap red and blue
-        memcpy(liveData,bgr->data,frame->width*frame->height*3);
         
-        for (int i =0;i< frame->width*frame->height*3;i+=3)
-        {
-            tmp = liveData[i+2];
-            liveData[i+2] = liveData[i];
-            liveData[i]= tmp;
-        }
+        Mat image_received = Mat(480, 1280, CV_8UC3);
+        image_received.data = (uchar*)bgr->data;
         
-        image_out.data = liveData;
+        const int width = image_received.cols;
+        const int height = image_received.rows;
+        for (int i = 0; i < width; ++i)
+            for (int j = 0; j < height; ++j)
+            {
+                image_out.ptr<uchar>(j, i)[0] = image_received.ptr<uchar>(j, i)[2];
+                image_out.ptr<uchar>(j, i)[1] = image_received.ptr<uchar>(j, i)[1];
+                image_out.ptr<uchar>(j, i)[2] = image_received.ptr<uchar>(j, i)[0];
+            }
+        
         Camera::callback(image_out);
     }
 }
@@ -217,84 +220,84 @@ int Camera::stopVideoStream()
 #ifdef _WIN32
 static void frameCallback(BYTE * pBuffer, long lBufferSize)
 {
-	decomp->decompress(pBuffer, lBufferSize, myBuffer, 1280, 480);
-	Camera::callback(image_out);
+    decomp->decompress(pBuffer, lBufferSize, myBuffer, 1280, 480);
+    Camera::callback(image_out);
 }
 #endif
 
 string Camera::getSerialNumber()
 {
-	string result = "";
-	unsigned char serialNumber[10];
+    string result = "";
+    unsigned char serialNumber[10];
 #ifdef _WIN32
-	eSPAEAWB_ReadFlash(serialNumber, 10);
+    eSPAEAWB_ReadFlash(serialNumber, 10);
 #elif __APPLE__
     readFlash(serialNumber, 10);
 #endif
-	for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 10; i++)
     {
-		int digit = serialNumber[i];
-		result += to_string(digit);
-	}
-	return result;
+        int digit = serialNumber[i];
+        result += to_string(digit);
+    }
+    return result;
 }
 
 int Camera::isCameraPresent()
 {
 #ifdef _WIN32
-	int devCount;
-	int didInit = EtronDI_Init(&pHandle);
-	int devNumber = EtronDI_GetDeviceNumber(pHandle);
-
-	WCHAR name[100];
-	if (!EtronDI_FindDevice(pHandle)) {
-		COUT << "Device not found!" << endl;
-		return 0;
-	}
-	int code = eSPAEAWB_EnumDevice(&devCount);
-	eSPAEAWB_SelectDevice(0);
-	eSPAEAWB_SetSensorType(1);
-	WCHAR myName[255];
-	WCHAR targetName[255] = L"Touch+ Camera";
-	int deviceWasSelected = 0;
-	for (int i = 0; i < devCount; i++){
-		eSPAEAWB_GetDevicename(i, myName, 255);
-
-		wstring ws(myName);
-		string str(ws.begin(), ws.end());
-		COUT << str << endl;
-
-		myName[14] = 0;
-		bool found = true;
-		int j;
-		for (j = 0; j < 13; j++){
-			if (myName[j] != targetName[j]){
-				found = false;
-			}
-		}
-		if (found){
-			eSPAEAWB_SelectDevice(i);
-			eSPAEAWB_SetSensorType(1);
-			deviceWasSelected = 1;
-			COUT << "Touch+ Camera found" << endl;
-		}
-
-	}
-	if (!deviceWasSelected){
-		device_not_detected = true;
-		COUT << "Did not find a Touch+ Camera" << endl;
-		return 0;
-	}
+    int devCount;
+    int didInit = EtronDI_Init(&pHandle);
+    int devNumber = EtronDI_GetDeviceNumber(pHandle);
+    
+    WCHAR name[100];
+    if (!EtronDI_FindDevice(pHandle)) {
+        COUT << "Device not found!" << endl;
+        return 0;
+    }
+    int code = eSPAEAWB_EnumDevice(&devCount);
+    eSPAEAWB_SelectDevice(0);
+    eSPAEAWB_SetSensorType(1);
+    WCHAR myName[255];
+    WCHAR targetName[255] = L"Touch+ Camera";
+    int deviceWasSelected = 0;
+    for (int i = 0; i < devCount; i++){
+        eSPAEAWB_GetDevicename(i, myName, 255);
+        
+        wstring ws(myName);
+        string str(ws.begin(), ws.end());
+        COUT << str << endl;
+        
+        myName[14] = 0;
+        bool found = true;
+        int j;
+        for (j = 0; j < 13; j++){
+            if (myName[j] != targetName[j]){
+                found = false;
+            }
+        }
+        if (found){
+            eSPAEAWB_SelectDevice(i);
+            eSPAEAWB_SetSensorType(1);
+            deviceWasSelected = 1;
+            COUT << "Touch+ Camera found" << endl;
+        }
+        
+    }
+    if (!deviceWasSelected){
+        device_not_detected = true;
+        COUT << "Did not find a Touch+ Camera" << endl;
+        return 0;
+    }
 #endif
-	return 1;
+    return 1;
 }
 
 int Camera::do_software_unlock()
 {
 #ifdef _WIN32
-	int present = isCameraPresent();
-	int retVal = eSPAEAWB_SWUnlock(0x0107);
-	return present;
+    int present = isCameraPresent();
+    int retVal = eSPAEAWB_SWUnlock(0x0107);
+    return present;
 #elif __APPLE__
     //libusb_device** devs; //pointer to pointer of device, used to retrieve a list of devices
     libusb_device_handle* dev_handle; //a device handle
@@ -423,36 +426,36 @@ int Camera::doSetup(const int & format)
     do_software_unlock();
     
 #ifdef _WIN32
-	ds_camera_ = new CCameraDS();
-	int camera_count = CCameraDS::CameraCount();
-	char camera_name[255] = { 0 };
-	char camera_vid[10] = { 0 };
-	char camera_pid[10] = { 0 };
-	int i = 0, touchCameraId = -1;
-	
-	while (i < camera_count)
-	{
-		CCameraDS::CameraInfo(i, camera_vid, camera_pid);
-
-		// VID PID is more reasonable
-		if (0 == strncmp(camera_vid, TP_CAMERA_VID, 4) &&
-			0 == strncmp(camera_pid, TP_CAMERA_PID, 4))
-		{
-			touchCameraId = i;
-			break;
-		}
-		++i;
-	}
-
-	if (-1 == touchCameraId)
-		return false;
+    ds_camera_ = new CCameraDS();
+    int camera_count = CCameraDS::CameraCount();
+    char camera_name[255] = { 0 };
+    char camera_vid[10] = { 0 };
+    char camera_pid[10] = { 0 };
+    int i = 0, touchCameraId = -1;
     
-	const int fmt = 1;
-	myBuffer = (unsigned char *)malloc(1280 * 480 * 3);
-	image_out.data = myBuffer;
-	bool retV = ds_camera_->OpenCamera(touchCameraId, format, 1280, 480, 60, frameCallback);
-	COUT << "camera opened = " << retV << endl;
-	return retV;
+    while (i < camera_count)
+    {
+        CCameraDS::CameraInfo(i, camera_vid, camera_pid);
+        
+        // VID PID is more reasonable
+        if (0 == strncmp(camera_vid, TP_CAMERA_VID, 4) &&
+            0 == strncmp(camera_pid, TP_CAMERA_PID, 4))
+        {
+            touchCameraId = i;
+            break;
+        }
+        ++i;
+    }
+    
+    if (-1 == touchCameraId)
+        return false;
+    
+    const int fmt = 1;
+    myBuffer = (unsigned char *)malloc(1280 * 480 * 3);
+    image_out.data = myBuffer;
+    bool retV = ds_camera_->OpenCamera(touchCameraId, format, 1280, 480, 60, frameCallback);
+    COUT << "camera opened = " << retV << endl;
+    return retV;
 #elif __APPLE__
     uvc_error_t res;
     uvc_device_t* dev;
@@ -489,7 +492,7 @@ int Camera::doSetup(const int & format)
 int Camera::setExposureTime(int whichSide, float expTime)
 {
 #ifdef _WIN32
-	int retCode= eSPAEAWB_SetExposureTime(whichSide, expTime);
+    int retCode= eSPAEAWB_SetExposureTime(whichSide, expTime);
     return retCode;
 #elif __APPLE__
     //convert to the time to integer
@@ -978,12 +981,35 @@ float Camera::getGlobalGain(int whichSide)
 int Camera::turnLEDsOn()
 {
 #ifdef _WIN32
-	BYTE gpio_code;
-	int retCode = eSPAEAWB_GetGPIOValue(1, &gpio_code);
+    BYTE gpio_code;
+    int retCode = eSPAEAWB_GetGPIOValue(1, &gpio_code);
     gpio_code |= 0x08;
-	retCode = eSPAEAWB_SetGPIOValue(1, gpio_code);
-	return retCode;
+    retCode = eSPAEAWB_SetGPIOValue(1, gpio_code);
+    return retCode;
 #elif __APPLE__
+    //libusb_transfer transfer ={0};
+    
+    unsigned char data[5];
+    
+    read_ADDR_85(dev_handle);
+    
+    data[0]=0x82;
+    data[1]=0xf0;
+    data[2]=0x17;
+    data[3]=0x00;
+    
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    data[0]=0x02;
+    data[1]=0xf0;
+    data[2]=0x17;
+    data[3]=0x1D;
+    
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
     return 1;
 #endif
 }
@@ -991,12 +1017,33 @@ int Camera::turnLEDsOn()
 int Camera::turnLEDsOff()
 {
 #ifdef _WIN32
-	BYTE gpio_code;
-	int retCode = eSPAEAWB_GetGPIOValue(1, &gpio_code);
-	gpio_code &= 0xf7;
-	retCode = eSPAEAWB_SetGPIOValue(1, gpio_code);
-	return retCode;
+    BYTE gpio_code;
+    int retCode = eSPAEAWB_GetGPIOValue(1, &gpio_code);
+    gpio_code &= 0xf7;
+    retCode = eSPAEAWB_SetGPIOValue(1, gpio_code);
+    return retCode;
 #elif __APPLE__
+    unsigned char data[5];
+    
+    read_ADDR_85(dev_handle);
+    data[0]=0x82;
+    data[1]=0xf0;
+    data[2]=0x17;
+    data[3]=0x00;
+    write_ADDR_01(dev_handle,data);
+    
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    
+    data[0]=0x02;
+    data[1]=0xf0;
+    data[2]=0x17;
+    data[3]=0x15;
+    
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
     return 1;
 #endif
 }
@@ -1004,7 +1051,7 @@ int Camera::turnLEDsOff()
 int Camera::getAccelerometerValues(int *x, int *y, int *z)
 {
 #ifdef _WIN32
-	return eSPAEAWB_GetAccMeterValue(x, y, z);
+    return eSPAEAWB_GetAccMeterValue(x, y, z);
 #elif __APPLE__
     read_ADDR_85(dev_handle);
     unsigned char data[4];
@@ -1083,8 +1130,106 @@ int Camera::getAccelerometerValues(int *x, int *y, int *z)
 int	Camera::setColorGains(int whichSide, float red, float green, float blue)
 {
 #ifdef _WIN32
-	return eSPAEAWB_SetColorGain(whichSide, red, green, blue);
+    return eSPAEAWB_SetColorGain(whichSide, red, green, blue);
 #elif __APPLE__
+    unsigned char data[4];
+    read_ADDR_85(dev_handle);
+    
+    //set red
+    int toSet = (red *64);
+    if (toSet<0)toSet =0;
+    if (toSet>255)toSet = 255;
+    data[0] = 0x02;
+    data[1] = 0xf1;
+    data[2] = 0xcc;
+    data[3] = (unsigned char)toSet;
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    data[0] = 0x02;
+    data[1] = 0xf2;
+    data[2] = 0x8c;
+    data[3] = (unsigned char)toSet;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    /// green
+    int toSet2 = (green *64);
+    if (toSet2<0)toSet2 =0;
+    if (toSet2>255)toSet2 = 255;
+    data[0] = 0x02;
+    data[1] = 0xf1;
+    data[2] = 0xcd;
+    data[3] = (unsigned char)toSet2;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    data[0] = 0x02;
+    data[1] = 0xf2;
+    data[2] = 0x8d;
+    data[3] = (unsigned char)toSet2;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    data[0] = 0x02;
+    data[1] = 0xf1;
+    data[2] = 0xce;
+    data[3] = (unsigned char)toSet2;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    data[0] = 0x02;
+    data[1] = 0xf2;
+    data[2] = 0x8e;
+    data[3] = (unsigned char)toSet2;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    toSet2 = (green *64);
+    if (toSet2<0)toSet2 =0;
+    if (toSet2>255)toSet2 = 255;
+    data[0] = 0x02;
+    data[1] = 0xf1;
+    data[2] = 0xce;
+    data[3] = (unsigned char)toSet2;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    //blue side 1
+    int toSet3 = (blue *64);
+    if (toSet3<0)toSet3 =0;
+    if (toSet3>255)toSet3 = 255;
+    data[0] = 0x02;
+    data[1] = 0xf1;
+    data[2] = 0xcf;
+    data[3] = (unsigned char)toSet3;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
+    data[0] = 0x02;
+    data[1] = 0xf2;
+    data[2] = 0x8f;
+    data[3] = (unsigned char)toSet3;
+    read_ADDR_85(dev_handle);
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    
     return 1;
 #endif
 }
@@ -1092,8 +1237,47 @@ int	Camera::setColorGains(int whichSide, float red, float green, float blue)
 int	Camera::getColorGains(int whichSide, float *red, float *green, float * blue)
 {
 #ifdef _WIN32
-	return eSPAEAWB_GetColorGain(whichSide, red, green, blue);
+    return eSPAEAWB_GetColorGain(whichSide, red, green, blue);
 #elif __APPLE__
+    unsigned char data[4];
+    read_ADDR_85(dev_handle);
+    
+    data[0] = 0x82;
+    data[1] = 0xf1;
+    data[2] = 0xcc;
+    data[3] = 0X00;
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    float mred=(float)data[1];
+    *red = mred/64;
+    
+    
+    //  printf("red data = %x\n",data[1]);
+    
+    read_ADDR_85(dev_handle);
+    data[0] = 0x82;
+    data[1] = 0xf1;
+    data[2] = 0xcd;
+    data[3] = 0X00;
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    //  printf("green data = %x\n",data[1]);
+    float mgreen= (float)data[1];
+    *green = mgreen/64;
+    
+    read_ADDR_85(dev_handle);
+    data[0] = 0x82;
+    data[1] = 0xf1;
+    data[2] = 0xcf;
+    data[3] = 0X00;
+    write_ADDR_01(dev_handle,data);
+    read_ADDR_85(dev_handle);
+    read_ADDR_81(dev_handle,data);
+    //   printf("blue data = %x\n",data[1]);
+    float mblue = (float)data[1];
+    *blue = mblue/64;
     return 1;
 #endif
 }
@@ -1101,8 +1285,8 @@ int	Camera::getColorGains(int whichSide, float *red, float *green, float * blue)
 int Camera::enableAutoExposure(int whichSide)
 {
 #ifdef _WIN32
-	eSPAEAWB_SelectDevice(whichSide);
-	return eSPAEAWB_EnableAE();
+    eSPAEAWB_SelectDevice(whichSide);
+    return eSPAEAWB_EnableAE();
 #elif __APPLE__
     int r;
     //libusb_transfer transfer ={0};
@@ -1206,8 +1390,8 @@ int Camera::enableAutoExposure(int whichSide)
 int Camera::disableAutoExposure(int whichSide)
 {
 #ifdef _WIN32
-	eSPAEAWB_SelectDevice(whichSide);
-	return eSPAEAWB_DisableAE();
+    eSPAEAWB_SelectDevice(whichSide);
+    return eSPAEAWB_DisableAE();
 #elif __APPLE__
     //unsigned char endpoint = 0x83;
     unsigned char bmRequestType_set = 0x21;
@@ -1309,8 +1493,8 @@ int Camera::disableAutoExposure(int whichSide)
 int Camera::enableAutoWhiteBalance(int whichSide)
 {
 #ifdef _WIN32
-	eSPAEAWB_SelectDevice(whichSide);
-	return eSPAEAWB_EnableAWB();
+    eSPAEAWB_SelectDevice(whichSide);
+    return eSPAEAWB_EnableAWB();
 #elif __APPLE__
     //unsigned char endpoint = 0x83;
     unsigned char bmRequestType_set = 0x21;
@@ -1412,8 +1596,8 @@ int Camera::enableAutoWhiteBalance(int whichSide)
 int Camera::disableAutoWhiteBalance(int whichSide)
 {
 #ifdef _WIN32
-	eSPAEAWB_SelectDevice(whichSide);
-	return eSPAEAWB_DisableAWB();
+    eSPAEAWB_SelectDevice(whichSide);
+    return eSPAEAWB_DisableAWB();
 #elif __APPLE__
     //unsigned char endpoint = 0x83;
     unsigned char bmRequestType_set = 0x21;
@@ -1515,56 +1699,56 @@ int Camera::disableAutoWhiteBalance(int whichSide)
 #ifdef _WIN32
 void Camera::YUY2_to_RGB24_Microsoft(BYTE *pSrc, BYTE *pDst, int cx, int cy)
 {
-	int nSrcBPS, nDstBPS, x, y, x2, x3, m;
-	int ma0, mb0, m02, m11, m12, m21;
-	BYTE *pS0, *pD0;
-	int Y, U, V, Y2;
-	BYTE R, G, B, R2, G2, B2;
-
-	nSrcBPS = cx * 2;
-	nDstBPS = ((cx * 3 + 3) / 4) * 4;
-
-	pS0 = pSrc;
-	pD0 = pDst + nDstBPS*(cy - 1);
-	for (y = 0; y<cy; y++)
-	{
-		for (x3 = 0, x2 = 0, x = 0; x<cx; x += 2, x2 += 4, x3 += 6)
-		{
-			Y = (int)pS0[x2 + 0] - 16;
-			Y2 = (int)pS0[x2 + 2] - 16;
-			U = (int)pS0[x2 + 1] - 128;
-			V = (int)pS0[x2 + 3] - 128;
-			//
-			ma0 = 298 * Y;
-			mb0 = 298 * Y2;
-			m02 = 409 * V + 128;
-			m11 = -100 * U;
-			m12 = -208 * V + 128;
-			m21 = 516 * U + 128;
-			//
-			m = (ma0 + m02) >> 8;
-			R = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
-			m = (ma0 + m11 + m12) >> 8;
-			G = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
-			m = (ma0 + m21) >> 8;
-			B = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
-			//
-			m = (mb0 + m02) >> 8;
-			R2 = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
-			m = (mb0 + m11 + m12) >> 8;
-			G2 = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
-			m = (mb0 + m21) >> 8;
-			B2 = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
-			//
-			pD0[x3] = B;
-			pD0[x3 + 1] = G;
-			pD0[x3 + 2] = R;
-			pD0[x3 + 3] = B2;
-			pD0[x3 + 4] = G2;
-			pD0[x3 + 5] = R2;
-		}
-		pS0 += nSrcBPS;
-		pD0 -= nDstBPS;
-	}
+    int nSrcBPS, nDstBPS, x, y, x2, x3, m;
+    int ma0, mb0, m02, m11, m12, m21;
+    BYTE *pS0, *pD0;
+    int Y, U, V, Y2;
+    BYTE R, G, B, R2, G2, B2;
+    
+    nSrcBPS = cx * 2;
+    nDstBPS = ((cx * 3 + 3) / 4) * 4;
+    
+    pS0 = pSrc;
+    pD0 = pDst + nDstBPS*(cy - 1);
+    for (y = 0; y<cy; y++)
+    {
+        for (x3 = 0, x2 = 0, x = 0; x<cx; x += 2, x2 += 4, x3 += 6)
+        {
+            Y = (int)pS0[x2 + 0] - 16;
+            Y2 = (int)pS0[x2 + 2] - 16;
+            U = (int)pS0[x2 + 1] - 128;
+            V = (int)pS0[x2 + 3] - 128;
+            //
+            ma0 = 298 * Y;
+            mb0 = 298 * Y2;
+            m02 = 409 * V + 128;
+            m11 = -100 * U;
+            m12 = -208 * V + 128;
+            m21 = 516 * U + 128;
+            //
+            m = (ma0 + m02) >> 8;
+            R = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
+            m = (ma0 + m11 + m12) >> 8;
+            G = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
+            m = (ma0 + m21) >> 8;
+            B = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
+            //
+            m = (mb0 + m02) >> 8;
+            R2 = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
+            m = (mb0 + m11 + m12) >> 8;
+            G2 = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
+            m = (mb0 + m21) >> 8;
+            B2 = (m<0) ? (0) : (m>255) ? (255) : ((BYTE)m);
+            //
+            pD0[x3] = B;
+            pD0[x3 + 1] = G;
+            pD0[x3 + 2] = R;
+            pD0[x3 + 3] = B2;
+            pD0[x3 + 4] = G2;
+            pD0[x3 + 5] = R2;
+        }
+        pS0 += nSrcBPS;
+        pD0 -= nDstBPS;
+    }
 }
 #endif

@@ -42,6 +42,7 @@ const extern double fov_width;
 const extern double fov_depth;
 
 const extern string cmd_quote;
+const extern string slash;
 
 extern string executable_path;
 extern string data_path;

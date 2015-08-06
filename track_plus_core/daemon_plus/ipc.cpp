@@ -68,8 +68,8 @@ void IPC::update()
 			{
 				Sleep(20);
 
-				vector<string> lines = read_text_file(ipc_path + "\\" + file_name_current);
-				// delete_file(ipc_path + "\\" + file_name_current);
+				vector<string> lines = read_text_file(ipc_path + slash + file_name_current);
+				// delete_file(ipc_path + slash + file_name_current);
 				vector<string> message_vec = split_string(lines[0], "!");
 				const string message_head = message_vec[0];
 				const string message_body = message_vec[1];
@@ -116,14 +116,14 @@ void IPC::clear()
 				continue;
 
 			if (file_name == self_name || file_name_everyone == "everyone")
-				delete_file(ipc_path + "\\" + file_name_current);
+				delete_file(ipc_path + slash + file_name_current);
 		}
 	}
 }
 
 void IPC::send_message(const string recipient, const string message_head, const string message_body)
 {
-	write_string_to_file(ipc_path + "\\lock", "");
+	write_string_to_file(ipc_path + slash + "lock", "");
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);
 
 	bool found = true;
@@ -143,14 +143,14 @@ void IPC::send_message(const string recipient, const string message_head, const 
 
 	static int sent_count = 0;
 
-	const string path_old = ipc_path + "\\s" + self_name + to_string(sent_count);
-	const string path_new = ipc_path + "\\" + recipient + to_string(file_count);
+	const string path_old = ipc_path + slash + "s" + self_name + to_string(sent_count);
+	const string path_new = ipc_path + slash + recipient + to_string(file_count);
 
 	write_string_to_file(path_old, message_head + "!" + message_body);
 	rename_file(path_old, path_new);
 
 	++sent_count;
-	delete_file(ipc_path + "\\lock");
+	delete_file(ipc_path + slash + "lock");
 	
 	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
 }
@@ -214,7 +214,7 @@ void IPC::open_udp_channel(const string recipient, const int port_num)
 	}
 	else
 	{
-		int port = atoi(read_text_file(ipc_path + "\\udp_port")[0].c_str());
+		int port = atoi(read_text_file(ipc_path + slash + "udp_port")[0].c_str());
 		udp_ptr->set_port(port);
 
 		COUT << "udp port is " << port << endl;

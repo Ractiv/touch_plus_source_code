@@ -149,7 +149,7 @@ void delete_all_files(const string path)
 {
     vector<string> file_name_vec = list_files_in_directory(path);
     for (string file_name : file_name_vec)
-        delete_file(path + "\\" + file_name);
+        delete_file(path + slash + file_name);
 }
 
 void rename_file(const string path_old, const string path_new)

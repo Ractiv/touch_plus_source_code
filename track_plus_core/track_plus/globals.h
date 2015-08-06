@@ -48,7 +48,7 @@ using namespace std;
 #endif
 
 extern const string cmd_quote;
-extern const string app_extension;
+extern const string slash;
 
 extern string serial_number;
 extern string executable_path;

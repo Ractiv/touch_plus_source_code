@@ -297,6 +297,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 
 					for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
 						if (blob.active)
+                        {
 							if (blob.x < x_separator_middle)
 							{
 								for (Point pt : blob.data)
@@ -313,6 +314,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 									gray_vec_right.push_back(gray);
 								}	
 							}
+                        }
 
 					if (gray_vec_left.size() > 0 && left_hand_is_moving)
 					{

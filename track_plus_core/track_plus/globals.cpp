@@ -18,31 +18,37 @@
 
 #include "globals.h"
 
-extern const string cmd_quote = "\"";
+const string cmd_quote = "\"";
 
-extern string serial_number = "";
-extern string executable_path = "";
-extern string data_path = "";
-extern string data_path_current_module = "";
-extern string settings_file_path = "";
-extern string menu_file_path = "";
-extern string ipc_path = "";
-extern string pose_database_path = "";
+#ifdef _WIN32
+const string slash = "\\";
+#elif __APPLE__
+const string slash = "/";
+#endif
 
-extern string pose_name = "";
-extern string target_pose_name = "";
-extern string child_module_name = "";
-extern string child_module_path = "";
-extern string mode = "";
+string serial_number = "";
+string executable_path = "";
+string data_path = "";
+string data_path_current_module = "";
+string settings_file_path = "";
+string menu_file_path = "";
+string ipc_path = "";
+string pose_database_path = "";
 
-extern bool play = true;
-extern bool enable_imshow = true;
-extern bool record_pose = false;
-extern bool pinch_to_zoom = false;
-extern bool has_plate = false;
-extern bool has_pen = false;
-extern bool motion_detected = false;
+string pose_name = "";
+string target_pose_name = "";
+string child_module_name = "";
+string child_module_path = "";
+string mode = "";
 
-extern int actuate_dist_raw = 7;
-extern int actuate_dist = actuate_dist_raw;
-extern int motion_state = -1;
+bool play = true;
+bool enable_imshow = true;
+bool record_pose = false;
+bool pinch_to_zoom = false;
+bool has_plate = false;
+bool has_pen = false;
+bool motion_detected = false;
+
+int actuate_dist_raw = 7;
+int actuate_dist = actuate_dist_raw;
+int motion_state = -1;
