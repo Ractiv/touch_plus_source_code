@@ -20,7 +20,7 @@
 
 vector<string> split_string(const string str_in, const string str_char)
 {
-	vector<string> result = vector<string>();
+	vector<string> result;
 	string str = "";
 
 	const int i_max = str_in.size();
@@ -39,6 +39,19 @@ vector<string> split_string(const string str_in, const string str_char)
 	}
 	result.push_back(str);
 	return result;		
+}
+
+bool string_has_line_break(string str_in)
+{
+	for (char& c : str_in)
+	{
+		string c_string = "";
+		c_string += c;
+		if (c_string == "\n")
+			return true;
+	}
+
+	return false;
 }
 
 string to_string(wstring ws)

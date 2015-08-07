@@ -53,3 +53,26 @@ bool string_has_line_break(string str_in)
 
 	return false;
 }
+
+string to_string(wstring ws)
+{
+	setlocale(LC_ALL, "");
+	const locale locale("");
+	typedef codecvt<wchar_t, char, mbstate_t> converter_type;
+	const converter_type& converter = use_facet<converter_type>(locale);
+	vector<char> to(ws.length() * converter.max_length());
+	mbstate_t state;
+	const wchar_t* from_next;
+	char* to_next;
+
+	const converter_type::result result =
+		converter.out(state, ws.data(), ws.data() + ws.length(), from_next, &to[0], &to[0] + to.size(), to_next);
+
+	if (result == converter_type::ok || result == converter_type::noconv)
+	{
+		const string s(&to[0], to_next);
+		return s;
+	}
+
+	return 0;
+}
