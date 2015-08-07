@@ -85,10 +85,14 @@ int main()
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 #endif
 {
+#ifdef _WIN32
 	char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 	data_path = executable_path + slash + "userdata";
 	settings_file_path = data_path + slash + "settings.nrocinunerrad";
 	ipc_path = executable_path + slash + "ipc";
@@ -189,7 +193,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	while (true)
 	{
 		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
-			create_shortcut(executable_path + slash + "daemon_plus.exe", get_startup_folder_path() + slash + "Touch+ Software.lnk", executable_path);
+			create_shortcut(executable_path + slash + "daemon_plus.exe",
+							get_startup_folder_path() + slash + "Touch+ Software.lnk",
+							executable_path);
+
 		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
 			delete_file(get_startup_folder_path() + slash + "Touch+ Software.lnk");
 

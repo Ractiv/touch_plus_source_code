@@ -41,6 +41,8 @@
 
 #ifdef _WIN32
 #include <VersionHelpers.h>
+#elif __APPLE__
+#include <mach-o/dyld.h>
 #endif
 
 using namespace std;
@@ -192,7 +194,12 @@ void init_paths()
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
 #elif __APPLE__
-    //todo: port to OSX
+    char path_buffer[1024];
+    uint32_t path_size = sizeof(path_buffer);
+    _NSGetExecutablePath(path_buffer, &path_size);
+    string path_str(path_buffer);
+    executable_path = path_str.substr(0, path_str.find_last_of("/"));
+    
 #endif
     data_path = executable_path + slash + "userdata";
     settings_file_path = data_path + slash + "settings.nrocinunerrad";
@@ -239,7 +246,7 @@ void on_first_frame()
         COUT << "please reconnect your Touch+ sensor" << endl;
         wait_for_device();
     }
-    
+
     COUT << "serial number: " << serial_number << endl;
 
     data_path_current_module = data_path + slash + serial_number;
@@ -247,7 +254,7 @@ void on_first_frame()
     int x_accel;
     int y_accel;
     int z_accel;
-    camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
+    camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);    
     
     Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
 
@@ -257,6 +264,8 @@ void on_first_frame()
         mode = "surface";
 
     ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
+
+    COUT << "here" << endl;
 
     reprojector.load(*ipc, true);
     CameraInitializerNew::init(camera);
