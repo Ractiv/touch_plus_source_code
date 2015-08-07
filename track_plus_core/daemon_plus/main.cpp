@@ -81,8 +81,10 @@ void ipc_thread_function()
 
 #ifdef SHOW_CONSOLE
 int main()
-#else
+#elif _WIN32
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+#else
+int main()
 #endif
 {
 #ifdef _WIN32
@@ -91,7 +93,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
 #elif __APPLE__
-    //todo: port to OSX
+    char path_buffer[1024];
+    uint32_t path_size = sizeof(path_buffer);
+    _NSGetExecutablePath(path_buffer, &path_size);
+    string path_str(path_buffer);
+    executable_path = path_str.substr(0, path_str.find_last_of("/"));
 #endif
 	data_path = executable_path + slash + "userdata";
 	settings_file_path = data_path + slash + "settings.nrocinunerrad";
@@ -187,20 +193,32 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		exit(0);
 	});
 
-	thread guardian_thread(guardian_thread_function);
-	thread ipc_thread(ipc_thread_function);
+	// thread guardian_thread(guardian_thread_function);
+	// thread ipc_thread(ipc_thread_function);
 
 	while (true)
 	{
 		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
+		{
+#ifdef _WIN32
 			create_shortcut(executable_path + slash + "daemon_plus.exe",
 							get_startup_folder_path() + slash + "Touch+ Software.lnk",
 							executable_path);
+#elif __APPLE__
+			//todo: port to OSX
+#endif
+		}
 
 		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
+		{
+#ifdef _WIN32
 			delete_file(get_startup_folder_path() + slash + "Touch+ Software.lnk");
+#elif __APPLE__
+			//todo: port to OSX
+#endif
+		}
 
-		Sleep(20);
+		Sleep(500);
 	}
 
 	return 0;

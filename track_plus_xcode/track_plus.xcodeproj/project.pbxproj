@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2B6B39861B73BEBF004FF61D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B6B39851B73BEBF004FF61D /* main.cpp */; };
 		2BAB61DF1B73C06D00202DAA /* blob_detector_new.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB617E1B73C06D00202DAA /* blob_detector_new.cpp */; };
 		2BAB61E01B73C06D00202DAA /* blob_new.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB61801B73C06D00202DAA /* blob_new.cpp */; };
 		2BAB61E21B73C06D00202DAA /* camera_initializer_new.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB61841B73C06D00202DAA /* camera_initializer_new.cpp */; };
@@ -60,6 +59,13 @@
 		2BAB633A1B74558200202DAA /* libuvc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB63391B74558200202DAA /* libuvc.dylib */; };
 		2BAB633C1B74564500202DAA /* libopencv_video.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB633B1B74564400202DAA /* libopencv_video.3.0.0.dylib */; };
 		2BAB633E1B74568300202DAA /* libopencv_imgcodecs.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB633D1B74568300202DAA /* libopencv_imgcodecs.3.0.0.dylib */; };
+		2BAB634E1B745D2400202DAA /* filesystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB63401B745D2300202DAA /* filesystem.cpp */; };
+		2BAB634F1B745D2400202DAA /* globals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB63421B745D2300202DAA /* globals.cpp */; };
+		2BAB63501B745D2400202DAA /* ipc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB63441B745D2300202DAA /* ipc.cpp */; };
+		2BAB63511B745D2400202DAA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB63461B745D2400202DAA /* main.cpp */; };
+		2BAB63521B745D2400202DAA /* processes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB63471B745D2400202DAA /* processes.cpp */; };
+		2BAB63531B745D2400202DAA /* string_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB634A1B745D2400202DAA /* string_functions.cpp */; };
+		2BAB63541B745D2400202DAA /* udp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BAB634C1B745D2400202DAA /* udp.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -87,7 +93,6 @@
 /* Begin PBXFileReference section */
 		2B6B39751B73BE8C004FF61D /* track_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = track_plus; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B6B39831B73BEBF004FF61D /* daemon_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = daemon_plus; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B6B39851B73BEBF004FF61D /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		2BAB617E1B73C06D00202DAA /* blob_detector_new.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = blob_detector_new.cpp; path = ../../track_plus_core/track_plus/blob_detector_new.cpp; sourceTree = "<group>"; };
 		2BAB617F1B73C06D00202DAA /* blob_detector_new.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blob_detector_new.h; path = ../../track_plus_core/track_plus/blob_detector_new.h; sourceTree = "<group>"; };
 		2BAB61801B73C06D00202DAA /* blob_new.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = blob_new.cpp; path = ../../track_plus_core/track_plus/blob_new.cpp; sourceTree = "<group>"; };
@@ -186,6 +191,20 @@
 		2BAB63391B74558200202DAA /* libuvc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libuvc.dylib; path = ../dependencies/OSX/LibUVC/lib/libuvc.dylib; sourceTree = "<group>"; };
 		2BAB633B1B74564400202DAA /* libopencv_video.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_video.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_video.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB633D1B74568300202DAA /* libopencv_imgcodecs.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_imgcodecs.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_imgcodecs.3.0.0.dylib; sourceTree = "<group>"; };
+		2BAB63401B745D2300202DAA /* filesystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = filesystem.cpp; path = ../../track_plus_core/daemon_plus/filesystem.cpp; sourceTree = "<group>"; };
+		2BAB63411B745D2300202DAA /* filesystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filesystem.h; path = ../../track_plus_core/daemon_plus/filesystem.h; sourceTree = "<group>"; };
+		2BAB63421B745D2300202DAA /* globals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = globals.cpp; path = ../../track_plus_core/daemon_plus/globals.cpp; sourceTree = "<group>"; };
+		2BAB63431B745D2300202DAA /* globals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = globals.h; path = ../../track_plus_core/daemon_plus/globals.h; sourceTree = "<group>"; };
+		2BAB63441B745D2300202DAA /* ipc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ipc.cpp; path = ../../track_plus_core/daemon_plus/ipc.cpp; sourceTree = "<group>"; };
+		2BAB63451B745D2300202DAA /* ipc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ipc.h; path = ../../track_plus_core/daemon_plus/ipc.h; sourceTree = "<group>"; };
+		2BAB63461B745D2400202DAA /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../track_plus_core/daemon_plus/main.cpp; sourceTree = "<group>"; };
+		2BAB63471B745D2400202DAA /* processes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = processes.cpp; path = ../../track_plus_core/daemon_plus/processes.cpp; sourceTree = "<group>"; };
+		2BAB63481B745D2400202DAA /* processes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = processes.h; path = ../../track_plus_core/daemon_plus/processes.h; sourceTree = "<group>"; };
+		2BAB63491B745D2400202DAA /* settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = settings.h; path = ../../track_plus_core/daemon_plus/settings.h; sourceTree = "<group>"; };
+		2BAB634A1B745D2400202DAA /* string_functions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string_functions.cpp; path = ../../track_plus_core/daemon_plus/string_functions.cpp; sourceTree = "<group>"; };
+		2BAB634B1B745D2400202DAA /* string_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = string_functions.h; path = ../../track_plus_core/daemon_plus/string_functions.h; sourceTree = "<group>"; };
+		2BAB634C1B745D2400202DAA /* udp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = udp.cpp; path = ../../track_plus_core/daemon_plus/udp.cpp; sourceTree = "<group>"; };
+		2BAB634D1B745D2400202DAA /* udp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = udp.h; path = ../../track_plus_core/daemon_plus/udp.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -341,7 +360,20 @@
 		2B6B39841B73BEBF004FF61D /* daemon_plus */ = {
 			isa = PBXGroup;
 			children = (
-				2B6B39851B73BEBF004FF61D /* main.cpp */,
+				2BAB63401B745D2300202DAA /* filesystem.cpp */,
+				2BAB63411B745D2300202DAA /* filesystem.h */,
+				2BAB63421B745D2300202DAA /* globals.cpp */,
+				2BAB63431B745D2300202DAA /* globals.h */,
+				2BAB63441B745D2300202DAA /* ipc.cpp */,
+				2BAB63451B745D2300202DAA /* ipc.h */,
+				2BAB63461B745D2400202DAA /* main.cpp */,
+				2BAB63471B745D2400202DAA /* processes.cpp */,
+				2BAB63481B745D2400202DAA /* processes.h */,
+				2BAB63491B745D2400202DAA /* settings.h */,
+				2BAB634A1B745D2400202DAA /* string_functions.cpp */,
+				2BAB634B1B745D2400202DAA /* string_functions.h */,
+				2BAB634C1B745D2400202DAA /* udp.cpp */,
+				2BAB634D1B745D2400202DAA /* udp.h */,
 			);
 			path = daemon_plus;
 			sourceTree = "<group>";
@@ -473,7 +505,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B6B39861B73BEBF004FF61D /* main.cpp in Sources */,
+				2BAB63531B745D2400202DAA /* string_functions.cpp in Sources */,
+				2BAB63501B745D2400202DAA /* ipc.cpp in Sources */,
+				2BAB634F1B745D2400202DAA /* globals.cpp in Sources */,
+				2BAB63521B745D2400202DAA /* processes.cpp in Sources */,
+				2BAB63511B745D2400202DAA /* main.cpp in Sources */,
+				2BAB63541B745D2400202DAA /* udp.cpp in Sources */,
+				2BAB634E1B745D2400202DAA /* filesystem.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
