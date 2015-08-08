@@ -28,7 +28,12 @@ bool directory_exists(const string path)
     if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
         return true;
 #elif __APPLE__
-    //todo: port to OSX
+    struct stat info;
+    
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else if (info.st_mode & S_IFDIR)
+        return true;
 #endif
     return false;
 }
@@ -70,7 +75,7 @@ void create_directory(const string path)
 #ifdef _WIN32
 	CreateDirectory(path.c_str(), NULL);
 #elif __APPLE__
-    //todo: port to OSX
+    mkdir(path.c_str(), 0775);
 #endif
 }
 

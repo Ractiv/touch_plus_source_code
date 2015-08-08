@@ -25,6 +25,11 @@
 #include <windows.h>
 #include <atlbase.h>
 #include <atlconv.h>
+#elif __APPLE__
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
 #endif
 
 #include <iostream>

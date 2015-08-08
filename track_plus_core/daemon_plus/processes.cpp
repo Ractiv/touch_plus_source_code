@@ -42,7 +42,21 @@ int process_running(const string name)
 
 	return process_count;
 #elif __APPLE__
-    //todo: port to OSX
+    string command = "ps -e > " + executable_path + "/processes.txt";
+    system(command.c_str());
+    
+    vector<string> lines = read_text_file(executable_path + "/processes.txt");
+    for (string& str : lines)
+    {
+        vector<string> str_parts = split_string(str, "/");
+        if (str_parts.size() > 1)
+        {
+            string process_name = str_parts[str_parts.size() - 1];
+            if (process_name == name)
+                return true;
+        }
+    }
+    
     return false;
 #endif
 }

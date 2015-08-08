@@ -113,7 +113,7 @@ int main()
 		delete_all_files(ipc_path);
 
 	Settings settings;
-
+    
 	if (!file_exists(settings_file_path))
 	{
 		settings.launch_on_startup = "1";
@@ -196,8 +196,10 @@ int main()
 		ipc.clear();
 		exit(0);
 	});
-
+    
+#ifdef _WIN32
 	thread guardian_thread(guardian_thread_function);
+#endif
 	thread ipc_thread(ipc_thread_function);
 
 #ifdef _WIN32
@@ -216,6 +218,11 @@ int main()
 #else if __APPLE__
     //todo: port to OSX
 #endif
+    
+    COUT << process_running("daemon_plus") << endl;
+    
+    while (true)
+        Sleep(1000);
 
 	return 0;
 }
