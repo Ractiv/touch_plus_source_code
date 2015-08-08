@@ -35,6 +35,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	Mat image_find_contours_clone = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	pt_palm = Point2f(0, 0);
 	int pt_palm_count = 0;
@@ -44,6 +45,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	{
 		blob.fill(image_find_contours, 254);
 		blob.fill(image_active_hand, 254);
+		blob.fill(image_find_contours_clone, 254);
 
 		for (Point& pt : blob.data)
 			if (pt.y > y_threshold)
@@ -57,10 +59,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	pt_palm.x /= pt_palm_count;
 	pt_palm.y /= pt_palm_count;
 
-	Mat image_find_contours_clone = image_find_contours.clone();
-
-	//find hand contour
-
 	vector<Vec4i> hiearchy;
 	vector<vector<Point>> contours;
 	findContours(image_find_contours, contours, hiearchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -72,9 +70,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		value_store.set_bool("reset", true);
 		return false;
 	}
-
-	//connect contours if more than one contour is detected, then find a single unified hand contour
-
 	else if (contours_size > 1)
 	{
 		vector<vector<Point>> contours_reduced(contours_size);

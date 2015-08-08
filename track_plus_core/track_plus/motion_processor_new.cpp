@@ -23,6 +23,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 	if (mode == "tool")
 		return false;
 
+	motion_state = 0;
+
 	static string motion_processor_primary_name = "";
 	if (motion_processor_primary_name == "")
 		motion_processor_primary_name = name;
@@ -54,11 +56,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 		BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
 		blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 
-		motion_state = 0;
 		if (blob_detector_image_subtraction->blobs->size() < 100 && blob_detector_image_subtraction->blobs->size() > 0)
 		{
-			motion_state = 1;
-
 			int intensity_array[WIDTH_SMALL] { 0 };
 			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
 				for (Point& pt : blob.data)
@@ -188,6 +187,9 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				left_hand_is_moving = true;
 				right_hand_is_moving = true;
 			}
+
+			if (left_hand_is_moving || right_hand_is_moving)
+				motion_state = 1;
 
 			static int compute_count = 0;
 			if (compute_count < 10)

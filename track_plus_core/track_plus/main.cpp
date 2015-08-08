@@ -283,10 +283,6 @@ void on_first_frame()
 #elif __APPLE__
         //todo: port to OSX
 #endif
-
-        //ipc->open_udp_channel(child_module_name);
-        ipc->send_message("menu_plus", "show window", "");  
-        ipc->send_message("menu_plus", "show wiggle", "");
     }
     else
     {
@@ -393,6 +389,15 @@ void compute()
 		imshow("image_remapped1", image_remapped1);
 		imshow("image_disparity_8u", image_disparity_8u);
     }*/
+
+	static bool show_wiggle_sent = false;
+	if (!show_wiggle_sent && child_module_name != "")
+	{
+		ipc->open_udp_channel(child_module_name);
+		ipc->send_message("menu_plus", "show window", "");
+		ipc->send_message("menu_plus", "show wiggle", "");
+	}
+	show_wiggle_sent = true;
 
     imshow("image_small0", image_small0);
     // imshow("image_small1", image_small1);
@@ -758,7 +763,7 @@ int main()
 #elif __APPLE__
     //todo: port to OSX
 #endif
-    //thread guardian_thread(guardian_thread_function);
+    thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);
     thread ipc_thread(ipc_thread_function);
