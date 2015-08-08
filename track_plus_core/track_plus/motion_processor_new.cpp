@@ -372,7 +372,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				static float diff_threshold_stereo;
 				if (name == motion_processor_primary_name)
 				{
-					diff_threshold = static_diff_max * 0.3;
+					diff_threshold = static_diff_max * 0.4;
 					low_pass_filter->compute(diff_threshold, 0.1, "diff_threshold");
 					diff_threshold_stereo = diff_threshold;
 				}

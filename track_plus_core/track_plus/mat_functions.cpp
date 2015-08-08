@@ -203,8 +203,6 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 
 		gray_min = gray_min_temp;
 		gray_max = gray_max_temp;
-
-		COUT << rand() << endl;
 	}
 	else
 	{

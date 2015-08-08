@@ -63,8 +63,12 @@ namespace win_cursor_plus
 
         public void Update()
         {
+            Console.Write("hello ");
+
             if (!IPC.Updated)
                 return;
+
+            Console.WriteLine("world");
 
             IPC.Updated = false;
 
