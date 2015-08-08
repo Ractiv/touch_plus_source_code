@@ -197,7 +197,7 @@ int main()
 		exit(0);
 	});
 
-	// thread guardian_thread(guardian_thread_function);
+	thread guardian_thread(guardian_thread_function);
 	thread ipc_thread(ipc_thread_function);
 
 #ifdef _WIN32
