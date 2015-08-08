@@ -40,6 +40,8 @@ public:
 	float gray_threshold_right = 9999;
 	float diff_threshold = 9999;
 
+	bool compute_y_separator_down = true;
+
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
 	ValueStore value_store;

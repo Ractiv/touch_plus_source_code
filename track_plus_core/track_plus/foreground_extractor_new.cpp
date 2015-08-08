@@ -58,8 +58,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		}
 
 	threshold(image_foreground, image_foreground, diff_threshold, 254, THRESH_BINARY);
-
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
+
+	int y_max = 0;
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.count < motion_processor.noise_size ||
 			blob.y > motion_processor.y_separator_down ||
@@ -71,6 +72,23 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		}
 		else if (blob.width <= 3 || blob.height <= 3)
 			blob.active = false;
+		else
+			if (blob.y_max > y_max)
+				y_max = blob.y_max;
+
+	int y_max_old = value_store.get_int("y_max_old", y_max);
+	value_store.set_int("y_max_old", y_max);
+
+	if (y_max > y_max_old)
+		y_max += (y_max - y_max_old) + 10;
+
+	if (y_max > HEIGHT_SMALL_MINUS)
+		y_max = HEIGHT_SMALL_MINUS;
+	else if (y_max < HEIGHT_SMALL_MINUS / 3)
+		y_max = HEIGHT_SMALL_MINUS / 3;
+
+	motion_processor.compute_y_separator_down = false;
+	motion_processor.y_separator_down = y_max;
 
 	if (visualize && enable_imshow)
 		imshow("image_foreground" + name, image_foreground);

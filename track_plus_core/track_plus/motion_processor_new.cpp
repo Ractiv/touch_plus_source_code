@@ -34,7 +34,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	if (value_store.get_bool("image_background_set") &&
-		value_store.get_int("current_frame") >= value_store.get_int("target_frame", 5))
+		value_store.get_int("current_frame") >= value_store.get_int("target_frame", 1))
 	{
 		value_store.set_int("current_frame", 0);
 
@@ -259,35 +259,39 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				BlobDetectorNew* blob_detector_image_histogram = value_store.get_blob_detector("blob_detector_image_histogram");
 				blob_detector_image_histogram->compute(image_histogram, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-				if (both_hands_are_moving)
+				if (compute_y_separator_down)
 				{
-					y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
-					value_store.set_int("y_separator_down_left", y_separator_down);
-					value_store.set_int("y_separator_down_right", y_separator_down);
-				}
-				else if (left_hand_is_moving)
-				{
-					int y_separator_down_left = blob_detector_image_histogram->blob_max_size->y_max;
-					int y_separator_down_right = value_store.get_int("y_separator_down_right", 0);
-					value_store.set_int("y_separator_down_left", y_separator_down_left);
+					if (both_hands_are_moving)
+					{
+						y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
+						value_store.set_int("y_separator_down_left", y_separator_down);
+						value_store.set_int("y_separator_down_right", y_separator_down);
+					}
+					else if (left_hand_is_moving)
+					{
+						int y_separator_down_left = blob_detector_image_histogram->blob_max_size->y_max;
+						int y_separator_down_right = value_store.get_int("y_separator_down_right", 0);
+						value_store.set_int("y_separator_down_left", y_separator_down_left);
 
-					if (y_separator_down_left > y_separator_down_right)
-						y_separator_down = y_separator_down_left;
-				}
-				else if (right_hand_is_moving)
-				{
-					int y_separator_down_right = blob_detector_image_histogram->blob_max_size->y_max;
-					int y_separator_down_left = value_store.get_int("y_separator_down_left", 0);
-					value_store.set_int("y_separator_down_right", y_separator_down_right);
+						if (y_separator_down_left > y_separator_down_right)
+							y_separator_down = y_separator_down_left;
+					}
+					else if (right_hand_is_moving)
+					{
+						int y_separator_down_right = blob_detector_image_histogram->blob_max_size->y_max;
+						int y_separator_down_left = value_store.get_int("y_separator_down_left", 0);
+						value_store.set_int("y_separator_down_right", y_separator_down_right);
 
-					if (y_separator_down_right > y_separator_down_left)
-						y_separator_down = y_separator_down_right;
+						if (y_separator_down_right > y_separator_down_left)
+							y_separator_down = y_separator_down_right;
+					}
+					
+					low_pass_filter->compute(y_separator_down, 0.5, "y_separator_down");
 				}
 
 				low_pass_filter->compute(x_separator_left, 0.5, "x_separator_left");
 				low_pass_filter->compute(x_separator_right, 0.5, "x_separator_right");
 				low_pass_filter->compute(x_separator_middle, 0.5, "x_separator_middle");
-				low_pass_filter->compute(y_separator_down, 0.5, "y_separator_down");
 
 				static float gray_threshold_left_stereo = 9999;
 				static float gray_threshold_right_stereo = 9999;
@@ -486,7 +490,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 			low_pass_filter->compute(noise_size, 0.1, "noise_size");
 		}
 
-		value_store.set_mat("image_background", image_in);
+		if (motion_state == 1)
+			value_store.set_mat("image_background", image_in);
 	}
 	
 	value_store.set_int("current_frame", value_store.get_int("current_frame") + 1);

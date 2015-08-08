@@ -20,11 +20,13 @@
 
 #include "motion_processor_new.h"
 #include "mat_functions.h"
+#include "value_store.h"
 
 class ForegroundExtractorNew
 {
 public:
 	BlobDetectorNew blob_detector;
+	ValueStore value_store;
 
 	bool compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize);
 };
