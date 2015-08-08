@@ -181,11 +181,8 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 		}
 	}
 
-	var pathOld = IpcPath + "/s" + self.selfName + IPC.SentCount.toString();
 	var pathNew = IpcPath + "/" + recipient + fileCount.toString();
-
-	WriteStringToFile(pathOld, messageHead + "!" + messageBody);
-	Renamefile(pathOld, pathNew);
+	WriteStringToFile(pathNew, messageHead + "!" + messageBody);
 
 	++IPC.SentCount;
 	DeleteFile(IpcPath + "/lock");

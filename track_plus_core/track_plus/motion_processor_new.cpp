@@ -135,7 +135,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 			}
 
 			if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
-				return false;
+				return value_store.get_bool("result", false);
 
 			float x_seed_vec0_max = seed_vec0[seed_vec0.size() - 1].x;
 			float x_seed_vec1_min = seed_vec1[0].x;
@@ -372,7 +372,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				static float diff_threshold_stereo;
 				if (name == motion_processor_primary_name)
 				{
-					diff_threshold = static_diff_max * 0.4;
+					diff_threshold = static_diff_max * 0.3;
 					low_pass_filter->compute(diff_threshold, 0.1, "diff_threshold");
 					diff_threshold_stereo = diff_threshold;
 				}

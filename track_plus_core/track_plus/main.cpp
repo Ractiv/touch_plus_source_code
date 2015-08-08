@@ -414,8 +414,6 @@ void compute()
         proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
         proceed = proceed0 && proceed1;
     }
-    else
-        hide_cursors();
 
     if (proceed)
     {
@@ -423,8 +421,6 @@ void compute()
         proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1");
         proceed = proceed0 && proceed1;
     }
-    else
-        hide_cursors();
 
     if (mode == "surface" && proceed)
     {
@@ -485,8 +481,6 @@ void compute()
                 }
             }
         }
-        else
-            hide_cursors();
 
         if (!pinch_to_zoom)
         {

@@ -143,11 +143,8 @@ void IPC::send_message(const string recipient, const string message_head, const 
 
 	static int sent_count = 0;
 
-	const string path_old = ipc_path + slash + "s" + self_name + to_string(sent_count);
 	const string path_new = ipc_path + slash + recipient + to_string(file_count);
-
-	write_string_to_file(path_old, message_head + "!" + message_body);
-	rename_file(path_old, path_new);
+	write_string_to_file(path_new, message_head + "!" + message_body);
 
 	++sent_count;
 	delete_file(ipc_path + slash + "lock");

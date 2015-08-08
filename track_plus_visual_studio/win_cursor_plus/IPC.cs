@@ -63,12 +63,8 @@ namespace win_cursor_plus
 
         public void Update()
         {
-            Console.Write("hello ");
-
             if (!IPC.Updated)
                 return;
-
-            Console.WriteLine("world");
 
             IPC.Updated = false;
 
@@ -179,11 +175,8 @@ namespace win_cursor_plus
                     }
             }
 
-            string pathOld = Globals.IpcPath + "\\s" + selfName + IPC.SentCount.ToString();
             string pathNew = Globals.IpcPath + "\\" + recipient + fileCount.ToString();
-
-            FileSystem.WriteStringToFile(pathOld, messageHead + "!" + messageBody);
-            FileSystem.RenameFile(pathOld, pathNew);
+            FileSystem.WriteStringToFile(pathNew, messageHead + "!" + messageBody);
 
             ++IPC.SentCount;
             FileSystem.DeleteFile(Globals.IpcPath + "\\lock");
