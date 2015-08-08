@@ -52,14 +52,14 @@
 
   $("body").css("overflow", "hidden");
 
-  $(document).ready(function()
+  /*$(document).ready(function()
   {
     $(window).resize(function()
     {
       window.resizeTo(640, 675);
       window.focus();
     });
-  });
+  });*/
 
   //----------------------------------------------------------------------------------------------------
 

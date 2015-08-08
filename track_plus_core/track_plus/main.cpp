@@ -355,6 +355,9 @@ void compute()
     resize(image0, image_small0, Size(160, 120), 0, 0, INTER_LINEAR);
     resize(image1, image_small1, Size(160, 120), 0, 0, INTER_LINEAR);
 
+    GaussianBlur(image_small0, image_small0, Size(1, 9), 0, 0);
+    GaussianBlur(image_small1, image_small1, Size(1, 9), 0, 0);
+
     Mat image_preprocessed0;
     Mat image_preprocessed1;
     compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");

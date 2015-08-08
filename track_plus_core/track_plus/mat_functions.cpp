@@ -175,6 +175,8 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 
 	static uchar gray_min;
 	static uchar gray_max;
+	static bool do_normalize = false;
+
 	if (name == channel_diff_image_primary_name && motion_state == 1)
 	{
 		vector<uchar> gray_vec;
@@ -203,6 +205,7 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 
 		gray_min = gray_min_temp;
 		gray_max = gray_max_temp;
+		do_normalize = true;
 	}
 	else
 	{
@@ -222,7 +225,7 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 			}
 	}
 
-	if (normalize && mode == "surface")
+	if (normalize && do_normalize && mode == "surface")
 		for (int i = 0; i < image_width_const; ++i)
 			for (int j = 0; j < image_height_const; ++j)
 			{
