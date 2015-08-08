@@ -18,12 +18,16 @@
 
 #pragma once
 
-#include <iostream>
+#ifdef _WIN32
 #include <windows.h>
 #include <tlhelp32.h>
-#include <string>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
+#endif
+
+#include <iostream>
+#include <string>
+#include "globals.h"
 
 using namespace std;
 

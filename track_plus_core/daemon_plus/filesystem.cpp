@@ -20,13 +20,16 @@
 
 bool directory_exists(const string path)
 {
+#ifdef _WIN32
     DWORD ftyp = GetFileAttributesA(path.c_str());
     if (ftyp == INVALID_FILE_ATTRIBUTES)
         return false;
 
     if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
         return true;
-
+#elif __APPLE__
+    //todo: port to OSX
+#endif
     return false;
 }
 
@@ -64,7 +67,11 @@ vector<string> list_files_in_directory(const string path)
 
 void create_directory(const string path)
 {
+#ifdef _WIN32
 	CreateDirectory(path.c_str(), NULL);
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 }
 
 void write_string_to_file(const string path, const string str)
@@ -112,6 +119,7 @@ void rename_file(const string path_old, const string path_new)
     rename(path_old.c_str() , path_new.c_str());
 }
 
+#ifdef _WIN32
 string get_startup_folder_path()
 {
     PWSTR pszPath;
@@ -127,9 +135,11 @@ string get_startup_folder_path()
     else
         return 0;
 }
+#endif
 
 int create_shortcut(string src_path, string dst_path, string working_directory)
 {
+#ifdef _WIN32
 	CoInitialize(NULL);
 	IShellLink* pShellLink = NULL;
 	HRESULT hres;
@@ -163,6 +173,9 @@ int create_shortcut(string src_path, string dst_path, string working_directory)
 		COUT << "Error 1" << endl;
 		return 1;
 	}
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 
 	return 0;
 }

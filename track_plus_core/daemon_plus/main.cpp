@@ -22,6 +22,10 @@
 #include "ipc.h"
 #include "processes.h"
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 #ifdef SHOW_CONSOLE
 #pragma comment(linker, "/subsystem:console")
 #else
@@ -193,33 +197,25 @@ int main()
 		exit(0);
 	});
 
-	thread guardian_thread(guardian_thread_function);
+	// thread guardian_thread(guardian_thread_function);
 	thread ipc_thread(ipc_thread_function);
 
+#ifdef _WIN32
 	while (true)
 	{
 		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
-		{
-#ifdef _WIN32
 			create_shortcut(executable_path + slash + "daemon_plus.exe",
 							get_startup_folder_path() + slash + "Touch+ Software.lnk",
 							executable_path);
-#elif __APPLE__
-			//todo: port to OSX
-#endif
-		}
 
 		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
-		{
-#ifdef _WIN32
 			delete_file(get_startup_folder_path() + slash + "Touch+ Software.lnk");
-#elif __APPLE__
-			//todo: port to OSX
-#endif
-		}
 
 		Sleep(500);
 	}
+#else if __APPLE__
+    //todo: port to OSX
+#endif
 
 	return 0;
 }

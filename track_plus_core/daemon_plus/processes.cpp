@@ -20,6 +20,7 @@
 
 int process_running(const string name)
 {
+#ifdef _WIN32
 	int process_count = 0;
 	HANDLE SnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -40,12 +41,17 @@ int process_running(const string name)
 	while (Process32Next(SnapShot, &procEntry));
 
 	return process_count;
+#elif __APPLE__
+    //todo: port to OSX
+    return false;
+#endif
 }
 
 void create_process(const string path, const string name, bool show_window, bool use_native_working_directory)
 {
 	if (!use_native_working_directory)
 	{
+#ifdef _WIN32
 		PROCESS_INFORMATION ProcessInfo;
 		STARTUPINFO StartupInfo;
 		ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -59,9 +65,18 @@ void create_process(const string path, const string name, bool show_window, bool
 
 		CloseHandle(ProcessInfo.hThread);
 		CloseHandle(ProcessInfo.hProcess);
+#elif __APPLE__
+        //todo: port to OSX
+#endif
 	}
 	else
+    {
+#ifdef _WIN32
 		ShellExecute(NULL, "runas", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif __APPLE__
+        //todo: port to OSX
+#endif
+    }
 
 	while (process_running(name.c_str()) == 0)
 		Sleep(1);
@@ -69,6 +84,7 @@ void create_process(const string path, const string name, bool show_window, bool
 
 void kill_process(const string name)
 {
+#ifdef _WIN32
 	CHAR szProcBuff[101];
 	DWORD pIDs[300], dwBytesReturned;
 	HANDLE hProcess;
@@ -88,4 +104,7 @@ void kill_process(const string name)
 
 			CloseHandle(hProcess);
 		}
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 }

@@ -54,6 +54,7 @@ bool string_has_line_break(string str_in)
 	return false;
 }
 
+#ifdef _WIN32
 string to_string(wstring ws)
 {
 	setlocale(LC_ALL, "");
@@ -76,3 +77,4 @@ string to_string(wstring ws)
 
 	return 0;
 }
+#endif

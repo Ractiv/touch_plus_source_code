@@ -18,16 +18,20 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include <direct.h>
 #include <atlstr.h>
 #include <ShlObj.h>
 #include <windows.h>
+#include <atlbase.h>
+#include <atlconv.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-#include <atlbase.h>
-#include <atlconv.h>
+
 #include "dirent.h"
 #include "string_functions.h"
 #include "globals.h"
