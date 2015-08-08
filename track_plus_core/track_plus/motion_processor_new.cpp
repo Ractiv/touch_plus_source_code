@@ -188,7 +188,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				right_hand_is_moving = true;
 			}
 
-			if (left_hand_is_moving || right_hand_is_moving)
+			if (blobs_count_left >= 500 || blobs_count_right >= 500)
 				motion_state = 1;
 
 			static int compute_count = 0;
@@ -285,7 +285,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 						if (y_separator_down_right > y_separator_down_left)
 							y_separator_down = y_separator_down_right;
 					}
-					
+
 					low_pass_filter->compute(y_separator_down, 0.5, "y_separator_down");
 				}
 
