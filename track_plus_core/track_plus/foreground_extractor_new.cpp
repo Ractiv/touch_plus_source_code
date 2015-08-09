@@ -76,19 +76,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 			if (blob.y_max > y_max)
 				y_max = blob.y_max;
 
-	int y_max_old = value_store.get_int("y_max_old", y_max);
-	value_store.set_int("y_max_old", y_max);
-
-	if (y_max > y_max_old)
-		y_max += (y_max - y_max_old) + 10;
-
-	if (y_max > HEIGHT_SMALL_MINUS)
-		y_max = HEIGHT_SMALL_MINUS;
-	else if (y_max < HEIGHT_SMALL_MINUS / 3)
-		y_max = HEIGHT_SMALL_MINUS / 3;
-
-	motion_processor.compute_y_separator_down = false;
-	motion_processor.y_separator_down = y_max;
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = y_max; j < HEIGHT_SMALL; ++j)
+			motion_processor.fill_image_background_static(i, j, image_in);
 
 	if (visualize && enable_imshow)
 		imshow("image_foreground" + name, image_foreground);

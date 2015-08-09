@@ -30,7 +30,7 @@ class MotionProcessorNew
 public:
 	int noise_size = 0;
 
-	float y_separator_down = -1;
+	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
 	float x_separator_middle = WIDTH_SMALL / 2;
 	float x_separator_left = 0;
@@ -40,7 +40,6 @@ public:
 	float gray_threshold_right = 9999;
 	float diff_threshold = 9999;
 
-	bool compute_y_separator_down = true;
 	bool compute_background_static = false;
 
 	bool left_hand_is_moving = false;
