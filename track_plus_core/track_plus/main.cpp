@@ -362,8 +362,8 @@ void compute()
 
     Mat image_preprocessed0;
     Mat image_preprocessed1;
-    compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", set_norm_range);
-    compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", set_norm_range);
+    bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
+                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", true);
 
     if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
         return;
@@ -413,10 +413,16 @@ void compute()
     static bool construct_background = false;
     static bool first_pass = true;
 
-    bool proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, construct_background, "0", true);
-    bool proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, construct_background, "1", true);
+    bool proceed0;
+    bool proceed1;
 
-    if (first_pass && motion_processor0.both_hands_are_moving && motion_processor1.both_hands_are_moving)
+    if (normalized)
+    {
+        proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, construct_background, "0", true);
+        proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, construct_background, "1", true);
+    }
+
+    if (first_pass && motion_processor0.both_hands_are_moving)
     {
         COUT << "readjusting exposure" << endl;
 
@@ -441,7 +447,7 @@ void compute()
     if (proceed)
     {
         proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
-        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
         proceed = proceed0 && proceed1;
     }
 

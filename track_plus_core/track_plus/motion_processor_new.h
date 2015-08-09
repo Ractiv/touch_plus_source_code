@@ -30,11 +30,11 @@ class MotionProcessorNew
 public:
 	int noise_size = 0;
 
-	int y_separator_down = -1;
-	int y_separator_up = 0;
-	int x_separator_middle = WIDTH_SMALL / 2;
-	int x_separator_left = 0;
-	int x_separator_right = WIDTH_SMALL;
+	float y_separator_down = -1;
+	float y_separator_up = 0;
+	float x_separator_middle = WIDTH_SMALL / 2;
+	float x_separator_left = 0;
+	float x_separator_right = WIDTH_SMALL;
 
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;

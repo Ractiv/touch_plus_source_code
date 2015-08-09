@@ -162,8 +162,10 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 			}
 }
 
-void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range)
+bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range)
 {
+	bool result = true;
+
 	static string channel_diff_image_primary_name = "";
 	if (channel_diff_image_primary_name == "")
 		channel_diff_image_primary_name = name;
@@ -200,8 +202,11 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 		uchar gray_min_new = gray_vec[gray_vec.size() * 0.01];
 		uchar gray_max_new = gray_vec[gray_vec.size() * 0.99];
 
-		mat_functions_low_pass_filter.compute(gray_min_new, 0.1, "gray_min_new");
-		mat_functions_low_pass_filter.compute(gray_max_new, 0.1, "gray_max_new");
+		mat_functions_low_pass_filter.compute(gray_min_new, 0.5, "gray_min_new");
+		mat_functions_low_pass_filter.compute(gray_max_new, 0.5, "gray_max_new");
+
+		if (abs(gray_min_new - gray_min) + abs(gray_max_new - gray_max) > 2)
+			result = false;
 
 		gray_min = gray_min_new;
 		gray_max = gray_max_new;
@@ -239,6 +244,7 @@ void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 			}
 
 	rectangle(image_out, Rect(0, 0, image_in.cols, image_in.rows), Scalar(0), 2);
+	return result;
 }
 
 void compute_max_image(Mat& image_in, Mat& image_out)

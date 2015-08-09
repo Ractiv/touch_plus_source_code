@@ -318,14 +318,14 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 
 			float dist_cursor_target_plane_no_lowpass = dist_target_plane - hit_dist_processed;
 
-			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 1)
+			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 3)
 				value_store.set_bool("actuated" + name, true);
 
 			if (value_store.get_bool("actuated" + name))
 			{
 				target_down = true;
 				
-				if (dist_cursor_target_plane_no_lowpass > actuation_dist + 3)
+				if (dist_cursor_target_plane_no_lowpass > actuation_dist + 5)
 				{
 					target_down = false;
 					value_store.set_bool("actuated" + name, false);

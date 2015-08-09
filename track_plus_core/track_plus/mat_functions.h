@@ -30,7 +30,7 @@ Mat rotate_image(const Mat& image_in, const float angle, const Point origin, con
 Mat translate_image(Mat& image_in, const int x_diff, const int y_diff);
 Mat resize_image(Mat& image_in, const float scale);
 void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& pt_dist_min, Point& pt_dist_max);
-void compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range = false);
+bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range = false);
 void compute_max_image(Mat& image_in, Mat& image_out);
 void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out);
 void compute_color_segmented_image(Mat& image_in, Mat& image_out);

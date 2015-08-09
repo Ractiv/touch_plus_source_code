@@ -65,13 +65,13 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 
 	if (step0 == false)
 	{
-		if (count == 10)
+		if (count == 1)
 		{
 			image_leds_on = image_in;
 			camera->turnLEDsOff();
 		}
 
-		if (count == 20)
+		if (count == 2)
 		{
 			step0 = true;	
 
