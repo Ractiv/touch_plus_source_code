@@ -22,6 +22,7 @@
 #include "globals.h"
 #include "math_plus.h"
 #include "low_pass_filter.h"
+#include "contour_functions.h"
 
 using namespace cv;
 

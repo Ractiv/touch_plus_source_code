@@ -26,6 +26,8 @@
 using namespace std;
 using namespace cv;
 
+vector<vector<Point>> legacyFindContours(Mat& Segmented);
+
 void approximate_contour(vector<Point>& points, vector<Point>& points_approximated, int theta_threshold, int skip_count);
 
 void compute_unwrap(vector<Point>& points, Point& pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,

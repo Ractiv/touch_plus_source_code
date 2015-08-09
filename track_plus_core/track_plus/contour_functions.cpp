@@ -18,6 +18,34 @@
 
 #include "contour_functions.h"
 
+vector<vector<Point>> legacyFindContours(Mat& Segmented)
+{
+	static const int thickness = 1;
+	static const int lineType = 8;
+
+	IplImage        SegmentedIpl = Segmented;
+	CvMemStorage*   storage = cvCreateMemStorage(0);
+	CvSeq*          contours = 0;
+	int             numCont = 0;
+	int             contAthresh = 45;
+
+	numCont = cvFindContours(&SegmentedIpl, storage, &contours, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+
+	vector<vector<Point>> result;
+	for (; contours != 0; contours = contours->h_next)
+	{
+		vector<Point> contour_current;
+		for (int i = 0; i<contours->total; ++i)
+		{
+			CvPoint* point = (CvPoint *)CV_GET_SEQ_ELEM(CvPoint, contours, i);
+			contour_current.push_back(Point(point->x, point->y));
+		}
+		result.push_back(contour_current);
+	}
+
+	return result;
+}
+
 void approximate_contour(vector<Point>& points, vector<Point>& points_approximated, int theta_threshold, int skip_count)
 {
 	if (points.size() == 0)

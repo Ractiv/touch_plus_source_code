@@ -125,9 +125,10 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 {
 	Mat image_find_contours = image_in.clone();
 
-	vector<Vec4i> hiearchy;
-	vector<vector<Point>> contours;
-	findContours(image_find_contours, contours, hiearchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	// vector<Vec4i> hiearchy;
+	// vector<vector<Point>> contours;
+	// findContours(image_find_contours, contours, hiearchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	vector<vector<Point>> contours = legacyFindContours(image_find_contours);
 
 	dist_min = 9999;
 	dist_max = 0;

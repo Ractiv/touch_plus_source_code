@@ -39,7 +39,11 @@ function FileExists(path)
 
 function WriteStringToFile(path, str)
 {
-	fs.writeFileSync(path, str);
+    try
+    {
+	   fs.writeFileSync(path, str);
+    }
+    catch (e) { }
 }
 
 function ReadTextFile(path)
@@ -56,7 +60,11 @@ function ReadTextFile(path)
 
 function DeleteFile(path)
 {
-	fs.unlinkSync(path);
+    try
+    {
+	   fs.unlinkSync(path);
+    }
+    catch (e) { }
 }
 
 function DeleteFolder(path)
