@@ -24,7 +24,10 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 		return false;
 
 	if (compute_background_static == false && construct_background == true)
+	{
 		value_store.set_bool("image_background_set", false);
+		value_store.set_bool("result", false);
+	}
 
 	compute_background_static = construct_background;
 
@@ -42,6 +45,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 
 	if (value_store.get_bool("image_background_set"))
 	{
+		value_store.set_bool("update_background", false);
+
 		uchar motion_diff_max = 0;
 		Mat image_subtraction = Mat(image_in.size(), CV_8UC1);
 
@@ -62,118 +67,126 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 
 		if (blob_detector_image_subtraction->blobs->size() < 100 && blob_detector_image_subtraction->blobs->size() > 0)
 		{
-			int intensity_array[WIDTH_SMALL] { 0 };
-			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-				for (Point& pt : blob.data)
-					++intensity_array[pt.x];
+			int x_min = blob_detector_image_subtraction->x_min_result;
+			int x_max = blob_detector_image_subtraction->x_max_result;
 
-			int x_min = 9999;
-			int x_max = 0;
+			float x_seed_vec0_max = value_store.get_float("x_seed_vec0_max");
+			float x_seed_vec1_min = value_store.get_float("x_seed_vec1_min");
 
-			vector<Point> hist_pt_vec;
-			for (int i = 0; i < WIDTH_SMALL; ++i)
+			if (value_store.get_bool("image_background_updated"))
 			{
-				int j = intensity_array[i];
-				low_pass_filter->compute(j, 0.5, "histogram_j");
+				value_store.set_bool("image_background_updated", false);
 
-				if (j < 10)
-					continue;
+				int intensity_array[WIDTH_SMALL] { 0 };
+				for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+					for (Point& pt : blob.data)
+						++intensity_array[pt.x];
 
-				for (int j_current = 0; j_current < j; ++j_current)
-					hist_pt_vec.push_back(Point(i, j_current));
-
-				if (i < x_min)
-					x_min = i;
-				if (i > x_max)
-					x_max = i;
-			}
-
-			Point seed0 = Point(x_min, 0);
-			Point seed1 = Point(x_max, 0);
-
-			vector<Point> seed_vec0;
-			vector<Point> seed_vec1;
-
-			while (true)
-			{
-				seed_vec0.clear();
-				seed_vec1.clear();
-
-				for (Point& pt : hist_pt_vec)
+				vector<Point> hist_pt_vec;
+				for (int i = 0; i < WIDTH_SMALL; ++i)
 				{
-					float dist0 = get_distance(pt, seed0);
-					float dist1 = get_distance(pt, seed1);
+					int j = intensity_array[i];
+					low_pass_filter->compute(j, 0.5, "histogram_j");
 
-					if (dist0 < dist1)
-						seed_vec0.push_back(pt);
-					else
-						seed_vec1.push_back(pt);
+					if (j < 10)
+						continue;
+
+					for (int j_current = 0; j_current < j; ++j_current)
+						hist_pt_vec.push_back(Point(i, j_current));
+				}
+
+				Point seed0 = Point(x_min, 0);
+				Point seed1 = Point(x_max, 0);
+
+				vector<Point> seed_vec0;
+				vector<Point> seed_vec1;
+
+				while (true)
+				{
+					seed_vec0.clear();
+					seed_vec1.clear();
+
+					for (Point& pt : hist_pt_vec)
+					{
+						float dist0 = get_distance(pt, seed0);
+						float dist1 = get_distance(pt, seed1);
+
+						if (dist0 < dist1)
+							seed_vec0.push_back(pt);
+						else
+							seed_vec1.push_back(pt);
+					}
+
+					if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
+						break;
+
+					Point seed0_new = Point(0, 0);
+					for (Point& pt : seed_vec0)
+					{
+						seed0_new.x += pt.x;
+						seed0_new.y += pt.y;
+					}
+					seed0_new.x /= seed_vec0.size();
+					seed0_new.y /= seed_vec0.size();
+
+					Point seed1_new = Point(0, 0);
+					for (Point& pt : seed_vec1)
+					{
+						seed1_new.x += pt.x;
+						seed1_new.y += pt.y;
+					}
+					seed1_new.x /= seed_vec1.size();
+					seed1_new.y /= seed_vec1.size();
+
+					if (seed0 == seed0_new && seed1 == seed1_new)
+						break;
+
+					seed0 = seed0_new;
+					seed1 = seed1_new;
 				}
 
 				if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
-					break;
+					return value_store.get_bool("result", false);
 
-				Point seed0_new = Point(0, 0);
-				for (Point& pt : seed_vec0)
+				x_seed_vec0_max = seed_vec0[seed_vec0.size() - 1].x;
+				x_seed_vec1_min = seed_vec1[0].x;
+
+				low_pass_filter->compute_if_smaller(x_seed_vec0_max, 0.5, "x_seed_vec0_max");
+				low_pass_filter->compute_if_larger(x_seed_vec1_min, 0.5, "x_seed_vec1_min");
+
+				value_store.set_float("x_seed_vec0_max", x_seed_vec0_max);
+				value_store.set_float("x_seed_vec1_min", x_seed_vec1_min);
+
+				value_store.set_bool("x_min_max_set", true);
+
+				if (false) //for visualization
 				{
-					seed0_new.x += pt.x;
-					seed0_new.y += pt.y;
+					Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+					for (Point& pt : seed_vec0)
+						line(image_histogram, pt, Point(pt.x, 0), Scalar(127), 1);
+
+					for (Point& pt : seed_vec1)
+						line(image_histogram, pt, Point(pt.x, 0), Scalar(254), 1);
+
+					circle(image_histogram, seed0, 5, Scalar(64), -1);
+					circle(image_histogram, seed1, 5, Scalar(64), -1);
+
+					line(image_histogram, Point(x_seed_vec0_max, 0), Point(x_seed_vec0_max, 9999), Scalar(64), 1);
+					line(image_histogram, Point(x_seed_vec1_min, 0), Point(x_seed_vec1_min, 9999), Scalar(64), 1);
+
+					imshow("image_histogramasd" + name, image_histogram);
 				}
-				seed0_new.x /= seed_vec0.size();
-				seed0_new.y /= seed_vec0.size();
 
-				Point seed1_new = Point(0, 0);
-				for (Point& pt : seed_vec1)
-				{
-					seed1_new.x += pt.x;
-					seed1_new.y += pt.y;
-				}
-				seed1_new.x /= seed_vec1.size();
-				seed1_new.y /= seed_vec1.size();
+				float hand_width0 = x_seed_vec0_max - x_min;
+				float hand_width1 = x_max - x_seed_vec1_min;
+				float hand_width_max = max(hand_width0, hand_width1);
+				float gap_width = x_seed_vec1_min - x_seed_vec0_max;
+				float total_width = x_max - x_min;
+				float gap_ratio = gap_width / hand_width_max;
 
-				if (seed0 == seed0_new && seed1 == seed1_new)
-					break;
-
-				seed0 = seed0_new;
-				seed1 = seed1_new;
+				both_hands_are_moving = (total_width > 60 && gap_ratio > 0.8);
 			}
-
-			if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
-				return value_store.get_bool("result", false);
-
-			float x_seed_vec0_max = seed_vec0[seed_vec0.size() - 1].x;
-			float x_seed_vec1_min = seed_vec1[0].x;
-
-			low_pass_filter->compute_if_smaller(x_seed_vec0_max, 0.5, "x_seed_vec0_max");
-			low_pass_filter->compute_if_larger(x_seed_vec1_min, 0.5, "x_seed_vec1_min");
-
-			if (false) //for visualization
-			{
-				Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
-				for (Point& pt : seed_vec0)
-					line(image_histogram, pt, Point(pt.x, 0), Scalar(127), 1);
-
-				for (Point& pt : seed_vec1)
-					line(image_histogram, pt, Point(pt.x, 0), Scalar(254), 1);
-
-				circle(image_histogram, seed0, 5, Scalar(64), -1);
-				circle(image_histogram, seed1, 5, Scalar(64), -1);
-
-				line(image_histogram, Point(x_seed_vec0_max, 0), Point(x_seed_vec0_max, 9999), Scalar(64), 1);
-				line(image_histogram, Point(x_seed_vec1_min, 0), Point(x_seed_vec1_min, 9999), Scalar(64), 1);
-
-				imshow("image_histogramasd" + name, image_histogram);
-			}
-
-			float hand_width0 = x_seed_vec0_max - x_min;
-			float hand_width1 = x_max - x_seed_vec1_min;
-			float hand_width_max = max(hand_width0, hand_width1);
-			float gap_width = x_seed_vec1_min - x_seed_vec0_max;
-			float total_width = x_max - x_min;
-			float gap_ratio = gap_width / hand_width_max;
-
-			both_hands_are_moving = (total_width > 80 && gap_ratio > 0.3);
 
 			int blobs_count_left = 0;
 			int blobs_count_right = 0;
@@ -183,8 +196,11 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 				else
 					blobs_count_right += blob.count;
 
-			left_hand_is_moving = blobs_count_left / x_separator_middle >= 20 || blobs_count_left >= 1000;
-			right_hand_is_moving = blobs_count_right / (WIDTH_SMALL - x_separator_middle) >= 20 || blobs_count_right >= 1000;
+			left_hand_is_moving = blobs_count_left >= 500;
+			right_hand_is_moving = blobs_count_right >= 500;
+
+			bool update_background = (x_max - x_min > 60) && (blobs_count_left + blobs_count_right > 500);
+			value_store.set_bool("update_background", update_background);
 
 			if (both_hands_are_moving)
 			{
@@ -196,7 +212,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 			if (compute_count < 10)
 				++compute_count;
 
-			if ((left_hand_is_moving || right_hand_is_moving) && compute_count >= 10)
+			if ((left_hand_is_moving || right_hand_is_moving) && compute_count >= 10 && value_store.get_bool("x_min_max_set"))
 			{
 				if (both_hands_are_moving)
 				{
@@ -288,11 +304,10 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 					}
 
 					low_pass_filter->compute(y_separator_down, 0.5, "y_separator_down");
+					low_pass_filter->compute(x_separator_left, 0.5, "x_separator_left");
+					low_pass_filter->compute(x_separator_right, 0.5, "x_separator_right");
+					low_pass_filter->compute(x_separator_middle, 0.5, "x_separator_middle");
 				}
-
-				low_pass_filter->compute(x_separator_left, 0.5, "x_separator_left");
-				low_pass_filter->compute(x_separator_right, 0.5, "x_separator_right");
-				low_pass_filter->compute(x_separator_middle, 0.5, "x_separator_middle");
 
 				static float gray_threshold_left_stereo = 9999;
 				static float gray_threshold_right_stereo = 9999;
@@ -491,8 +506,11 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 			low_pass_filter->compute(noise_size, 0.1, "noise_size");
 		}
 
-		if (left_hand_is_moving || right_hand_is_moving)
+		if (left_hand_is_moving || right_hand_is_moving || value_store.get_bool("update_background"))
+		{
 			value_store.set_mat("image_background", image_in);
+			value_store.set_bool("image_background_updated", true);
+		}
 	}
 	
 	if (value_store.get_bool("image_background_set") == false)
@@ -513,7 +531,7 @@ inline void MotionProcessorNew::fill_image_background_static(const int x, const 
 	if (*pix_ptr == 255)
 		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
 	else
-		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.01);
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.1);
 }
 
 Mat MotionProcessorNew::compute_image_foreground(Mat& image_in)
