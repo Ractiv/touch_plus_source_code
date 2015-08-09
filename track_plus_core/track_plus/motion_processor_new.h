@@ -41,12 +41,17 @@ public:
 	float diff_threshold = 9999;
 
 	bool compute_y_separator_down = true;
+	bool compute_background_static = false;
+
+	bool left_hand_is_moving = false;
+	bool right_hand_is_moving = false;
+	bool both_hands_are_moving = false;
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
 	ValueStore value_store;
 
-	bool compute(Mat& image_in, Mat& image_raw_in, const string name, const bool visualize);
+	bool compute(Mat& image_in, Mat& image_raw_in, bool construct_background, const string name, const bool visualize);
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 	Mat compute_image_foreground(Mat& image_in);
 };

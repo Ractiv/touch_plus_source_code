@@ -38,7 +38,7 @@ public:
 	static LowPassFilter low_pass_filter;
 	
 	static void init(Camera* camera);
-	static bool adjust_exposure(Camera* camera, Mat& image_in);
+	static bool adjust_exposure(Camera* camera, Mat& image_in, bool reset = false);
 	static float linear(float x);
 	static void preset0(Camera* camera);
 	static void preset1(Camera* camera);

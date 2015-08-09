@@ -51,4 +51,3 @@ bool motion_detected = false;
 
 int actuate_dist_raw = 7;
 int actuate_dist = actuate_dist_raw;
-int motion_state = -1;

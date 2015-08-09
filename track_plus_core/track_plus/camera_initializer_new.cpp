@@ -27,6 +27,8 @@ LowPassFilter CameraInitializerNew::low_pass_filter;
 
 void CameraInitializerNew::init(Camera* camera)
 {
+	COUT << "initializing camera" << endl;
+
 	exposure_max = 15;
 	exposure_val = exposure_max;
 	l_exposure_old = 0;
@@ -39,12 +41,19 @@ void CameraInitializerNew::init(Camera* camera)
 	preset1(camera);
 }
 
-bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
+bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool reset)
 {
 	static int count = 0;
-
 	static bool step0 = false;
 	static bool step1 = false;
+
+	if (reset)
+	{
+		init(camera);
+		count = 0;
+		step0 = false;
+		step1 = false;
+	}
 
 	if (step0 == true && step1 == true)
 		return true;
@@ -63,13 +72,19 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in)
 		}
 
 		if (count == 20)
-			step0 = true;		
+		{
+			step0 = true;	
+
+			COUT << "setting exposure step 0 complete" << endl;
+		}
 	}
 	else if (step1 == false)
 	{
 		image_leds_off = image_in;
 		camera->turnLEDsOn();
 		step1 = true;
+		
+		COUT << "setting exposure step 1 complete" << endl;
 	}
 
 	if (step0 == true && step1 == true)

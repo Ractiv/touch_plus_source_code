@@ -358,10 +358,12 @@ void compute()
     GaussianBlur(image_small0, image_small0, Size(1, 9), 0, 0);
     GaussianBlur(image_small1, image_small1, Size(1, 9), 0, 0);
 
+    bool set_norm_range = motion_processor0.both_hands_are_moving || !motion_processor0.compute_background_static;
+
     Mat image_preprocessed0;
     Mat image_preprocessed1;
-    compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0");
-    compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1");
+    compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", set_norm_range);
+    compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", set_norm_range);
 
     if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
         return;
@@ -407,9 +409,34 @@ void compute()
     imshow("image_preprocessed0", image_preprocessed0);
     // imshow("image_preprocessed1", image_preprocessed1);
 
-    bool proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, "0", true);
-    bool proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, "1", false);
-    bool proceed = proceed0 && proceed1;
+    static bool motion_processor_proceed = false;
+    static bool construct_background = false;
+    static bool first_pass = true;
+
+    bool proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, construct_background, "0", true);
+    bool proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, construct_background, "1", false);
+
+    if (first_pass && motion_processor0.both_hands_are_moving && motion_processor1.both_hands_are_moving)
+    {
+        COUT << "readjusting exposure" << endl;
+
+        first_pass = false;
+        exposure_adjusted = false;
+        CameraInitializerNew::adjust_exposure(camera, image_preprocessed0, true);
+    }
+    else if (!first_pass)
+        construct_background = true;
+
+    if (!construct_background)
+    {
+        proceed0 = false;
+        proceed1 = false;            
+    }
+
+    if (proceed0 && proceed1)
+        motion_processor_proceed = true;
+
+    bool proceed = motion_processor_proceed;
 
     if (proceed)
     {

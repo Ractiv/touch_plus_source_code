@@ -18,12 +18,15 @@
 
 #include "motion_processor_new.h"
 
-bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string name, const bool visualize)
+bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construct_background, const string name, const bool visualize)
 {
 	if (mode == "tool")
 		return false;
 
-	motion_state = 0;
+	if (compute_background_static == false && construct_background == true)
+		value_store.set_bool("image_background_set", false);
+
+	compute_background_static = construct_background;
 
 	static string motion_processor_primary_name = "";
 	if (motion_processor_primary_name == "")
@@ -33,11 +36,12 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
-	if (value_store.get_bool("image_background_set") &&
-		value_store.get_int("current_frame") >= value_store.get_int("target_frame", 1))
-	{
-		value_store.set_int("current_frame", 0);
+	left_hand_is_moving = false;
+	right_hand_is_moving = false;
+	both_hands_are_moving = false;
 
+	if (value_store.get_bool("image_background_set"))
+	{
 		uchar motion_diff_max = 0;
 		Mat image_subtraction = Mat(image_in.size(), CV_8UC1);
 
@@ -169,7 +173,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 			float total_width = x_max - x_min;
 			float gap_ratio = gap_width / hand_width_max;
 
-			bool both_hands_are_moving = (total_width > 80 && gap_ratio > 0.3);
+			both_hands_are_moving = (total_width > 80 && gap_ratio > 0.3);
 
 			int blobs_count_left = 0;
 			int blobs_count_right = 0;
@@ -179,17 +183,14 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 				else
 					blobs_count_right += blob.count;
 
-			bool left_hand_is_moving = blobs_count_left / x_separator_middle >= 10 || blobs_count_left >= 500;
-			bool right_hand_is_moving = blobs_count_right / (WIDTH_SMALL - x_separator_middle) >= 10 || blobs_count_right >= 500;
+			left_hand_is_moving = blobs_count_left / x_separator_middle >= 20 || blobs_count_left >= 1000;
+			right_hand_is_moving = blobs_count_right / (WIDTH_SMALL - x_separator_middle) >= 20 || blobs_count_right >= 1000;
 
 			if (both_hands_are_moving)
 			{
 				left_hand_is_moving = true;
 				right_hand_is_moving = true;
 			}
-
-			if (blobs_count_left >= 500 || blobs_count_right >= 500)
-				motion_state = 1;
 
 			static int compute_count = 0;
 			if (compute_count < 10)
@@ -445,22 +446,22 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 
 				if (both_hands_are_moving)
 				{
-					int hit_y_max = -1;
-					for (int j = 0; j < y_separator_down / 2; ++j)
-						if (image_in_thresholded.ptr<uchar>(j, x_separator_middle)[0] == 254)
-							hit_y_max = j;
+					// int hit_y_max = -1;
+					// for (int j = 0; j < y_separator_down / 2; ++j)
+					// 	if (image_in_thresholded.ptr<uchar>(j, x_separator_middle)[0] == 254)
+					// 		hit_y_max = j;
 
-					if (hit_y_max >= 0)
-					{
-						y_separator_up = hit_y_max;
-						low_pass_filter->compute(y_separator_up, 0.5, "y_separator_up");
+					// if (hit_y_max >= 0)
+					// {
+					// 	y_separator_up = hit_y_max;
+					// 	low_pass_filter->compute(y_separator_up, 0.5, "y_separator_up");
 
-						const int y_separator_up_const = y_separator_up;
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-							for (int j = 0; j <= y_separator_up_const; ++j)
-								if (image_in_thresholded.ptr<uchar>(j, i)[0] == 254)
-									fill_image_background_static(i, j, image_in);
-					}
+					// 	const int y_separator_up_const = y_separator_up;
+					// 	for (int i = 0; i < WIDTH_SMALL; ++i)
+					// 		for (int j = 0; j <= y_separator_up_const; ++j)
+					// 			if (image_in_thresholded.ptr<uchar>(j, i)[0] == 254)
+					// 				fill_image_background_static(i, j, image_in);
+					// }
 
 					value_store.set_bool("result", true);
 				}
@@ -490,12 +491,10 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 			low_pass_filter->compute(noise_size, 0.1, "noise_size");
 		}
 
-		if (motion_state == 1)
+		if (left_hand_is_moving || right_hand_is_moving)
 			value_store.set_mat("image_background", image_in);
 	}
 	
-	value_store.set_int("current_frame", value_store.get_int("current_frame") + 1);
-
 	if (value_store.get_bool("image_background_set") == false)
 		value_store.set_mat("image_background", image_in);
 
@@ -506,12 +505,15 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const string 
 
 inline void MotionProcessorNew::fill_image_background_static(const int x, const int y, Mat& image_in)
 {
+	if (!compute_background_static)
+		return;
+
 	uchar* pix_ptr = &(image_background_static.ptr<uchar>(y, x)[0]);
 
 	if (*pix_ptr == 255)
 		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
 	else
-		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.25);
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.01);
 }
 
 Mat MotionProcessorNew::compute_image_foreground(Mat& image_in)
