@@ -21,5 +21,5 @@ function terminate()
 
 function ShowNotification(notificationHead, notificationBody)
 {
-	var notification = new Notification(notificationHead, { body: notificationBody });
+	var notification = new Notification(notificationHead, { body: notificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 }

@@ -24,6 +24,7 @@
 #include "ipc.h"
 #include "Camera.h"
 #include "imu.h"
+#include "surface_computer.h"
 #include "mat_functions.h"
 #include "camera_initializer_new.h"
 #include "motion_processor_new.h"
@@ -72,6 +73,8 @@ IPC* ipc = NULL;
 Camera* camera = NULL;
 
 IMU imu;
+
+SurfaceComputer surface_computer;
 
 MotionProcessorNew motion_processor0;
 MotionProcessorNew motion_processor1;
@@ -302,6 +305,8 @@ void on_first_frame()
     {
         load_settings();
     });
+
+    surface_computer.init(image_current_frame);
 }
 
 void compute()
@@ -358,8 +363,6 @@ void compute()
     GaussianBlur(image_small0, image_small0, Size(1, 9), 0, 0);
     GaussianBlur(image_small1, image_small1, Size(1, 9), 0, 0);
 
-    bool set_norm_range = motion_processor0.both_hands_are_moving || !motion_processor0.compute_background_static;
-
     Mat image_preprocessed0;
     Mat image_preprocessed1;
     bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
@@ -368,7 +371,12 @@ void compute()
     if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
         return;
 
+    static bool exposure_adjusted_old;
+    exposure_adjusted_old = exposure_adjusted;
     exposure_adjusted = true;
+
+    if (exposure_adjusted && !exposure_adjusted_old)
+        return;
 
     /*{
         Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
@@ -395,6 +403,8 @@ void compute()
 		imshow("image_disparity_8u", image_disparity_8u);
     }*/
 
+    surface_computer.compute(image_preprocessed0);
+
 	static bool show_wiggle_sent = false;
 	if (!show_wiggle_sent && child_module_name != "")
 	{
@@ -404,7 +414,7 @@ void compute()
 	}
 	show_wiggle_sent = true;
 
-    if (enable_imshow)
+    if (enable_imshow && false)
     {
         imshow("image_small0", image_small0);
         // imshow("image_small1", image_small1);

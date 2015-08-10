@@ -20,6 +20,10 @@
 
 bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construct_background, const string name, const bool visualize)
 {
+	static string motion_processor_primary_name = "";
+	if (motion_processor_primary_name == "")
+		motion_processor_primary_name = name;
+	
 	if (mode == "tool")
 		return false;
 
@@ -39,12 +43,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 
 	compute_background_static = construct_background;
 
-	static string motion_processor_primary_name = "";
-	if (motion_processor_primary_name == "")
-		motion_processor_primary_name = name;
-
 	Mat image_background = value_store.get_mat("image_background");
-
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	left_hand_is_moving = false;
@@ -237,15 +236,15 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 			{
 				if (both_hands_are_moving)
 				{
-					x_separator_left = x_min + 10;
-					x_separator_right = x_max - 10;
+					x_separator_left = x_min;
+					x_separator_right = x_max;
 
 					x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
 					value_store.set_bool("x_separator_middle_set", true);
 				}
 				else if (left_hand_is_moving)
 				{
-					x_separator_left = x_min + 10;
+					x_separator_left = x_min;
 
 					if (!value_store.get_bool("x_separator_middle_set"))
 					{
@@ -255,7 +254,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 				}
 				else if (right_hand_is_moving)
 				{
-					x_separator_right = x_max - 10;
+					x_separator_right = x_max;
 
 					if (!value_store.get_bool("x_separator_middle_set"))
 					{
@@ -566,12 +565,11 @@ inline void MotionProcessorNew::fill_image_background_static(const int x, const 
 		return;
 
 	uchar* pix_ptr = &(image_background_static.ptr<uchar>(y, x)[0]);
-	const float multiplier = (float)value_store.get_int("count_total") / 20;
 
 	if (*pix_ptr == 255)
 		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
 	else
-		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * multiplier);
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.1);
 }
 
 Mat MotionProcessorNew::compute_image_foreground(Mat& image_in)

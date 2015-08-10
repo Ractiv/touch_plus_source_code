@@ -42,7 +42,7 @@ string child_module_path = "";
 string mode = "";
 
 bool play = true;
-bool enable_imshow = false;
+bool enable_imshow = true;
 bool record_pose = false;
 bool pinch_to_zoom = false;
 bool has_plate = false;

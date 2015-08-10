@@ -123,7 +123,7 @@
     var str_vec = messageBody.split(":");
     var notificationHead = str_vec[0];
     var notificationBody = str_vec[1];
-    var notification = new Notification(notificationHead, { body: notificationBody });
+    var notification = new Notification(notificationHead, { body: notificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
   });
 
   ipc.MapFunction("exit", function(messageBody)
