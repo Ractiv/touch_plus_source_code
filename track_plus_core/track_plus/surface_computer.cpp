@@ -101,6 +101,8 @@ void SurfaceComputer::init(Mat& image_in)
     pt_start_vec.clear();
     pt_end_vec.clear();
 
+    vector<int> horizontal_y_vec;
+
     vector<Vec4i> lines;
     HoughLinesP(image_canny, lines, 1, CV_PI/180, 50, 50, 10 );
     for( size_t i = 0; i < lines.size(); i++ )
@@ -115,9 +117,21 @@ void SurfaceComputer::init(Mat& image_in)
 
             if (pt0.y == pt1.y)
             {
-                pt_start_vec.push_back(pt0);
-                pt_end_vec.push_back(pt1);
-    			// line(image_visualization, pt0, pt1, Scalar(127), 2);
+            	bool found = false;
+            	for (int& horizontal_y : horizontal_y_vec)
+            		if (abs(horizontal_y - pt0.y) < 15)
+            		{
+            			found = true;
+            			break;
+            		}
+
+            	if (!found)
+            	{
+	                pt_start_vec.push_back(pt0);
+	                pt_end_vec.push_back(pt1);
+	                horizontal_y_vec.push_back(pt0.y);
+	    			// line(image_visualization, pt0, pt1, Scalar(127), 2);
+	            }
             }
             else if (pt0.x < pt1.x && ((pt0.x + pt1.x) / 2) < (WIDTH_LARGE / 2) && pt0.y > pt1.y && slope > 0.5)
             {
@@ -149,7 +163,7 @@ void SurfaceComputer::compute(Mat& image_in)
 		pt_end.x /= 4;
 		pt_end.y /= 4;
 
-		line(image_in, pt_start, pt_end, Scalar(127), 3);
+		line(image_in, pt_start, pt_end, Scalar(127), 2);
 	}
 
 	imshow("image_in_asdasda", image_in);
