@@ -51,8 +51,11 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 	right_hand_is_moving = false;
 	both_hands_are_moving = false;
 
-	if (value_store.get_bool("image_background_set"))
+
+	int count_current = value_store.get_int("count_current", 0);
+	if (value_store.get_bool("image_background_set") && count_current >= value_store.get_int("count_total", 1))
 	{
+		count_current = 0;
 		value_store.set_bool("update_background", false);
 
 		uchar motion_diff_max = 0;
@@ -234,15 +237,15 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 			{
 				if (both_hands_are_moving)
 				{
-					x_separator_left = x_min;
-					x_separator_right = x_max;
+					x_separator_left = x_min + 10;
+					x_separator_right = x_max - 10;
 
 					x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
 					value_store.set_bool("x_separator_middle_set", true);
 				}
 				else if (left_hand_is_moving)
 				{
-					x_separator_left = x_min;
+					x_separator_left = x_min + 10;
 
 					if (!value_store.get_bool("x_separator_middle_set"))
 					{
@@ -252,7 +255,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 				}
 				else if (right_hand_is_moving)
 				{
-					x_separator_right = x_max;
+					x_separator_right = x_max - 10;
 
 					if (!value_store.get_bool("x_separator_middle_set"))
 					{
@@ -511,6 +514,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 					}
 
 					value_store.set_bool("result", true);
+					value_store.set_int("count_total", 10);
 				}
 
 
@@ -544,6 +548,9 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 			value_store.set_bool("image_background_updated", true);
 		}
 	}
+
+	++count_current;
+	value_store.set_int("count_current", count_current);
 	
 	if (value_store.get_bool("image_background_set") == false)
 		value_store.set_mat("image_background", image_in);
@@ -559,11 +566,12 @@ inline void MotionProcessorNew::fill_image_background_static(const int x, const 
 		return;
 
 	uchar* pix_ptr = &(image_background_static.ptr<uchar>(y, x)[0]);
+	const float multiplier = (float)value_store.get_int("count_total") / 20;
 
 	if (*pix_ptr == 255)
 		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
 	else
-		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.1);
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * multiplier);
 }
 
 Mat MotionProcessorNew::compute_image_foreground(Mat& image_in)

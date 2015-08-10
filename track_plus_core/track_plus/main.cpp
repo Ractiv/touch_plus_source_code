@@ -527,7 +527,8 @@ void compute()
             {
                 ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_cursor_index.x) + "!" +
                                                          to_string(pointer_mapper.pt_cursor_index.y) + "!" +
-                                                         to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
+                                                         "20!" +
+                                                         // to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
                                                          to_string(pointer_mapper.index_down) + "!index");
             }
             else

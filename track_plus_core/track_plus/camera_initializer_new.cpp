@@ -50,7 +50,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 	if (reset)
 	{
 		init(camera);
-		count = 0;
+		count = -1;
 		step0 = false;
 		step1 = false;
 	}
