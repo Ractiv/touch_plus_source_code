@@ -51,6 +51,7 @@
 		2B7FE5391B761DC30069CFD1 /* udp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7FE5071B761DC30069CFD1 /* udp.cpp */; };
 		2B7FE53A1B761DC30069CFD1 /* value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7FE5091B761DC30069CFD1 /* value_store.cpp */; };
 		2B7FE53B1B761DC30069CFD1 /* warper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7FE50B1B761DC30069CFD1 /* warper.cpp */; };
+		2B80F4811B79A1A0006B0F84 /* surface_computer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F47F1B79A1A0006B0F84 /* surface_computer.cpp */; };
 		2BAB62FF1B74551B00202DAA /* libopencv_calib3d.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */; };
 		2BAB63021B74551B00202DAA /* libopencv_core.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */; };
 		2BAB630B1B74551B00202DAA /* libopencv_highgui.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */; };
@@ -183,6 +184,8 @@
 		2B7FE50A1B761DC30069CFD1 /* value_store.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = value_store.h; path = ../../track_plus_core/track_plus/value_store.h; sourceTree = "<group>"; };
 		2B7FE50B1B761DC30069CFD1 /* warper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = warper.cpp; path = ../../track_plus_core/track_plus/warper.cpp; sourceTree = "<group>"; };
 		2B7FE50C1B761DC30069CFD1 /* warper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = warper.h; path = ../../track_plus_core/track_plus/warper.h; sourceTree = "<group>"; };
+		2B80F47F1B79A1A0006B0F84 /* surface_computer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = surface_computer.cpp; path = ../../track_plus_core/track_plus/surface_computer.cpp; sourceTree = "<group>"; };
+		2B80F4801B79A1A0006B0F84 /* surface_computer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = surface_computer.h; path = ../../track_plus_core/track_plus/surface_computer.h; sourceTree = "<group>"; };
 		2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_calib3d.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_calib3d.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_core.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_core.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_highgui.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_highgui.3.0.0.dylib; sourceTree = "<group>"; };
@@ -267,6 +270,8 @@
 		2B6B39771B73BE8C004FF61D /* track_plus */ = {
 			isa = PBXGroup;
 			children = (
+				2B80F47F1B79A1A0006B0F84 /* surface_computer.cpp */,
+				2B80F4801B79A1A0006B0F84 /* surface_computer.h */,
 				2B7FE4AD1B761DC30069CFD1 /* blob_detector_new.cpp */,
 				2B7FE4AE1B761DC30069CFD1 /* blob_detector_new.h */,
 				2B7FE4AF1B761DC30069CFD1 /* blob_new.cpp */,
@@ -477,6 +482,7 @@
 				2B7FE5391B761DC30069CFD1 /* udp.cpp in Sources */,
 				2B7FE5351B761DC30069CFD1 /* tool_mono_processor.cpp in Sources */,
 				2B7FE5151B761DC30069CFD1 /* exponential.cpp in Sources */,
+				2B80F4811B79A1A0006B0F84 /* surface_computer.cpp in Sources */,
 				2B7FE52D1B761DC30069CFD1 /* processes.cpp in Sources */,
 				2B7FE5371B761DC30069CFD1 /* tool_resolver.cpp in Sources */,
 				2B7FE5111B761DC30069CFD1 /* Camera.cpp in Sources */,

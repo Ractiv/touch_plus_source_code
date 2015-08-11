@@ -119,7 +119,6 @@ void create_process(const string path, const string name, bool show_window, bool
                 printf("done waiting, child exited\n");
             }
         }
-        return  -1;
 #endif
     }
     else
