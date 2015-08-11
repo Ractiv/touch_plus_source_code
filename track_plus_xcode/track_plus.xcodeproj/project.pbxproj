@@ -52,6 +52,10 @@
 		2B7FE53A1B761DC30069CFD1 /* value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7FE5091B761DC30069CFD1 /* value_store.cpp */; };
 		2B7FE53B1B761DC30069CFD1 /* warper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B7FE50B1B761DC30069CFD1 /* warper.cpp */; };
 		2B80F4811B79A1A0006B0F84 /* surface_computer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F47F1B79A1A0006B0F84 /* surface_computer.cpp */; };
+		2B80F4B31B79B18D006B0F84 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F4B21B79B18D006B0F84 /* AppDelegate.m */; };
+		2B80F4B51B79B18D006B0F84 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F4B41B79B18D006B0F84 /* main.m */; };
+		2B80F4B71B79B18D006B0F84 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B80F4B61B79B18D006B0F84 /* Images.xcassets */; };
+		2B80F4BA1B79B18D006B0F84 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2B80F4B81B79B18D006B0F84 /* MainMenu.xib */; };
 		2BAB62FF1B74551B00202DAA /* libopencv_calib3d.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */; };
 		2BAB63021B74551B00202DAA /* libopencv_core.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */; };
 		2BAB630B1B74551B00202DAA /* libopencv_highgui.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */; };
@@ -186,6 +190,13 @@
 		2B7FE50C1B761DC30069CFD1 /* warper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = warper.h; path = ../../track_plus_core/track_plus/warper.h; sourceTree = "<group>"; };
 		2B80F47F1B79A1A0006B0F84 /* surface_computer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = surface_computer.cpp; path = ../../track_plus_core/track_plus/surface_computer.cpp; sourceTree = "<group>"; };
 		2B80F4801B79A1A0006B0F84 /* surface_computer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = surface_computer.h; path = ../../track_plus_core/track_plus/surface_computer.h; sourceTree = "<group>"; };
+		2B80F4AD1B79B18D006B0F84 /* osx_cursor_plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = osx_cursor_plus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B80F4B01B79B18D006B0F84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2B80F4B11B79B18D006B0F84 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		2B80F4B21B79B18D006B0F84 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		2B80F4B41B79B18D006B0F84 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		2B80F4B61B79B18D006B0F84 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		2B80F4B91B79B18D006B0F84 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_calib3d.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_calib3d.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_core.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_core.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_highgui.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_highgui.3.0.0.dylib; sourceTree = "<group>"; };
@@ -236,6 +247,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2B80F4AA1B79B18D006B0F84 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -254,6 +272,7 @@
 				2BAB62E11B74551A00202DAA /* libopencv_imgproc.3.0.0.dylib */,
 				2B6B39771B73BE8C004FF61D /* track_plus */,
 				2B6B39841B73BEBF004FF61D /* daemon_plus */,
+				2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */,
 				2B6B39761B73BE8C004FF61D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -263,6 +282,7 @@
 			children = (
 				2B6B39751B73BE8C004FF61D /* track_plus */,
 				2B6B39831B73BEBF004FF61D /* daemon_plus */,
+				2B80F4AD1B79B18D006B0F84 /* osx_cursor_plus.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -385,6 +405,27 @@
 			path = daemon_plus;
 			sourceTree = "<group>";
 		};
+		2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */ = {
+			isa = PBXGroup;
+			children = (
+				2B80F4B11B79B18D006B0F84 /* AppDelegate.h */,
+				2B80F4B21B79B18D006B0F84 /* AppDelegate.m */,
+				2B80F4B61B79B18D006B0F84 /* Images.xcassets */,
+				2B80F4B81B79B18D006B0F84 /* MainMenu.xib */,
+				2B80F4AF1B79B18D006B0F84 /* Supporting Files */,
+			);
+			path = osx_cursor_plus;
+			sourceTree = "<group>";
+		};
+		2B80F4AF1B79B18D006B0F84 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				2B80F4B01B79B18D006B0F84 /* Info.plist */,
+				2B80F4B41B79B18D006B0F84 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -422,6 +463,23 @@
 			productReference = 2B6B39831B73BEBF004FF61D /* daemon_plus */;
 			productType = "com.apple.product-type.tool";
 		};
+		2B80F4AC1B79B18D006B0F84 /* osx_cursor_plus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B80F4C71B79B18D006B0F84 /* Build configuration list for PBXNativeTarget "osx_cursor_plus" */;
+			buildPhases = (
+				2B80F4A91B79B18D006B0F84 /* Sources */,
+				2B80F4AA1B79B18D006B0F84 /* Frameworks */,
+				2B80F4AB1B79B18D006B0F84 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = osx_cursor_plus;
+			productName = osx_cursor_plus;
+			productReference = 2B80F4AD1B79B18D006B0F84 /* osx_cursor_plus.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -437,6 +495,9 @@
 					2B6B39821B73BEBF004FF61D = {
 						CreatedOnToolsVersion = 6.3;
 					};
+					2B80F4AC1B79B18D006B0F84 = {
+						CreatedOnToolsVersion = 6.3;
+					};
 				};
 			};
 			buildConfigurationList = 2B6B39701B73BE8B004FF61D /* Build configuration list for PBXProject "track_plus" */;
@@ -445,6 +506,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 2B6B396C1B73BE8B004FF61D;
 			productRefGroup = 2B6B39761B73BE8C004FF61D /* Products */;
@@ -453,9 +515,22 @@
 			targets = (
 				2B6B39741B73BE8C004FF61D /* track_plus */,
 				2B6B39821B73BEBF004FF61D /* daemon_plus */,
+				2B80F4AC1B79B18D006B0F84 /* osx_cursor_plus */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2B80F4AB1B79B18D006B0F84 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B80F4B71B79B18D006B0F84 /* Images.xcassets in Resources */,
+				2B80F4BA1B79B18D006B0F84 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2B6B39711B73BE8C004FF61D /* Sources */ = {
@@ -523,7 +598,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2B80F4A91B79B18D006B0F84 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B80F4B51B79B18D006B0F84 /* main.m in Sources */,
+				2B80F4B31B79B18D006B0F84 /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		2B80F4B81B79B18D006B0F84 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2B80F4B91B79B18D006B0F84 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		2B6B397A1B73BE8C004FF61D /* Debug */ = {
@@ -713,6 +808,36 @@
 			};
 			name = Release;
 		};
+		2B80F4C81B79B18D006B0F84 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/osx_cursor_plus/";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = osx_cursor_plus/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		2B80F4C91B79B18D006B0F84 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/osx_cursor_plus/";
+				INFOPLIST_FILE = osx_cursor_plus/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -742,6 +867,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		2B80F4C71B79B18D006B0F84 /* Build configuration list for PBXNativeTarget "osx_cursor_plus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B80F4C81B79B18D006B0F84 /* Debug */,
+				2B80F4C91B79B18D006B0F84 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

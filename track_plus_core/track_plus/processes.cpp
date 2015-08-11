@@ -146,6 +146,7 @@ void kill_process(const string name)
             CloseHandle(hProcess);
         }
 #elif __APPLE__
-    //todo: port to OSX
+        string command = "killall -kill " + name;
+        system(command.c_str());
 #endif
 }
