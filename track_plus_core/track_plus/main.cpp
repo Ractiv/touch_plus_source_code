@@ -168,7 +168,7 @@ void wait_for_device()
         int camera_count_new = camera_ds.CameraCount();
         static int camera_count_old = camera_count_new;
 
-        if (camera_count_new != camera_count_old)
+        if (camera_count_new > camera_count_old)
         {
             ipc->clear();
             exit(0);
@@ -403,7 +403,7 @@ void compute()
 		imshow("image_disparity_8u", image_disparity_8u);
     }*/
 
-    surface_computer.compute(image_preprocessed0);
+    // surface_computer.compute(image_preprocessed0);
 
 	static bool show_wiggle_sent = false;
 	if (!show_wiggle_sent && child_module_name != "")
@@ -414,9 +414,9 @@ void compute()
 	}
 	show_wiggle_sent = true;
 
-    if (enable_imshow && false)
+    if (enable_imshow)
     {
-        imshow("image_small0", image_small0);
+        // imshow("image_small0", image_small0);
         // imshow("image_small1", image_small1);
         imshow("image_preprocessed0", image_preprocessed0);
         // imshow("image_preprocessed1", image_preprocessed1);
@@ -459,7 +459,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
         proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
@@ -772,8 +772,8 @@ void guardian_thread_function()
         if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
             create_process(child_module_path, child_module_name + ".exe", true);
 
-        if (process_running("daemon_plus.exe") == 0)
-            ipc->send_message("everyone", "exit", "");
+        // if (process_running("daemon_plus.exe") == 0)
+            // ipc->send_message("everyone", "exit", "");
 
         Sleep(500);
     }

@@ -328,8 +328,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 					sort(y_separator_down_vec->begin(), y_separator_down_vec->end());
 				}
 
-				if (y_separator_down < (*y_separator_down_vec)[y_separator_down_vec->size() / 2])
-					y_separator_down = (*y_separator_down_vec)[y_separator_down_vec->size() / 2];
+				if (y_separator_down < (*y_separator_down_vec)[y_separator_down_vec->size() * 0.3])
+					y_separator_down = (*y_separator_down_vec)[y_separator_down_vec->size() * 0.3];
 
 				if (x_separator_left != 0)
 					low_pass_filter->compute_if_larger(x_separator_left, 0.5, "x_separator_left");
@@ -513,9 +513,19 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 					}
 
 					value_store.set_bool("result", true);
-					value_store.set_int("count_total", 10);
+					value_store.set_int("count_total", 5);
 				}
 
+				Mat image_foreground = compute_image_foreground(image_in);
+				dilate(image_foreground, image_foreground, Mat(), Point(-1, -1), 2);
+
+				BlobDetectorNew* blob_detector_image_foreground = value_store.get_blob_detector("blob_detector_image_foreground");
+				blob_detector_image_foreground->compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+				for (BlobNew& blob : *blob_detector_image_foreground->blobs)
+					if (blob.y > y_separator_down)
+						for (Point& pt : blob.data)
+							fill_image_background_static(pt.x, pt.y, image_in);
 
 				if (visualize && enable_imshow)
 				{
