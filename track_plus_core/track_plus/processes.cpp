@@ -41,18 +41,31 @@ int process_running(const string name)
     while (Process32Next(SnapShot, &procEntry));
 
     return process_count;
-    
 #elif __APPLE__
-    //todo: port to OSX
-    return 1;
+    string command = "ps -e > " + executable_path + "/processes.txt";
+    system(command.c_str());
+    
+    vector<string> lines = read_text_file(executable_path + "/processes.txt");
+    for (string& str : lines)
+    {
+        vector<string> str_parts = split_string(str, "/");
+        if (str_parts.size() > 1)
+        {
+            string process_name = str_parts[str_parts.size() - 1];
+            if (process_name == name)
+                return true;
+        }
+    }
+    
+    return false;
 #endif
 }
 
 void create_process(const string path, const string name, bool show_window, bool use_native_working_directory)
 {
-#ifdef _WIN32
     if (!use_native_working_directory)
     {
+#ifdef _WIN32
         PROCESS_INFORMATION ProcessInfo;
         STARTUPINFO StartupInfo;
         ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -66,16 +79,60 @@ void create_process(const string path, const string name, bool show_window, bool
 
         CloseHandle(ProcessInfo.hThread);
         CloseHandle(ProcessInfo.hProcess);
+#elif __APPLE__
+        printf("in create process -- path=%s  -- name = %s\n",path.c_str(),name.c_str());
+        
+        while (true)
+        {
+            pid_t pID = vfork();
+            if (pID == 0)                // child
+            {
+                // Code only executed by child process
+                execl(path.c_str(), path.c_str(),  (char*) 0);
+                printf("Child going to exit\n");
+                _exit(0);
+                
+            }
+            else if (pID < 0)            // failed to fork
+            {
+                cerr << "Failed to fork" << endl;
+                exit(1);
+                // Throw exception
+            }
+            else                                   // parent
+            {
+                // Code only executed by parent process
+                
+                printf("Parent Process started\n");
+                printf("parent waiting\n");
+                int childExitStatus;
+                printf("child running with process ID = %d\n",pID);
+                
+                wait(&pID);
+                usleep(3000000);
+                if( WIFEXITED(childExitStatus) )
+                {
+                    // Child process exited thus exec failed.
+                    // LOG failure of exec in child process.
+                    COUT << "Result of waitpid: Child process exited thus exec failed." << endl;
+                }
+                printf("done waiting, child exited\n");
+            }
+        }
+        return  -1;
+#endif
     }
     else
+    {
+#ifdef _WIN32
         ShellExecute(NULL, "runas", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif __APPLE__
+        //todo: port to OSX
+#endif
+    }
 
     while (process_running(name.c_str()) == 0)
         Sleep(1);
-    
-#elif __APPLE__
-    //todo: port to OSX
-#endif
 }
 
 void kill_process(const string name)
@@ -100,7 +157,6 @@ void kill_process(const string name)
 
             CloseHandle(hProcess);
         }
-    
 #elif __APPLE__
     //todo: port to OSX
 #endif

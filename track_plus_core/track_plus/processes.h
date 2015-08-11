@@ -18,15 +18,19 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-
 #ifdef _WIN32
 #include <windows.h>
 #include <tlhelp32.h>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
+#elif __APPLE__
+#include "string_functions.h"
+#include "filesystem.h"
 #endif
+
+#include <iostream>
+#include <string>
+#include "globals.h"
 
 using namespace std;
 
