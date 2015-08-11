@@ -53,7 +53,6 @@ public:
 	vector<Point> points_unwrapped_result;
 
 	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize, bool secondary = false);
-	void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_in);
 	void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);
 	void compute_extension_line(Point pt_start, Point pt_end, const uchar length, vector<Point>& line_points, const bool reverse);
 	BlobNew* find_parent_blob_before_rotation(BlobNew* blob);

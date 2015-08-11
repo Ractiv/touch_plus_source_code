@@ -692,60 +692,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	return true;
 }
 
-void MonoProcessorNew::bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in,
-									  vector<Point>& result_out, const uchar count_in)
-{
-    int delta_x(x2_in - x1_in);
-    signed char const ix((delta_x > 0) - (delta_x < 0));
-    delta_x = abs(delta_x) << 1;
- 
-    int delta_y(y2_in - y1_in);
-    signed char const iy((delta_y > 0) - (delta_y < 0));
-    delta_y = abs(delta_y) << 1;
- 
-    result_out.push_back(Point(x1_in, y1_in));
- 
-    if (delta_x >= delta_y)
-    {
-        int error(delta_y - (delta_x >> 1));
- 
-        while (x1_in != x2_in)
-        {
-            if ((error >= 0) && (error || (ix > 0)))
-            {
-                error -= delta_x;
-                y1_in += iy;
-            }
-
-            error += delta_y;
-            x1_in += ix;
- 			
- 			result_out.push_back(Point(x1_in, y1_in));
-    		if (result_out.size() == count_in || x1_in == 0 || y1_in == 0 || x1_in == WIDTH_SMALL_MINUS || y1_in == HEIGHT_SMALL_MINUS)
-    			return;
-        }
-    }
-    else
-    {
-        int error(delta_x - (delta_y >> 1));
- 
-        while (y1_in != y2_in)
-        {
-            if ((error >= 0) && (error || (iy > 0)))
-            {
-                error -= delta_y;
-                x1_in += ix;
-            }
-            error += delta_x;
-            y1_in += iy;
- 
- 			result_out.push_back(Point(x1_in, y1_in));
-    		if (result_out.size() == count_in || x1_in == 0 || y1_in == 0 || x1_in == WIDTH_SMALL_MINUS || y1_in == HEIGHT_SMALL_MINUS)
-    			return;
-        }
-    }
-}
-
 void MonoProcessorNew::sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)
 {
 	float dist_min = 9999;
