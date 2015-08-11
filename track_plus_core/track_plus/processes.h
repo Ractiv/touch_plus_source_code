@@ -35,5 +35,5 @@
 using namespace std;
 
 int process_running(const string name);
-void create_process(const string path, const string name, bool show_window = true, bool use_native_working_directory = false);
+void create_process(const string path, const string name, bool show_window = true);
 void kill_process(const string name);
