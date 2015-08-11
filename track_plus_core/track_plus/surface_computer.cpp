@@ -127,8 +127,8 @@ void SurfaceComputer::init(Mat& image_in)
 
             	if (!found)
             	{
-	                // pt_start_vec.push_back(pt0);
-	                // pt_end_vec.push_back(pt1);
+	                pt_start_vec.push_back(pt0);
+	                pt_end_vec.push_back(pt1);
 	                horizontal_y_vec.push_back(pt0.y);
 	    			// line(image_visualization, pt0, pt1, Scalar(127), 2);
 	            }
@@ -161,27 +161,27 @@ void SurfaceComputer::compute(Mat& image_in)
 		Point pt_start = pt_start_vec[i];
 		Point pt_end = pt_end_vec[i];
 
-		pt_start.x /= 4;
-		pt_start.y /= 4;
-		pt_end.x /= 4;
-		pt_end.y /= 4;
+		// pt_start.x /= 4;
+		// pt_start.y /= 4;
+		// pt_end.x /= 4;
+		// pt_end.y /= 4;
 
-		if (pt_start.x - scan_count < 0 || pt_start.x + scan_count > WIDTH_SMALL_MINUS ||
-			pt_end.x - scan_count < 0 || pt_end.x + scan_count > WIDTH_SMALL_MINUS)
-				continue;
+		// if (pt_start.x - scan_count < 0 || pt_start.x + scan_count > WIDTH_SMALL_MINUS ||
+		// 	pt_end.x - scan_count < 0 || pt_end.x + scan_count > WIDTH_SMALL_MINUS)
+		// 		continue;
 
-		int gray00 = image_in.ptr<uchar>(pt_start.y, pt_start.x - scan_count)[0];
-		int gray01 = image_in.ptr<uchar>(pt_start.y, pt_start.x + scan_count)[0];
-		int gray_diff0 = abs(gray00 - gray01);
+		// int gray00 = image_in.ptr<uchar>(pt_start.y, pt_start.x - scan_count)[0];
+		// int gray01 = image_in.ptr<uchar>(pt_start.y, pt_start.x + scan_count)[0];
+		// int gray_diff0 = abs(gray00 - gray01);
 
-		int gray10 = image_in.ptr<uchar>(pt_end.y, pt_end.x - scan_count)[0];
-		int gray11 = image_in.ptr<uchar>(pt_end.y, pt_end.x + scan_count)[0];
-		int gray_diff1 = abs(gray10 - gray11);
+		// int gray10 = image_in.ptr<uchar>(pt_end.y, pt_end.x - scan_count)[0];
+		// int gray11 = image_in.ptr<uchar>(pt_end.y, pt_end.x + scan_count)[0];
+		// int gray_diff1 = abs(gray10 - gray11);
 
-		int gray_diff_max = max(gray_diff0, gray_diff1);
-		gray_diff_vec.push_back(gray_diff_max);
+		// int gray_diff_max = max(gray_diff0, gray_diff1);
+		// gray_diff_vec.push_back(gray_diff_max);
 
-		// line(image_in, pt_start, pt_end, Scalar(0), 2);
+		line(image_in, pt_start, pt_end, Scalar(255), 2);
 	}
 
 	sort(gray_diff_vec.begin(), gray_diff_vec.end());

@@ -403,7 +403,7 @@ void compute()
 		imshow("image_disparity_8u", image_disparity_8u);
     }*/
 
-    // surface_computer.compute(image_preprocessed0);
+    surface_computer.compute(image_preprocessed0);
 
 	static bool show_wiggle_sent = false;
 	if (!show_wiggle_sent && child_module_name != "")
