@@ -68,12 +68,13 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		if (count == 5)
 		{
 			image_leds_on = image_in;
+			GaussianBlur(image_leds_on, image_leds_on, Size(49, 49), 0, 0);
 			camera->turnLEDsOff();
 		}
 
 		if (count == 10)
 		{
-			step0 = true;	
+			step0 = true;
 
 			COUT << "setting exposure step 0 complete" << endl;
 		}
@@ -81,6 +82,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 	else if (step1 == false)
 	{
 		image_leds_off = image_in;
+		GaussianBlur(image_leds_off, image_leds_off, Size(49, 49), 0, 0);
 		camera->turnLEDsOn();
 		step1 = true;
 		
@@ -95,8 +97,8 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		for (int i = 0; i < WIDTH_SMALL; ++i)
 			for (int j = HEIGHT_SMALL; j > 0; --j)
 			{
-				vec_leds_on.push_back(image_leds_on.ptr<uchar>(j, i)[0]);
-				vec_leds_off.push_back(image_leds_off.ptr<uchar>(j, i)[0]);
+				vec_leds_on.push_back(image_leds_on.ptr<uchar>(j, i)[2]);
+				vec_leds_off.push_back(image_leds_off.ptr<uchar>(j, i)[2]);
 			}
 
 		sort(vec_leds_on.begin(), vec_leds_on.end());
@@ -120,36 +122,14 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		gray_mean_off /= gray_mean_count;
 
 		float gray_diff = gray_mean_on - gray_mean_off;
-		if (gray_diff > 30)
-			gray_diff = 30;
+		COUT << "gray_diff is " << gray_diff << endl;
 
-		float gray_diff_max = linear(gray_diff);
-
-		COUT << "gray diff is " << gray_diff << endl;
-		COUT << "gray diff max is " << gray_diff_max << endl;
-
-		if (gray_diff > gray_diff_max)
-			gray_diff = gray_diff_max;
-		else if (gray_diff < 0)
-			gray_diff = 0;
-
-		if (mode == "surface")
-			exposure_val = map_val(gray_diff, 0, 30, 1, 10);
-		else
-			exposure_val = 3;
-
-		if (exposure_val > 10)
-			exposure_val = 10;
-		else if (exposure_val < 4)
-			exposure_val = 4;
-
-		camera->setExposureTime(Camera::both, exposure_val);
-
-		float r_val = map_val(gray_diff, 0, gray_diff_max, 1.5, 2.0);
+		float r_val = linear(gray_diff);
+		COUT << "r_val is " << r_val << endl;
+		
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 
-		COUT << "exposure is " << exposure_val << endl;
 		return true;		
 	}
 
@@ -158,8 +138,8 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 
 float CameraInitializerNew::linear(float x)
 {
-	float m = -15.15257;
-	float c = 524.5146;
+	float m = 0.03327869;
+	float c = 1.32377;
 
 	return (m * x) + c;
 }

@@ -12,6 +12,8 @@ class SurfaceComputer
 {
 public:
 	LowPassFilter low_pass_filter;
-	
-	void init(Mat& image_in);
+
+	int y_reflection;
+
+	void init(Mat& image0);
 };

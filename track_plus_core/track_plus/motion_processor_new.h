@@ -35,6 +35,7 @@ public:
 	float x_separator_middle = WIDTH_SMALL / 2;
 	float x_separator_left = 0;
 	float x_separator_right = WIDTH_SMALL;
+	float fill_alpha= 0.1;
 
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;
@@ -50,7 +51,7 @@ public:
 
 	ValueStore value_store;
 
-	bool compute(Mat& image_in, Mat& image_raw_in, bool construct_background, const string name, const bool visualize);
+	bool compute(Mat& image_in, Mat& image_raw_in, int y_ref, bool construct_background, const string name, const bool visualize);
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 	Mat compute_image_foreground(Mat& image_in);
 };

@@ -305,13 +305,17 @@ void on_first_frame()
     {
         load_settings();
     });
-
-    surface_computer.init(image_current_frame);
 }
 
 void compute()
 {
     updated = false;
+
+    Mat image_flipped;
+    flip(image_current_frame, image_flipped, 0);
+
+    Mat image0 = image_flipped(Rect(0, 0, 640, 480));
+    Mat image1 = image_flipped(Rect(640, 0, 640, 480));
 
     if (first_frame)
     {
@@ -349,34 +353,28 @@ void compute()
 
     //----------------------------------------core algorithm----------------------------------------
 
-    Mat image_flipped;
-    flip(image_current_frame, image_flipped, 0);
-
-    Mat image0 = image_flipped(Rect(0, 0, 640, 480));
-    Mat image1 = image_flipped(Rect(640, 0, 640, 480));
-
     Mat image_small0;
     Mat image_small1;
     resize(image0, image_small0, Size(160, 120), 0, 0, INTER_LINEAR);
     resize(image1, image_small1, Size(160, 120), 0, 0, INTER_LINEAR);
-
-    GaussianBlur(image_small0, image_small0, Size(1, 9), 0, 0);
-    GaussianBlur(image_small1, image_small1, Size(1, 9), 0, 0);
 
     Mat image_preprocessed0;
     Mat image_preprocessed1;
     bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
                       compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", true);
 
-    if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
+    if (!CameraInitializerNew::adjust_exposure(camera, image_small0))
+    {
+        static int step_count = 0;
+        if (step_count == 3)
+        {
+            surface_computer.init(image0);
+        }
+        ++step_count;
         return;
+    }
 
-    static bool exposure_adjusted_old;
-    exposure_adjusted_old = exposure_adjusted;
     exposure_adjusted = true;
-
-    if (exposure_adjusted && !exposure_adjusted_old)
-        return;
 
     /*{
         Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
@@ -402,8 +400,6 @@ void compute()
 		imshow("image_remapped1", image_remapped1);
 		imshow("image_disparity_8u", image_disparity_8u);
     }*/
-
-    // surface_computer.compute(image_preprocessed0);
 
 	static bool show_wiggle_sent = false;
 	if (!show_wiggle_sent && child_module_name != "")
@@ -431,8 +427,8 @@ void compute()
 
     if (normalized)
     {
-        proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, construct_background, "0", true);
-        proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, construct_background, "1", true);
+        proceed0 = motion_processor0.compute(image_preprocessed0, image_small0, surface_computer.y_reflection, construct_background, "0", true);
+        proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, surface_computer.y_reflection, construct_background, "1", true);
     }
 
     if (first_pass && motion_processor0.both_hands_are_moving)
@@ -441,7 +437,7 @@ void compute()
 
         first_pass = false;
         exposure_adjusted = false;
-        CameraInitializerNew::adjust_exposure(camera, image_preprocessed0, true);
+        CameraInitializerNew::adjust_exposure(camera, image_small0, true);
     }
     else if (!first_pass)
         construct_background = true;
@@ -738,6 +734,15 @@ void input_thread_function()
 
             pose_estimator.show = false;
         }
+        else if (str == "set exposure")
+        {
+            COUT << "please enter exposure value" << endl;
+
+            getline(cin, str);
+            camera->setExposureTime(Camera::both, atoi(str.c_str()));
+
+            COUT << "exposure value set to: " + str << endl;
+        }
     }
 }
 
@@ -745,7 +750,7 @@ void guardian_thread_function()
 {
     while (true)
     {
-        if (wait_count >= (serial_verified ? 2 : 5))
+        if (wait_count >= (serial_verified ? 5 : 10))
         {
             COUT << "restarting" << endl;
 

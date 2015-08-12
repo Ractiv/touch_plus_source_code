@@ -18,7 +18,7 @@
 
 #include "motion_processor_new.h"
 
-bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construct_background, const string name, const bool visualize)
+bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bool construct_background, const string name, const bool visualize)
 {
 	static string motion_processor_primary_name = "";
 	if (motion_processor_primary_name == "")
@@ -58,17 +58,18 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 		value_store.set_bool("update_background", false);
 
 		uchar motion_diff_max = 0;
-		Mat image_subtraction = Mat(image_in.size(), CV_8UC1);
+		Mat image_subtraction = Mat::zeros(image_in.size(), CV_8UC1);
 
 		for (int i = 0; i < WIDTH_SMALL; ++i)
 			for (int j = 0; j < HEIGHT_SMALL; ++j)
-			{
-				const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]);
-				if (diff > motion_diff_max)
-					motion_diff_max = diff;
+				if (j < y_ref)
+				{
+					const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]);
+					if (diff > motion_diff_max)
+						motion_diff_max = diff;
 
-				image_subtraction.ptr<uchar>(j, i)[0] = diff;
-			}
+					image_subtraction.ptr<uchar>(j, i)[0] = diff;
+				}
 
 		Mat image_subtraction_shallow = Mat(image_in.size(), CV_8UC1);
 		threshold(image_subtraction, image_subtraction_shallow, motion_diff_max * 0.1, 254, THRESH_BINARY);
@@ -514,10 +515,10 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, bool construc
 
 					value_store.set_bool("result", true);
 					value_store.set_int("count_total", 5);
+					fill_alpha = 0.5;
 				}
 
 				Mat image_foreground = compute_image_foreground(image_in);
-				dilate(image_foreground, image_foreground, Mat(), Point(-1, -1), 2);
 
 				BlobDetectorNew* blob_detector_image_foreground = value_store.get_blob_detector("blob_detector_image_foreground");
 				blob_detector_image_foreground->compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
@@ -579,7 +580,7 @@ inline void MotionProcessorNew::fill_image_background_static(const int x, const 
 	if (*pix_ptr == 255)
 		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
 	else
-		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.1);
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * fill_alpha);
 }
 
 Mat MotionProcessorNew::compute_image_foreground(Mat& image_in)
