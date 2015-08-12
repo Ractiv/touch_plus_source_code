@@ -363,6 +363,9 @@ void compute()
     bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
                       compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", true);
 
+    GaussianBlur(image_preprocessed0, image_preprocessed0, Size(1, 9), 0, 0);
+    GaussianBlur(image_preprocessed1, image_preprocessed1, Size(1, 9), 0, 0);
+
     if (!CameraInitializerNew::adjust_exposure(camera, image_small0))
     {
         static int step_count = 0;
