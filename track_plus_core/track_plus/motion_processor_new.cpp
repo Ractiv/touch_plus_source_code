@@ -203,7 +203,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 				float total_width = x_max - x_min;
 				float gap_ratio = gap_width / hand_width_max;
 
-				both_hands_are_moving = (total_width > 60 && gap_ratio > 0.3);
+				both_hands_are_moving = (total_width > 80 && gap_ratio > 0.6);
 			}
 
 			int blobs_count_left = 0;
@@ -239,28 +239,13 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 					x_separator_left = x_min;
 					x_separator_right = x_max;
 
-					x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
-					value_store.set_bool("x_separator_middle_set", true);
-				}
-				else if (left_hand_is_moving)
-				{
-					x_separator_left = x_min;
-
-					if (!value_store.get_bool("x_separator_middle_set"))
+					vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
+					if (x_separator_middle_vec->size() < 1000)
 					{
-						x_separator_middle = x_max + 30;
-						value_store.set_bool("x_separator_middle_set", true);
+						x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
+						sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
 					}
-				}
-				else if (right_hand_is_moving)
-				{
-					x_separator_right = x_max;
-
-					if (!value_store.get_bool("x_separator_middle_set"))
-					{
-						x_separator_middle = x_min - 30;
-						value_store.set_bool("x_separator_middle_set", true);
-					}
+					x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
 				}
 
 				int intensity_array0[HEIGHT_SMALL] { 0 };
@@ -321,15 +306,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						y_separator_down = y_separator_down_right;
 				}
 
-				vector<int>* y_separator_down_vec = value_store.get_int_vec("y_separator_down_vec");
-				if (y_separator_down_vec->size() < 1000)
-				{
-					y_separator_down_vec->push_back(y_separator_down);
-					sort(y_separator_down_vec->begin(), y_separator_down_vec->end());
-				}
-
-				if (y_separator_down < (*y_separator_down_vec)[y_separator_down_vec->size() * 0.3])
-					y_separator_down = (*y_separator_down_vec)[y_separator_down_vec->size() * 0.3];
+				if (y_separator_down < HEIGHT_SMALL / 3)
+					y_separator_down = HEIGHT_SMALL / 3;
 
 				if (x_separator_left != 0)
 					low_pass_filter->compute_if_larger(x_separator_left, 0.5, "x_separator_left");
