@@ -45,9 +45,6 @@ extern bool manual_corners;
 extern unsigned char refresh_delay;
 const extern unsigned char initial_delay_count_total;
 
-const extern double fov_width;
-const extern double fov_depth;
-
 const extern string cmd_quote;
 const extern string slash;
 

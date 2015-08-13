@@ -64,8 +64,6 @@ public:
 	float dist_calib2_plane;
 	float dist_calib3_plane;
 
-	float d_max;
-
 	float dist_cursor_index_plane;
 	float dist_cursor_thumb_plane;
 
@@ -82,7 +80,6 @@ public:
 	void reset_calibration(const uchar index);
 	void compute_calibration_points();
 	bool project_to_plane(Point3f& pt, Point3f& result, float& dist_to_plane);
-	float compute_hit_dist(Point3f& pt);
 	void compute_cursor_point(bool& target_down, Point2f& pt_target0, Point2f& pt_target1, Point3f& pt_target, Reprojector& reprojector,
 							  Point2f& pt_cursor, float& dist_cursor_target_plane, const float actuation_dist, string name);
 

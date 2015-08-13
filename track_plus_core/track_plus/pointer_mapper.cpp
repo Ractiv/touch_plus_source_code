@@ -211,21 +211,20 @@ void PointerMapper::compute_calibration_points()
 	    direction_plane.y = -direction_plane.y;
 	    direction_plane.z = -direction_plane.z;
 
-	    project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
-		project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
-		project_to_plane(pt_calib2, pt_calib2_projected, dist_calib2_plane);
-		project_to_plane(pt_calib3, pt_calib3_projected, dist_calib3_plane);
+	    bool b0 = project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
+		bool b1 = project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
+		bool b2 = project_to_plane(pt_calib2, pt_calib2_projected, dist_calib2_plane);
+		bool b3 = project_to_plane(pt_calib3, pt_calib3_projected, dist_calib3_plane);
 
-		const float d0 = get_distance(pt_calib0_projected.x, pt_calib0_projected.y, pt_calib2_projected.x, pt_calib2_projected.y);
-		const float d1 = get_distance(pt_calib1_projected.x, pt_calib1_projected.y, pt_calib3_projected.x, pt_calib3_projected.y);
-		d_max = std::max(d0, d1);
+		if (b0 && b1 && b2 && b3)
+		{
+			rect_warper.setSource(pt_calib0_projected.x, pt_calib0_projected.y, pt_calib1_projected.x, pt_calib1_projected.y,
+								  pt_calib2_projected.x, pt_calib2_projected.y, pt_calib3_projected.x, pt_calib3_projected.y);
 
-		rect_warper.setSource(pt_calib0_projected.x, pt_calib0_projected.y, pt_calib1_projected.x, pt_calib1_projected.y,
-							  pt_calib2_projected.x, pt_calib2_projected.y, pt_calib3_projected.x, pt_calib3_projected.y);
+			rect_warper.setDestination(0, 0, 1000, 0, 1000, 1000, 0, 1000);
 
-		rect_warper.setDestination(0, 0, 1000, 0, 1000, 1000, 0, 1000);
-
-		calibrated = true;
+			calibrated = true;
+		}
 	}
 	else
 		COUT << "not calibrated" << endl;
@@ -248,23 +247,6 @@ bool PointerMapper::project_to_plane(Point3f& pt, Point3f& result, float& dist_t
     }
 
     return false;
-}
-
-float PointerMapper::compute_hit_dist(Point3f& pt)
-{
-	const float dist0 = get_distance(pt.x, pt.y, pt_calib0_projected.x, pt_calib0_projected.y);
-	const float dist1 = get_distance(pt.x, pt.y, pt_calib1_projected.x, pt_calib1_projected.y);
-	const float dist2 = get_distance(pt.x, pt.y, pt_calib2_projected.x, pt_calib2_projected.y);
-	const float dist3 = get_distance(pt.x, pt.y, pt_calib3_projected.x, pt_calib3_projected.y);
-
-	const float coeff0 = d_max / dist0;
-	const float coeff1 = d_max / dist1;
-	const float coeff2 = d_max / dist2;
-	const float coeff3 = d_max / dist3;
-
-	float result = (dist_calib0_plane * coeff0) + (dist_calib1_plane * coeff1) + (dist_calib2_plane * coeff2) + (dist_calib3_plane * coeff3);
-	result /= (coeff0 + coeff1 + coeff2 + coeff3);
-	return result;
 }
 
 void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0, Point2f& pt_target1, Point3f& pt_target,
@@ -295,9 +277,9 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 			if (value_store.has_point2f("pt_cursor" + name))
 			{
                 Point2f temp = value_store.get_point2f("pt_cursor" + name);
-                float alpha = get_distance(pt_cursor, temp) / 1000;
-	            if (alpha < 0.05)
-	            	alpha = 0.05;
+                float alpha = get_distance(pt_cursor, temp) / 200;
+	            if (alpha < 0.1)
+	            	alpha = 0.1;
 	            else if (alpha > 1)
 	            	alpha = 1;
 
@@ -306,31 +288,19 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 	        }
 	        value_store.set_point2f("pt_cursor" + name, pt_cursor);
 
-			float hit_dist = compute_hit_dist(pt_target_projected);
+			// if (dist_target_plane <= actuation_dist + 3)
+				// value_store.set_bool("actuated" + name, true);
 
-			dist_cursor_target_plane = dist_target_plane - hit_dist;
-			low_pass_filter->compute(dist_cursor_target_plane, 0.2, "dist_cursor_target_plane");
-
-			float hit_dist_processed = hit_dist;
-			// float hit_dist_processed_old = value_store.get_float("hit_dist_processed_old" + name, hit_dist_processed); 
-			// hit_dist_processed += ((hit_dist_processed - hit_dist_processed_old) * 0.25);
-			// value_store.set_float("hit_dist_processed_old" + name, hit_dist_processed);
-
-			float dist_cursor_target_plane_no_lowpass = dist_target_plane - hit_dist_processed;
-
-			if (dist_cursor_target_plane_no_lowpass <= actuation_dist + 3)
-				value_store.set_bool("actuated" + name, true);
-
-			if (value_store.get_bool("actuated" + name))
-			{
-				target_down = true;
+			// if (value_store.get_bool("actuated" + name))
+			// {
+			// 	target_down = true;
 				
-				if (dist_cursor_target_plane_no_lowpass > actuation_dist + 5)
-				{
-					target_down = false;
-					value_store.set_bool("actuated" + name, false);
-				}
-			}
+			// 	if (dist_target_plane > actuation_dist + 5)
+			// 	{
+			// 		target_down = false;
+			// 		value_store.set_bool("actuated" + name, false);
+			// 	}
+			// }
 		}
 	}
 	else

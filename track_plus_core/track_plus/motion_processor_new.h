@@ -28,6 +28,7 @@
 class MotionProcessorNew
 {
 public:
+	const int count_threshold = 500;
 	int noise_size = 0;
 
 	float y_separator_down = HEIGHT_SMALL_MINUS;
@@ -35,7 +36,8 @@ public:
 	float x_separator_middle = WIDTH_SMALL / 2;
 	float x_separator_left = 0;
 	float x_separator_right = WIDTH_SMALL;
-	float fill_alpha= 0.1;
+	
+	float fill_alpha = 0.1;
 
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;

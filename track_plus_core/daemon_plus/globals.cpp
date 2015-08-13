@@ -24,9 +24,6 @@ const int image_height_full = 480;
 const int image_width_small = image_width_full * scale_factor;
 const int image_height_small = image_height_full * scale_factor;
 
-const double fov_width = 23.7;
-const double fov_depth = 17.9;
-
 const string cmd_quote = "\"";
 
 #ifdef _WIN32

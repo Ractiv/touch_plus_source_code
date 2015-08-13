@@ -77,7 +77,7 @@ namespace win_cursor_plus
         private static bool cursorThumbDown = false;
         private static bool cursorThumbDownOld = false;
 
-        private static bool useTUIO = false;
+        private static bool useTUIO = true;
         private static bool useFallback = !(Environment.OSVersion.Version.Major >= 6 &&
                                             Environment.OSVersion.Version.Minor >= 2);
 

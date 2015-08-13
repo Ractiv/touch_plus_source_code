@@ -27,6 +27,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 	if (mode == "tool")
 		return false;
 
+	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
+
 	if (compute_background_static == false && construct_background == true)
 	{
 		value_store.set_bool("image_background_set", false);
@@ -39,21 +41,22 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 		left_moving = false;
 		right_moving = false;
 		both_moving = false;
+
+		low_pass_filter->reset();
 	}
 
 	compute_background_static = construct_background;
 
 	Mat image_background = value_store.get_mat("image_background");
-	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	left_moving = false;
 	right_moving = false;
 	both_moving = false;
 
-	int count_current = value_store.get_int("count_current", 0);
-	if (value_store.get_bool("image_background_set") && count_current >= value_store.get_int("count_total", 1))
+	int current_frame = value_store.get_int("current_frame", 0);
+	if (value_store.get_bool("image_background_set") && current_frame >= value_store.get_int("target_frame", 1))
 	{
-		count_current = 0;
+		current_frame = 0;
 		value_store.set_bool("update_background", false);
 
 		uchar motion_diff_max = 0;
@@ -214,8 +217,6 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 				else
 					blobs_count_right += blob.count;
 
-			const int count_threshold = 600;
-
 			if (both_moving)
 			{
 				left_moving = true;
@@ -255,15 +256,15 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 				{
 					x_separator_left = x_min;
 
-					if (x_separator_left != 0)
-						low_pass_filter->compute_if_larger(x_separator_left, 0.5, "x_separator_left");
+					// if (x_separator_left != 0)
+						// low_pass_filter->compute_if_larger(x_separator_left, 0.5, "x_separator_left");
 				}
 				else if (right_moving)
 				{
 					x_separator_right = x_max;
 
-					if (x_separator_right != WIDTH_SMALL)
-						low_pass_filter->compute_if_smaller(x_separator_right, 0.5, "x_separator_right");
+					// if (x_separator_right != WIDTH_SMALL)
+						// low_pass_filter->compute_if_smaller(x_separator_right, 0.5, "x_separator_right");
 				}
 
 				int intensity_array0[HEIGHT_SMALL] { 0 };
@@ -324,8 +325,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						y_separator_down = y_separator_down_right;
 				}
 
-				if (y_separator_down < HEIGHT_SMALL / 3)
-					y_separator_down = HEIGHT_SMALL / 3;
+				if (y_separator_down < HEIGHT_SMALL / 4)
+					y_separator_down = HEIGHT_SMALL / 4;
 
 				low_pass_filter->compute_if_smaller(y_separator_down, 0.5, "y_separator_down");
 
@@ -502,9 +503,9 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 								if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
 									fill_image_background_static(i, j, image_in);
 					}
-					value_store.set_bool("result", true);
-					// value_store.set_int("count_total", 5);
-					// fill_alpha = 0.5;
+
+					if (!construct_background)
+						value_store.set_bool("result", true);
 				}
 
 				Mat image_foreground = compute_image_foreground(image_in);
@@ -517,15 +518,46 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						for (Point& pt : blob.data)
 							fill_image_background_static(pt.x, pt.y, image_in);
 
+				if (construct_background && both_moving)
+				{
+					float left_hole_count = 0;
+					float right_hole_count = 0;
+
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (image_background_static.ptr<uchar>(j, i)[0] == 255)
+								if (i < x_separator_middle)
+									++left_hole_count;
+								else
+									++right_hole_count;
+
+					float area_left = (x_separator_middle - x_separator_left) * (y_separator_down - y_separator_up) + 1;
+					float area_right = (x_separator_right - x_separator_middle) * (y_separator_down - y_separator_up) + 1;
+
+					low_pass_filter->compute(area_left, 0.1, "area_left");
+					low_pass_filter->compute(area_right, 0.1, "area_right");
+
+					float left_hole_ratio = left_hole_count / area_left;
+					float right_hole_ratio = right_hole_count / area_right;
+					float hole_subject_ratio = max(left_hole_ratio, right_hole_ratio);
+
+					if (hole_subject_ratio < 0.6)
+					{
+						value_store.set_bool("result", true);
+						value_store.set_int("target_frame", 10);
+						fill_alpha = 0.5;
+					}
+				}
+
 				if (visualize && enable_imshow)
 				{
-					line(image_in_thresholded, Point(x_separator_left, 0), Point(x_separator_left, 9999), Scalar(254), 1);
-					line(image_in_thresholded, Point(x_separator_right, 0), Point(x_separator_right, 9999), Scalar(254), 1);
-					line(image_in_thresholded, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
-					line(image_in_thresholded, Point(0, y_separator_down), Point(9999, y_separator_down), Scalar(254), 1);
-					line(image_in_thresholded, Point(0, y_separator_up), Point(9999, y_separator_up), Scalar(254), 1);
+					line(image_subtraction, Point(x_separator_left, 0), Point(x_separator_left, 9999), Scalar(254), 1);
+					line(image_subtraction, Point(x_separator_right, 0), Point(x_separator_right, 9999), Scalar(254), 1);
+					line(image_subtraction, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
+					line(image_subtraction, Point(0, y_separator_down), Point(9999, y_separator_down), Scalar(254), 1);
+					line(image_subtraction, Point(0, y_separator_up), Point(9999, y_separator_up), Scalar(254), 1);
 
-					// imshow("image_subtractionTTT" + name, image_subtraction);
+					imshow("image_subtractionTTT" + name, image_subtraction);
 					imshow("image_in_thresholdedTTT" + name, image_in_thresholded);
 					imshow("image_background_staticTTT" + name, image_background_static);
 				}
@@ -552,8 +584,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 		}
 	}
 
-	++count_current;
-	value_store.set_int("count_current", count_current);
+	++current_frame;
+	value_store.set_int("current_frame", current_frame);
 	
 	if (value_store.get_bool("image_background_set") == false)
 		value_store.set_mat("image_background", image_in);
