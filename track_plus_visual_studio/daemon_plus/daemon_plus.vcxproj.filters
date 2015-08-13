@@ -23,48 +23,45 @@
     <ClCompile Include="..\..\track_plus_core\daemon_plus\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\daemon_plus\processes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\daemon_plus\string_functions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\daemon_plus\udp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\daemon_plus\filesystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\daemon_plus\globals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\daemon_plus\ipc.cpp">
+    <ClCompile Include="..\..\track_plus_core\track_plus\filesystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\track_plus_core\daemon_plus\processes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\daemon_plus\settings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\daemon_plus\string_functions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\daemon_plus\udp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\daemon_plus\dirent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\daemon_plus\filesystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\daemon_plus\globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\daemon_plus\ipc.h">
+    <ClInclude Include="..\..\track_plus_core\track_plus\filesystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\udp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\processes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

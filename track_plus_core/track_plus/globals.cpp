@@ -48,6 +48,7 @@ bool pinch_to_zoom = false;
 bool has_plate = false;
 bool has_pen = false;
 bool motion_detected = false;
+bool visualize_3d = true;
 
 int actuate_dist_raw = 7;
 int actuate_dist = actuate_dist_raw;

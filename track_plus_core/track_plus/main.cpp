@@ -276,20 +276,27 @@ void on_first_frame()
 
     if (mode == "surface")
     {
-        child_module_name = "win_cursor_plus";
-
-#ifdef _WIN32
-        if (IsWindows8OrGreater())
-            child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus.exe";
+        if (visualize_3d)
+        {
+            child_module_name = "unity_plus";
+            ipc->open_udp_channel("unity_plus", 3333);
+        }
         else
-            child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus.exe";
+        {
+            child_module_name = "win_cursor_plus";
+#ifdef _WIN32
+            if (IsWindows8OrGreater())
+                child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus.exe";
+            else
+                child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus.exe";
 #elif __APPLE__
-        //todo: port to OSX
+            //todo: port to OSX
 #endif
+        }
     }
     else
     {
-        ipc->open_udp_channel("unity_demo", 3333);
+        ipc->open_udp_channel("unity_plus", 3333);
         ipc->send_message("menu_plus", "hide window", "");
     }
 
@@ -596,7 +603,7 @@ void compute()
                         to_string(tool_pointer_mapper.pt_center.y) + "!" +
                         to_string(tool_pointer_mapper.pt_center.z);
 
-                ipc->send_udp_message("unity_demo", data);
+                ipc->send_udp_message("unity_plus", data);
             }
         }
     }
@@ -762,7 +769,7 @@ void guardian_thread_function()
 
         ++wait_count;
 
-        if (child_module_name != "")
+        if (child_module_name != "" && child_module_path != "")
         {
             static bool first = true;
             if (first && (process_running(child_module_name + ".exe") > 0))
@@ -777,7 +784,7 @@ void guardian_thread_function()
             first = false;
         }
 
-        if (child_module_name != "" && process_running(child_module_name + ".exe") == 0)
+        if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + ".exe") == 0)
             create_process(child_module_path, child_module_name + ".exe", true);
 
         // if (process_running("daemon_plus.exe") == 0)
