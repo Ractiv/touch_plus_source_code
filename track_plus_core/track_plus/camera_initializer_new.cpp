@@ -21,8 +21,6 @@
 float CameraInitializerNew::exposure_val;
 float CameraInitializerNew::exposure_max;
 
-uchar CameraInitializerNew::l_exposure_old;
-
 LowPassFilter CameraInitializerNew::low_pass_filter;
 
 void CameraInitializerNew::init(Camera* camera)
@@ -31,7 +29,6 @@ void CameraInitializerNew::init(Camera* camera)
 
 	exposure_max = 15;
 	exposure_val = exposure_max;
-	l_exposure_old = 0;
 
 	camera->disableAutoExposure(Camera::both);
 	camera->disableAutoWhiteBalance(Camera::both);
@@ -124,11 +121,21 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		float gray_diff = gray_mean_on - gray_mean_off;
 		COUT << "gray_diff is " << gray_diff << endl;
 
-		float r_val = linear(gray_diff);
+		if (gray_diff > 50)
+			gray_diff = 50;
+		if (gray_diff < 5)
+			gray_diff = 5;
+
+		float r_val = exponential(gray_diff, 0.9967884, 0.001570977, -0.1430162);
 		COUT << "r_val is " << r_val << endl;
-		
+
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
+
+		exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
+		COUT << "exposure_val is " << exposure_val << endl;
+
+		camera->setExposureTime(Camera::both, exposure_val);
 
 		return true;		
 	}
@@ -136,12 +143,15 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 	return false;
 }
 
-float CameraInitializerNew::linear(float x)
+float CameraInitializerNew::linear(float x, float m, float c)
 {
-	float m = 0.03327869;
-	float c = 1.32377;
-
 	return (m * x) + c;
+}
+
+float CameraInitializerNew::exponential(float x, float a, float b, float c)
+{
+	const float e = 2.718;
+	return a + (b * pow(e, -c * x));
 }
 
 void CameraInitializerNew::preset0(Camera* camera)

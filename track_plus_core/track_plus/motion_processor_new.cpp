@@ -50,7 +50,6 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 	right_hand_is_moving = false;
 	both_hands_are_moving = false;
 
-
 	int count_current = value_store.get_int("count_current", 0);
 	if (value_store.get_bool("image_background_set") && count_current >= value_store.get_int("count_total", 1))
 	{
@@ -502,17 +501,17 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						y_separator_up = hit_y_max;
 
 						// triangle fill
-						Point pt_center = Point(x_separator_middle, y_separator_up);
-						Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
-						line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
-						line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
-						floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
+						// Point pt_center = Point(x_separator_middle, y_separator_up);
+						// Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
+						// line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
+						// line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
+						// floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
 
-						const int j_max = image_flood_fill.rows;
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-							for (int j = 0; j < j_max; ++j)
-								if (image_flood_fill.ptr<uchar>(j, i)[0] > 0 && image_in_thresholded.ptr<uchar>(j, i)[0] > 200)
-									fill_image_background_static(i, j, image_in);
+						// const int j_max = image_flood_fill.rows;
+						// for (int i = 0; i < WIDTH_SMALL; ++i)
+						// 	for (int j = 0; j < j_max; ++j)
+						// 		if (image_flood_fill.ptr<uchar>(j, i)[0] > 0 && image_in_thresholded.ptr<uchar>(j, i)[0] > 200)
+						// 			fill_image_background_static(i, j, image_in);
 					}
 
 					value_store.set_bool("result", true);
@@ -549,9 +548,12 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 			for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
 				blob_count_vec.push_back(blob.count);
 
-			sort(blob_count_vec.begin(), blob_count_vec.end());
-			noise_size = blob_count_vec[blob_count_vec.size() * 0.5] * 4;
-			low_pass_filter->compute(noise_size, 0.1, "noise_size");
+			if (blob_count_vec.size() > 0)
+			{
+				sort(blob_count_vec.begin(), blob_count_vec.end());
+				noise_size = blob_count_vec[blob_count_vec.size() * 0.5] * 4;
+				low_pass_filter->compute(noise_size, 0.1, "noise_size");
+			}
 		}
 
 		if (left_hand_is_moving || right_hand_is_moving || value_store.get_bool("update_background"))
