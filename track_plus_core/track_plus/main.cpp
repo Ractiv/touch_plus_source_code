@@ -434,7 +434,7 @@ void compute()
         proceed1 = motion_processor1.compute(image_preprocessed1, image_small1, surface_computer.y_reflection, construct_background, "1", true);
     }
 
-    if (first_pass && motion_processor0.both_hands_are_moving)
+    if (first_pass && motion_processor0.both_moving)
     {
         COUT << "readjusting exposure" << endl;
 

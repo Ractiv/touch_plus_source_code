@@ -43,9 +43,9 @@ public:
 
 	bool compute_background_static = false;
 
-	bool left_hand_is_moving = false;
-	bool right_hand_is_moving = false;
-	bool both_hands_are_moving = false;
+	bool left_moving = false;
+	bool right_moving = false;
+	bool both_moving = false;
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
