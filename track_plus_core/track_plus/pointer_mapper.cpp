@@ -44,8 +44,8 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 	compute_cursor_point(index_down, hand_resolver.pt_precise_index0, hand_resolver.pt_precise_index1,
 						 pt_index, reprojector, pt_cursor_index, dist_cursor_index_plane, actuate_dist, "compute_index");
 
-	compute_cursor_point(thumb_down, hand_resolver.pt_precise_thumb0, hand_resolver.pt_precise_thumb1,
-						 pt_thumb, reprojector, pt_cursor_thumb, dist_cursor_thumb_plane, actuate_dist + 10, "compute_thumb");
+	// compute_cursor_point(thumb_down, hand_resolver.pt_precise_thumb0, hand_resolver.pt_precise_thumb1,
+	// 					 pt_thumb, reprojector, pt_cursor_thumb, dist_cursor_thumb_plane, actuate_dist + 10, "compute_thumb");
 
 	// if (pt_cursor_index.y > 1500)
 	// {
@@ -202,12 +202,7 @@ void PointerMapper::compute_calibration_points()
     				  Point3f(x1_plane, y1_plane, z1_plane),
     				  Point3f(x2_plane, y2_plane, z2_plane));
 
-	    direction_plane = cross_product(Point3f(x0_plane - x1_plane, y0_plane - y1_plane, z0_plane - z1_plane),
-	    								Point3f(x2_plane - x1_plane, y2_plane - y1_plane, z2_plane - z1_plane));
-
-	    direction_plane.x = -direction_plane.x;
-	    direction_plane.y = -direction_plane.y;
-	    direction_plane.z = -direction_plane.z;
+	    direction_plane = plane.normal;
 
 	    bool b0 = project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
 		bool b1 = project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
@@ -232,14 +227,12 @@ bool PointerMapper::project_to_plane(Point3f& pt, Point3f& result, float& dist_t
 {
     Ray ray = Ray(pt, direction_plane);
 
-	float t;
-    if (ray.intersects(plane, t))
+    if (ray.intersects(plane, dist_to_plane))
     {
-    	const float x = pt.x + t * direction_plane.x;
-    	const float y = pt.y + t * direction_plane.y;
-    	const float z = pt.z + t * direction_plane.z;
+    	const float x = ray.position.x + dist_to_plane * ray.direction.x;
+    	const float y = ray.position.y + dist_to_plane * ray.direction.y;
+    	const float z = ray.position.z + dist_to_plane * ray.direction.z;
         result = Point3f(x, y, z);
-        dist_to_plane = get_distance(result, pt);
         
         return true;
     }

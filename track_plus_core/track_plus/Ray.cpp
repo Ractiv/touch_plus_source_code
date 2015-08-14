@@ -31,7 +31,7 @@ bool Ray::intersects(Plane& plane, float& result)
 {
     float den = dot_product(direction, plane.normal);
 
-    if (abs(den) == 0)
+    if (den < 0)
         return false;
 
     result = (-plane.d - dot_product(plane.normal, position)) / den;
