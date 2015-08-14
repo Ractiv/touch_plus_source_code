@@ -44,6 +44,25 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 	compute_cursor_point(index_down, hand_resolver.pt_precise_index0, hand_resolver.pt_precise_index1,
 						 pt_index, reprojector, pt_cursor_index, dist_cursor_index_plane, actuate_dist, "compute_index");
 
+	Mat image_visualization = Mat::zeros(480, 640, CV_8UC3);
+	circle(image_visualization, Point(pt_index.x / 10, pt_index.y / 10), pow(pt_index.z / 50, 2), Scalar(127, 127, 127), -1);
+
+	if (calibrated)
+	{
+		circle(image_visualization, Point(pt_calib0_projected.x / 10, pt_calib0_projected.y / 10), pow(pt_calib0_projected.z / 50, 2), Scalar(254, 254, 254), 2);
+		circle(image_visualization, Point(pt_calib1_projected.x / 10, pt_calib1_projected.y / 10), pow(pt_calib1_projected.z / 50, 2), Scalar(254, 254, 254), 2);
+		circle(image_visualization, Point(pt_calib2_projected.x / 10, pt_calib2_projected.y / 10), pow(pt_calib2_projected.z / 50, 2), Scalar(254, 254, 254), 2);
+		circle(image_visualization, Point(pt_calib3_projected.x / 10, pt_calib3_projected.y / 10), pow(pt_calib3_projected.z / 50, 2), Scalar(254, 254, 254), 2);
+
+		Point3f pt_test;
+		float dist_test;		
+		project_to_plane(pt_index, pt_test, dist_test);
+
+		circle(image_visualization, Point(pt_test.x / 10, pt_test.y / 10), pow(pt_test.z / 50, 2), Scalar(254, 254, 254), 2);
+	}
+
+	imshow("image_visualization_asjaksd", image_visualization);
+
 	// compute_cursor_point(thumb_down, hand_resolver.pt_precise_thumb0, hand_resolver.pt_precise_thumb1,
 	// 					 pt_thumb, reprojector, pt_cursor_thumb, dist_cursor_thumb_plane, actuate_dist + 10, "compute_thumb");
 
@@ -182,27 +201,22 @@ void PointerMapper::compute_calibration_points()
 
 		pt_calib3 = Point3f(x_median, y_median, z_median);
 
-		const float x0_plane = pt_calib0.x;
-		const float y0_plane = pt_calib0.y;
-		const float z0_plane = pt_calib0.z + 100;
+		// Point3f pt_calib0_new = Point3f(pt_calib0.x, pt_calib0.y, pt_calib2.z);
+		// Point3f pt_calib1_new = Point3f(pt_calib1.x, pt_calib1.y, pt_calib3.z);
+		// Point3f pt_calib2_new = Point3f(pt_calib2.x, pt_calib2.y, pt_calib0.z);
+		// Point3f pt_calib3_new = Point3f(pt_calib3.x, pt_calib3.y, pt_calib1.z);
 
-	    const float x1_plane = pt_calib1.x;
-	    const float y1_plane = pt_calib1.y;
-	    const float z1_plane = pt_calib1.z + 100;
+		// pt_calib0 = pt_calib0_new;
+		// pt_calib1 = pt_calib1_new;
+		// pt_calib2 = pt_calib2_new;
+		// pt_calib3 = pt_calib3_new;
 
-	    const float x2_plane = pt_calib2.x;
-	    const float y2_plane = pt_calib2.y;
-	    const float z2_plane = pt_calib2.z + 100;
-
-	    const float x3_plane = pt_calib3.x;
-	    const float y3_plane = pt_calib3.y;
-	    const float z3_plane = pt_calib3.z + 100;
-
-    	plane = Plane(Point3f(x0_plane, y0_plane, z0_plane),
-    				  Point3f(x1_plane, y1_plane, z1_plane),
-    				  Point3f(x2_plane, y2_plane, z2_plane));
-
+    	plane = Plane(pt_calib0, pt_calib1, pt_calib2);
 	    direction_plane = plane.normal;
+
+	    COUT << plane.normal << endl;
+
+	    COUT << pt_calib0 << " " << pt_calib1 << " " << pt_calib2 << endl;
 
 	    bool b0 = project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
 		bool b1 = project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
@@ -265,6 +279,12 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 
 			if (b)
 			{
+				// float dist0 = get_distance(pt_target_projected, pt_calib0_projected);
+				// float dist1 = get_distance(pt_target_projected, pt_calib1_projected);
+				// float dist2 = get_distance(pt_calib0_projected, pt_calib1_projected);
+
+				// COUT << solve_triangle_bisector_c_abC(dist0, dist1, solve_triangle_C_abc(dist0, dist1, dist2)) << endl;
+
 				rect_warper.warp(pt_target_projected.x, pt_target_projected.y, pt_cursor.x, pt_cursor.y);
 
 				if (value_store.has_point2f("pt_cursor" + name))

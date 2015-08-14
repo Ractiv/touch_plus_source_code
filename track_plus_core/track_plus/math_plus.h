@@ -39,3 +39,14 @@ Point rotate_point(float theta, Point pt, Point origin);
 Point3f cross_product(Point3f u, Point3f v);
 float dot_product(Point3f u, Point3f v);
 Point3f normalize(Point3f value);
+
+//abc are sides, ABC are angles opposing abc sides in radians
+float solve_triangle_A_abc(float a, float b, float c);
+float solve_triangle_B_abc(float a, float b, float c);
+float solve_triangle_C_abc(float a, float b, float c);
+float solve_triangle_area_abC(float a, float b, float C);
+float solve_triangle_area_cbA(float c, float b, float A);
+float solve_triangle_area_acB(float a, float c, float B);
+float solve_triangle_bisector_a_bcA(float b, float c, float A);
+float solve_triangle_bisector_b_acB(float a, float c, float B);
+float solve_triangle_bisector_c_abC(float a, float b, float C);

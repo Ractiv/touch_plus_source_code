@@ -40,24 +40,13 @@ Point3f Reprojector::reproject_to_3d(float pt0_x, float pt0_y, float pt1_x, floa
 
 	Point2f plane_size = compute_plane_size(depth);
 
-	float half_plane_width = plane_size.x;
-	float half_plane_height = plane_size.y;
+	float x_half = WIDTH_LARGE / plane_size.x * FOV_WIDTH / 2;
+	float y_half = x_half * 3 / 4;
 
-	float half_width = WIDTH_LARGE / 2;
-	float half_height = HEIGHT_LARGE / 2;
+	float real_x = map_val(pt0_x, 0, WIDTH_LARGE, -x_half, x_half);
+	float real_y = map_val(pt0_y, 0, HEIGHT_LARGE, -y_half, y_half);
 
-	float window_left = half_width - half_plane_width;
-	float window_right = half_width + half_plane_width;
-	float window_top = half_height - half_plane_height;
-	float window_bottom = half_height + half_plane_height;
-
-	float real_x = map_val(pt0_x, window_left, window_right, -100, 100);
-	float real_y = map_val(pt0_y, window_top, window_bottom, -100, 100);
-
-	// float real_x = map_val(pt0_x, 0, WIDTH_LARGE, -half_plane_width, half_plane_width);
-	// float real_y = map_val(pt0_y, 0, HEIGHT_LARGE, -half_plane_height, half_plane_height);
-
-	return Point3f(real_x * 10, real_y * 10, depth * 10);
+	return Point3f(real_x / 2, real_y / 2, depth * 10);
 }
 
 void Reprojector::load(IPC& ipc, bool flipped)

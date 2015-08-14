@@ -174,3 +174,48 @@ Point3f normalize(Point3f value)
     result.z = value.z * factor;
     return result;
 }
+
+float solve_triangle_A_abc(float a, float b, float c)
+{
+	return acos((-(a * a) + (b * b) + (c * c)) / (2 * b * c));
+}
+
+float solve_triangle_B_abc(float a, float b, float c)
+{
+	return acos(((a * a) - (b * b) + (c * c)) / (2 * a * c));
+}
+
+float solve_triangle_C_abc(float a, float b, float c)
+{
+	return acos(((a * a) + (b * b) - (c * c)) / (2 * a * b));
+}
+
+float solve_triangle_area_abC(float a, float b, float C)
+{
+	return a * b * sin(C) / 2;
+}
+
+float solve_triangle_area_cbA(float c, float b, float A)
+{
+	return c * b * sin(A) / 2;
+}
+
+float solve_triangle_area_acB(float a, float c, float B)
+{
+	return a * c * sin(B) / 2;
+}
+
+float solve_triangle_bisector_a_bcA(float b, float c, float A)
+{
+	return 2 * b * c * cos(A / 2) / (b + c);
+}
+
+float solve_triangle_bisector_b_acB(float a, float c, float B)
+{
+	return 2 * a * c * cos(B / 2) / (a + c);
+}
+
+float solve_triangle_bisector_c_abC(float a, float b, float C)
+{
+	return 2 * a * b * cos(C / 2) / (a + b);
+}
