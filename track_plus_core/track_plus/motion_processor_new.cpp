@@ -338,9 +338,6 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 					y_separator_down = y_separator_down_right;
 			}
 
-			if (y_separator_down < HEIGHT_SMALL / 4)
-				y_separator_down = HEIGHT_SMALL / 4;
-
 			//------------------------------------------------------------------------------------------------------------------------
 
 			if (left_moving || right_moving)
