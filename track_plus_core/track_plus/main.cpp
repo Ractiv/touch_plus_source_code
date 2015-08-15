@@ -100,8 +100,6 @@ PointerMapper pointer_mapper;
 
 LowPassFilter low_pass_filter;
 
-ValueStore value_store;
-
 ToolMonoProcessor tool_mono_processor0;
 ToolMonoProcessor tool_mono_processor1;
 
@@ -652,7 +650,7 @@ void pose_estimator_thread_function()
         if (initialized)
             pose_estimator.compute(*points_ptr);
 
-        Sleep(500);
+        Sleep(200);
     }
 }
 
@@ -660,8 +658,11 @@ void on_key_down(int code)
 {
     if (target_pose_name != "")
     {
-        if (code == 192)
+        if (code == 220)
+        {
+            COUT << "hello world" << endl;
             record_pose = true;
+        }
         else if (code == 49)
             record_pose = false;
     }

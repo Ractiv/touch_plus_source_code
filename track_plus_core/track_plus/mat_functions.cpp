@@ -19,6 +19,7 @@
 #include "mat_functions.h"
 
 LowPassFilter mat_functions_low_pass_filter;
+ValueStore mat_functions_value_store;
 
 void threshold_get_bounds(Mat& image_in, Mat& image_out, const int threshold_val, int& x_min, int& x_max, int& y_min, int& y_max)
 {
@@ -321,6 +322,28 @@ void compute_color_segmented_image(Mat& image_in, Mat& image_out)
 	}
 
 	image_out = image_segmented;
+}
+
+void compute_motion_structure_image(Mat& image_in, Mat& image_out, string name)
+{
+	Mat image_old = mat_functions_value_store.get_mat("image_motion_structure" + name, true);
+
+	Mat image_subtraction = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = 0; j < HEIGHT_SMALL; ++j)
+		{
+			int diff = image_in.ptr<uchar>(j, i)[0] - image_old.ptr<uchar>(j, i)[0] + 127;
+			if (diff < 0)
+				diff = 0;
+			else if (diff > 254)
+				diff = 254;
+
+			image_subtraction.ptr<uchar>(j, i)[0] = diff;
+		}
+	equalizeHist(image_subtraction, image_subtraction);
+
+	mat_functions_value_store.set_mat("image_motion_structure" + name, image_in);
+	image_out = image_subtraction;
 }
 
 void print_mat_type(Mat& image_in)

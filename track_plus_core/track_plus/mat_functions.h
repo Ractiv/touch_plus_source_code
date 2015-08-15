@@ -23,6 +23,7 @@
 #include "math_plus.h"
 #include "low_pass_filter.h"
 #include "contour_functions.h"
+#include "value_store.h"
 
 using namespace cv;
 
@@ -35,4 +36,5 @@ bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 void compute_max_image(Mat& image_in, Mat& image_out);
 void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out);
 void compute_color_segmented_image(Mat& image_in, Mat& image_out);
+void compute_motion_structure_image(Mat& image_in, Mat& image_out, string name);
 void print_mat_type(Mat& image_in);

@@ -39,6 +39,8 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	int index = 0;
 	for (vector<Point>& points : points_collection)
 	{
+		// float dist = matchShapes(points_current, points, CV_CONTOURS_MATCH_I1, 0);
+
 		Mat cost_mat = compute_cost_mat(points_current, points);
 		float dist = compute_dtw(cost_mat);
 
@@ -52,9 +54,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		++index;
 	}
 
-	int save_threshold = map_val(points_in.size(), 15, 25, 20000, 25000);
-
-	if (record_pose && ((target_pose_name != "" && pose_name_dist_min != target_pose_name) || dist_min > save_threshold))
+	if (record_pose && target_pose_name != "" && (pose_name_dist_min != target_pose_name))
 	{
 		save(target_pose_name);
 		COUT << pose_name_dist_min << "->" << target_pose_name << " " << dist_min << endl;
@@ -73,18 +73,31 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			pt_old = pt;
 		}
 
-		// imshow("image_dist_min", image_dist_min);
-		// waitKey(1);
+		imshow("image_dist_min", image_dist_min);
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 3, pose_name_temp);
 
 	if (pose_name_temp == "point")
 		pose_name = pose_name_temp;
 
 	if (show)
 		COUT << pose_name_temp << endl;
+
+	Mat image_current = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+	Point pt_old = Point(-1, -1);
+	for (Point& pt : points_current)
+	{
+		if (pt_old.x != -1)
+			line(image_current, pt, pt_old, Scalar(254), 1);
+
+		pt_old = pt;
+	}
+
+	imshow("image_current", image_current);
+	waitKey(1);
 }
 
 Mat PoseEstimator::compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
@@ -97,7 +110,6 @@ Mat PoseEstimator::compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
 		for (int j = 0; j < vec1_size; ++j)
 			cost_mat.ptr<float>(j, i)[0] = get_distance(vec0[i], vec1[j]);
 
-	normalize(cost_mat, cost_mat, 0, 10000, NORM_MINMAX);
 	return cost_mat;
 }
 

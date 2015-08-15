@@ -347,7 +347,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 					if (blob.y_min < blobs_y_min)
 						blobs_y_min = blob.y_min;
 
-				y_separator_up = blobs_y_min + 10;
+				y_separator_up = blobs_y_min + 5;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -513,6 +513,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 					float hole_count_left = 0;
 					float hole_count_right = 0;
 
+					Mat image_holes = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
 					for (int i = 0; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							if (image_background_static.ptr<uchar>(j, i)[0] == 255)
@@ -521,6 +523,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 									++hole_count_left;
 								else
 									++hole_count_right;
+
+								image_holes.ptr<uchar>(j, i)[0] = 254;
 							}
 
 					float hole_count = hole_count_right + hole_count_left;
@@ -533,6 +537,19 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 					{
 						alpha = 0.5;
 						value_store.set_bool("result", true);
+					}
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					if (value_store.get_bool("result", false))
+					{
+						BlobDetectorNew* blob_detector_image_holes = value_store.get_blob_detector("blob_detector_image_holes");
+						blob_detector_image_holes->compute(image_holes, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+						for (BlobNew& blob : *blob_detector_image_holes->blobs)
+							if (blob.x < x_separator_left || blob.x > x_separator_right)
+								for (Point& pt : blob.data)
+									fill_image_background_static(pt.x, pt.y, image_in);
 					}
 				}
 			}

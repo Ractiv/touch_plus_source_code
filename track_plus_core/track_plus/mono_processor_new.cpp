@@ -57,12 +57,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	pt_palm.x /= pt_palm_count;
 	pt_palm.y /= pt_palm_count;
 
-	// vector<Vec4i> hiearchy;
-	// vector<vector<Point>> contours;
-	// findContours(image_find_contours, contours, hiearchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
 	vector<vector<Point>> contours = legacyFindContours(image_find_contours);
-
 	const int contours_size = contours.size();
 
 	if (contours_size == 0)
@@ -129,9 +124,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			line(image_find_contours, pt_dist_min0, pt_dist_min1, Scalar(254), 2);
 		}
 
-		// hiearchy = vector<Vec4i>();
-		// contours = vector<vector<Point>>();
-		// findContours(image_find_contours, contours, hiearchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 		contours = legacyFindContours(image_find_contours);
 	}
 
@@ -213,16 +205,17 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		return false;
 	}
 
+	vector<Point> contour_approximated_unsorted;
+	approxPolyDP(Mat(contour_sorted), contour_approximated_unsorted, 1, true);
+
 	vector<Point> contour_approximated;
-	approxPolyDP(Mat(contour_sorted), contour_approximated, 2, true);
+	sort_contour(contour_approximated_unsorted, contour_approximated, pivot);
+
+	if (name == "0")
+		points_unwrapped_result = contour_approximated;
+
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);
 	contour_approximated.push_back(contour_sorted[contour_sorted.size() - 1]);
-
-	{
-		points_unwrapped_result = contour_approximated;
-		// points_unwrapped_result = vector<Point>();
-		// compute_unwrap2(contour_approximated, pivot, points_unwrapped_result);
-	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
