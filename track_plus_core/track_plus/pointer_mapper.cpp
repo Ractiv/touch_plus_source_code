@@ -20,65 +20,46 @@
 
 void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojector)
 {
-	// active = false;
+	active = false;
 
-	// if (calibrated)
-	// {
-	// 	float dist_max = value_store.get_float("dist_max", 0);
-	// 	float dist = get_distance(pt_palm, pt_index);
-	// 	float ratio = dist / dist_max;
-	// }
-	// else
-	// {
-	// 	float dist_max = value_store.get_float("dist_max", 0);
-	// 	float dist = get_distance(pt_palm, pt_index);
-	// 	if (dist > dist_max)
-	// 		dist_max = dist;
+	if (calibrated)
+	{
+		float dist_max = value_store.get_float("dist_max", 0);
+		float dist = get_distance(pt_palm, pt_index);
+		float ratio = dist / dist_max;
+	}
+	else
+	{
+		float dist_max = value_store.get_float("dist_max", 0);
+		float dist = get_distance(pt_palm, pt_index);
+		if (dist > dist_max)
+			dist_max = dist;
 		
-	// 	value_store.set_float("dist_max", dist_max);
-	// }
+		value_store.set_float("dist_max", dist_max);
+	}
 
-	// pt_palm = reprojector.reproject_to_3d(hand_resolver.pt_precise_palm0.x, hand_resolver.pt_precise_palm0.y,
-	// 									  hand_resolver.pt_precise_palm1.x, hand_resolver.pt_precise_palm1.y);
+	pt_palm = reprojector.reproject_to_3d(hand_resolver.pt_precise_palm0.x, hand_resolver.pt_precise_palm0.y,
+										  hand_resolver.pt_precise_palm1.x, hand_resolver.pt_precise_palm1.y);
 
 	compute_cursor_point(index_down, hand_resolver.pt_precise_index0, hand_resolver.pt_precise_index1,
 						 pt_index, reprojector, pt_cursor_index, dist_cursor_index_plane, actuate_dist, "compute_index");
 
-	Mat image_visualization = Mat::zeros(480, 640, CV_8UC3);
-	circle(image_visualization, Point(pt_index.x / 10, pt_index.y / 10), pow(pt_index.z / 50, 2), Scalar(127, 127, 127), -1);
+	compute_cursor_point(thumb_down, hand_resolver.pt_precise_thumb0, hand_resolver.pt_precise_thumb1,
+						 pt_thumb, reprojector, pt_cursor_thumb, dist_cursor_thumb_plane, actuate_dist + 10, "compute_thumb");
+
+	if (pt_cursor_index.y > 1500)
+	{
+		pose_name = "";
+		index_down = false;
+	}
 
 	if (calibrated)
 	{
-		circle(image_visualization, Point(pt_calib0_projected.x / 10, pt_calib0_projected.y / 10), pow(pt_calib0_projected.z / 50, 2), Scalar(254, 254, 254), 2);
-		circle(image_visualization, Point(pt_calib1_projected.x / 10, pt_calib1_projected.y / 10), pow(pt_calib1_projected.z / 50, 2), Scalar(254, 254, 254), 2);
-		circle(image_visualization, Point(pt_calib2_projected.x / 10, pt_calib2_projected.y / 10), pow(pt_calib2_projected.z / 50, 2), Scalar(254, 254, 254), 2);
-		circle(image_visualization, Point(pt_calib3_projected.x / 10, pt_calib3_projected.y / 10), pow(pt_calib3_projected.z / 50, 2), Scalar(254, 254, 254), 2);
+		if (!index_down)
+			thumb_down = false;
 
-		Point3f pt_test;
-		float dist_test;		
-		project_to_plane(pt_index, pt_test, dist_test);
-
-		circle(image_visualization, Point(pt_test.x / 10, pt_test.y / 10), pow(pt_test.z / 50, 2), Scalar(254, 254, 254), 2);
+		compute_pinch_to_zoom(hand_resolver);
 	}
-
-	imshow("image_visualization_asjaksd", image_visualization);
-
-	// compute_cursor_point(thumb_down, hand_resolver.pt_precise_thumb0, hand_resolver.pt_precise_thumb1,
-	// 					 pt_thumb, reprojector, pt_cursor_thumb, dist_cursor_thumb_plane, actuate_dist + 10, "compute_thumb");
-
-	// if (pt_cursor_index.y > 1500)
-	// {
-	// 	pose_name = "";
-	// 	index_down = false;
-	// }
-
-	// if (calibrated)
-	// {
-	// 	if (!index_down)
-	// 		thumb_down = false;
-
-	// 	compute_pinch_to_zoom(hand_resolver);
-	// }
 }
 
 void PointerMapper::add_calibration_point(const uchar index)
@@ -201,22 +182,8 @@ void PointerMapper::compute_calibration_points()
 
 		pt_calib3 = Point3f(x_median, y_median, z_median);
 
-		// Point3f pt_calib0_new = Point3f(pt_calib0.x, pt_calib0.y, pt_calib2.z);
-		// Point3f pt_calib1_new = Point3f(pt_calib1.x, pt_calib1.y, pt_calib3.z);
-		// Point3f pt_calib2_new = Point3f(pt_calib2.x, pt_calib2.y, pt_calib0.z);
-		// Point3f pt_calib3_new = Point3f(pt_calib3.x, pt_calib3.y, pt_calib1.z);
-
-		// pt_calib0 = pt_calib0_new;
-		// pt_calib1 = pt_calib1_new;
-		// pt_calib2 = pt_calib2_new;
-		// pt_calib3 = pt_calib3_new;
-
     	plane = Plane(pt_calib0, pt_calib1, pt_calib2);
 	    direction_plane = plane.normal;
-
-	    COUT << plane.normal << endl;
-
-	    COUT << pt_calib0 << " " << pt_calib1 << " " << pt_calib2 << endl;
 
 	    bool b0 = project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
 		bool b1 = project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
@@ -279,18 +246,12 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 
 			if (b)
 			{
-				// float dist0 = get_distance(pt_target_projected, pt_calib0_projected);
-				// float dist1 = get_distance(pt_target_projected, pt_calib1_projected);
-				// float dist2 = get_distance(pt_calib0_projected, pt_calib1_projected);
-
-				// COUT << solve_triangle_bisector_c_abC(dist0, dist1, solve_triangle_C_abc(dist0, dist1, dist2)) << endl;
-
 				rect_warper.warp(pt_target_projected.x, pt_target_projected.y, pt_cursor.x, pt_cursor.y);
 
 				if (value_store.has_point2f("pt_cursor" + name))
 				{
 	                Point2f temp = value_store.get_point2f("pt_cursor" + name);
-	                float alpha = get_distance(pt_cursor, temp) / 200;
+	                float alpha = get_distance(pt_cursor, temp) / 1000;
 		            if (alpha < 0.1)
 		            	alpha = 0.1;
 		            else if (alpha > 1)
@@ -301,19 +262,19 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 		        }
 		        value_store.set_point2f("pt_cursor" + name, pt_cursor);
 
-				// if (dist_target_plane <= actuation_dist + 3)
-					// value_store.set_bool("actuated" + name, true);
+				if (dist_target_plane <= actuation_dist)
+					value_store.set_bool("actuated" + name, true);
 
-				// if (value_store.get_bool("actuated" + name))
-				// {
-				// 	target_down = true;
+				if (value_store.get_bool("actuated" + name))
+				{
+					target_down = true;
 					
-				// 	if (dist_target_plane > actuation_dist + 5)
-				// 	{
-				// 		target_down = false;
-				// 		value_store.set_bool("actuated" + name, false);
-				// 	}
-				// }
+					if (dist_target_plane > actuation_dist + 5)
+					{
+						target_down = false;
+						value_store.set_bool("actuated" + name, false);
+					}
+				}
 		    }
 		}
 	}

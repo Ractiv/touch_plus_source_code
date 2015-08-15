@@ -61,8 +61,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 
 	for (BlobNew& blob : *blob_detector.blobs)
-		if (blob.count < motion_processor.noise_size ||
-			blob.y > motion_processor.y_separator_down ||
+		if (blob.y > motion_processor.y_separator_down ||
 			blob.x_max < motion_processor.x_separator_left ||
 			blob.x_min > motion_processor.x_separator_right)
 		{

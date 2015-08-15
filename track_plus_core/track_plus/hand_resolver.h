@@ -27,7 +27,7 @@ class HandResolver
 {
 public:
 	const int window_width = 50;
-	const int window_height = 20;
+	const int window_height = 30;
 	const int window_width_half = window_width / 2;
 	const int window_height_half = window_height / 2;
 

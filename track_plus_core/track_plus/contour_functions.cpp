@@ -37,12 +37,13 @@ vector<vector<Point>> legacyFindContours(Mat& Segmented)
 		vector<Point> contour_current;
 		for (int i = 0; i<contours->total; ++i)
 		{
-			CvPoint* point = (CvPoint *)CV_GET_SEQ_ELEM(CvPoint, contours, i);
+			CvPoint* point = (CvPoint*)CV_GET_SEQ_ELEM(CvPoint, contours, i);
 			contour_current.push_back(Point(point->x, point->y));
 		}
 		result.push_back(contour_current);
 	}
 
+	cvReleaseMemStorage(&storage);
 	return result;
 }
 

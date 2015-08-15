@@ -1,24 +1,6 @@
-/*
- * Touch+ Software
- * Copyright (C) 2015
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the Aladdin Free Public License as
- * published by the Aladdin Enterprises, either version 9 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * Aladdin Free Public License for more details.
- *
- * You should have received a copy of the Aladdin Free Public License
- * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
- */
-
 #include "motion_processor_new.h"
 
-bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bool construct_background, const string name, const bool visualize)
+bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_ref, bool construct_background, const string name, const bool visualize)
 {
 	static string motion_processor_primary_name = "";
 	if (motion_processor_primary_name == "")
@@ -47,288 +29,355 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 
 	compute_background_static = construct_background;
 
-	Mat image_background = value_store.get_mat("image_background");
-
 	left_moving = false;
 	right_moving = false;
 	both_moving = false;
 
-	int current_frame = value_store.get_int("current_frame", 0);
-	if (value_store.get_bool("image_background_set") && current_frame >= value_store.get_int("target_frame", 1))
+	static float alpha = 1;
+
+	//------------------------------------------------------------------------------------------------------------------------
+
+	Mat image_background_unbiased = value_store.get_mat("image_background_unbiased", true);
+	Mat image_subtraction_unbiased = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+	uchar diff_max_unbiased = 0;
+	for (int i = 0; i < WIDTH_SMALL; ++i)
+		for (int j = 0; j < y_ref; ++j)
+		{
+			uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background_unbiased.ptr<uchar>(j, i)[0]);
+			if (diff > diff_max_unbiased)
+				diff_max_unbiased = diff;
+
+			image_subtraction_unbiased.ptr<uchar>(j, i)[0] = diff;
+		}
+	threshold(image_subtraction_unbiased, image_subtraction_unbiased, diff_max_unbiased * 0.1, 254, THRESH_BINARY);
+
+	value_store.set_mat("image_background_unbiased", image_in);
+
+	//------------------------------------------------------------------------------------------------------------------------
+
+	int entropy_left = 0;
+	int entropy_right = 0;
+
+	BlobDetectorNew* blob_detector_image_subtraction_unbiased = value_store.get_blob_detector("blob_detector_image_subtraction_unbiased");
+	blob_detector_image_subtraction_unbiased->compute(image_subtraction_unbiased, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+	for (BlobNew& blob : *blob_detector_image_subtraction_unbiased->blobs)
+		if (blob.x < x_separator_middle)
+			entropy_left += blob.count;
+		else
+			entropy_right += blob.count;
+
+	int entropy_left_biased = 1;
+	int entropy_right_biased = 1;
+
+	BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
+	for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+		if (blob.x < x_separator_middle)
+			entropy_left_biased += blob.count;
+		else
+			entropy_right_biased += blob.count;
+
+	//------------------------------------------------------------------------------------------------------------------------
+
+	if (entropy_left + entropy_right < 4000)
 	{
-		current_frame = 0;
-		value_store.set_bool("update_background", false);
+		int x_min = blob_detector_image_subtraction_unbiased->x_min_result;
+		int x_max = blob_detector_image_subtraction_unbiased->x_max_result;
 
-		uchar motion_diff_max = 0;
-		Mat image_subtraction = Mat::zeros(image_in.size(), CV_8UC1);
+		float x_seed_vec0_max = value_store.get_float("x_seed_vec0_max");
+		float x_seed_vec1_min = value_store.get_float("x_seed_vec1_min");
 
+		int intensity_array[WIDTH_SMALL] { 0 };
+		for (BlobNew& blob : *blob_detector_image_subtraction_unbiased->blobs)
+			for (Point& pt : blob.data)
+				++intensity_array[pt.x];
+
+		vector<Point> hist_pt_vec;
 		for (int i = 0; i < WIDTH_SMALL; ++i)
-			for (int j = 0; j < HEIGHT_SMALL; ++j)
-				if (j < y_ref)
+		{
+			int j = intensity_array[i];
+			low_pass_filter->compute(j, 0.5, "histogram_j");
+
+			if (j < 10)
+				continue;
+
+			for (int j_current = 0; j_current < j; ++j_current)
+				hist_pt_vec.push_back(Point(i, j_current));
+		}
+
+		Point seed0 = Point(x_min, 0);
+		Point seed1 = Point(x_max, 0);
+
+		vector<Point> seed_vec0;
+		vector<Point> seed_vec1;
+
+		while (true)
+		{
+			seed_vec0.clear();
+			seed_vec1.clear();
+
+			for (Point& pt : hist_pt_vec)
+			{
+				float dist0 = get_distance(pt, seed0);
+				float dist1 = get_distance(pt, seed1);
+
+				if (dist0 < dist1)
+					seed_vec0.push_back(pt);
+				else
+					seed_vec1.push_back(pt);
+			}
+
+			if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
+				break;
+
+			Point seed0_new = Point(0, 0);
+			for (Point& pt : seed_vec0)
+			{
+				seed0_new.x += pt.x;
+				seed0_new.y += pt.y;
+			}
+			seed0_new.x /= seed_vec0.size();
+			seed0_new.y /= seed_vec0.size();
+
+			Point seed1_new = Point(0, 0);
+			for (Point& pt : seed_vec1)
+			{
+				seed1_new.x += pt.x;
+				seed1_new.y += pt.y;
+			}
+			seed1_new.x /= seed_vec1.size();
+			seed1_new.y /= seed_vec1.size();
+
+			if (seed0 == seed0_new && seed1 == seed1_new)
+				break;
+
+			seed0 = seed0_new;
+			seed1 = seed1_new;
+		}
+
+		if (seed_vec0.size() > 0 && seed_vec1.size() > 0)
+		{
+			x_seed_vec0_max = seed_vec0[seed_vec0.size() - 1].x;
+			x_seed_vec1_min = seed_vec1[0].x;
+
+			low_pass_filter->compute_if_smaller(x_seed_vec0_max, 0.5, "x_seed_vec0_max");
+			low_pass_filter->compute_if_larger(x_seed_vec1_min, 0.5, "x_seed_vec1_min");
+
+			value_store.set_float("x_seed_vec0_max", x_seed_vec0_max);
+			value_store.set_float("x_seed_vec1_min", x_seed_vec1_min);
+
+			value_store.set_bool("x_min_max_set", true);
+
+			#if 0
+			{
+				Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+				for (Point& pt : seed_vec0)
+					line(image_histogram, pt, Point(pt.x, 0), Scalar(127), 1);
+
+				for (Point& pt : seed_vec1)
+					line(image_histogram, pt, Point(pt.x, 0), Scalar(254), 1);
+
+				circle(image_histogram, seed0, 5, Scalar(64), -1);
+				circle(image_histogram, seed1, 5, Scalar(64), -1);
+
+				line(image_histogram, Point(x_seed_vec0_max, 0), Point(x_seed_vec0_max, 9999), Scalar(64), 1);
+				line(image_histogram, Point(x_seed_vec1_min, 0), Point(x_seed_vec1_min, 9999), Scalar(64), 1);
+
+				imshow("image_histogramasd" + name, image_histogram);
+			}
+			#endif
+
+			float subject_width0 = x_seed_vec0_max - x_min;
+			float subject_width1 = x_max - x_seed_vec1_min;
+			float subject_width_max = max(subject_width0, subject_width1);
+			float gap_width = x_seed_vec1_min - x_seed_vec0_max;
+			float total_width = x_max - x_min;
+			float gap_ratio = gap_width / subject_width_max;
+
+			both_moving = (total_width > 80 && gap_ratio > 0.3);
+		}
+
+		if (both_moving)
+		{
+			left_moving = true;
+			right_moving = true;
+			value_store.set_bool("both_moving_set", true);
+		}
+		else if (entropy_left > entropy_threshold || entropy_right > entropy_threshold)
+		{
+			if (entropy_left > entropy_right)
+				left_moving = true;
+			else
+				right_moving = true;
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------
+
+		if (both_moving)
+		{
+			vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
+			if (x_separator_middle_vec->size() < 1000)
+			{
+				x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
+				sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
+			}
+			x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------
+
+		if (value_store.get_bool("both_moving_set", false))
+		{
+			Mat image_background = value_store.get_mat("image_background", true);
+			Mat image_subtraction = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+			uchar diff_max = 0;
+			for (int i = 0; i < WIDTH_SMALL; ++i)
+				for (int j = 0; j < y_ref; ++j)
 				{
-					const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]);
-					if (diff > motion_diff_max)
-						motion_diff_max = diff;
+					uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]);
+					if (diff > diff_max)
+						diff_max = diff;
 
 					image_subtraction.ptr<uchar>(j, i)[0] = diff;
 				}
+			threshold(image_subtraction, image_subtraction, diff_max * 0.1, 254, THRESH_BINARY);
 
-		Mat image_subtraction_shallow = Mat(image_in.size(), CV_8UC1);
-		threshold(image_subtraction, image_subtraction_shallow, motion_diff_max * 0.1, 254, THRESH_BINARY);
-		threshold(image_subtraction, image_subtraction, motion_diff_max * 0.25, 254, THRESH_BINARY);
+			//------------------------------------------------------------------------------------------------------------------------
 
-		Mat image_subtraction_deep = image_subtraction;
-		image_subtraction = image_subtraction_shallow;
+			if (entropy_right > entropy_threshold && entropy_right < 2000 && (both_moving || entropy_left < entropy_right))
+				if (entropy_right / entropy_right_biased == 0)
+					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							image_background.ptr<uchar>(j, i)[0] += (image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
-		BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
-		blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
+			if (entropy_left > entropy_threshold && entropy_left < 2000 && (both_moving || entropy_left > entropy_right))
+				if (entropy_left / entropy_left_biased == 0)
+					for (int i = 0; i < x_separator_middle; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							image_background.ptr<uchar>(j, i)[0] += (image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
-		BlobDetectorNew* blob_detector_image_subtraction_deep = value_store.get_blob_detector("blob_detector_image_subtraction_deep");
-		blob_detector_image_subtraction_deep->compute(image_subtraction_deep, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
+			value_store.set_mat("image_background", image_background);
 
-		if (blob_detector_image_subtraction_deep->blobs->size() < 100 && blob_detector_image_subtraction_deep->blobs->size() > 0)
-		{
-			int x_min = blob_detector_image_subtraction_deep->x_min_result;
-			int x_max = blob_detector_image_subtraction_deep->x_max_result;
+			//------------------------------------------------------------------------------------------------------------------------
 
-			float x_seed_vec0_max = value_store.get_float("x_seed_vec0_max");
-			float x_seed_vec1_min = value_store.get_float("x_seed_vec1_min");
+			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-			if (value_store.get_bool("image_background_updated"))
+			if ((left_moving || right_moving) && value_store.get_bool("x_min_max_set"))
 			{
-				value_store.set_bool("image_background_updated", false);
-
-				int intensity_array[WIDTH_SMALL] { 0 };
-				for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-					for (Point& pt : blob.data)
-						++intensity_array[pt.x];
-
-				vector<Point> hist_pt_vec;
-				for (int i = 0; i < WIDTH_SMALL; ++i)
+				if (both_moving)
 				{
-					int j = intensity_array[i];
-					low_pass_filter->compute(j, 0.5, "histogram_j");
-
-					if (j < 10)
-						continue;
-
-					for (int j_current = 0; j_current < j; ++j_current)
-						hist_pt_vec.push_back(Point(i, j_current));
+					x_separator_left = blob_detector_image_subtraction->x_min_result;
+					x_separator_right = blob_detector_image_subtraction->x_max_result;
 				}
-
-				Point seed0 = Point(x_min, 0);
-				Point seed1 = Point(x_max, 0);
-
-				vector<Point> seed_vec0;
-				vector<Point> seed_vec1;
-
-				while (true)
-				{
-					seed_vec0.clear();
-					seed_vec1.clear();
-
-					for (Point& pt : hist_pt_vec)
-					{
-						float dist0 = get_distance(pt, seed0);
-						float dist1 = get_distance(pt, seed1);
-
-						if (dist0 < dist1)
-							seed_vec0.push_back(pt);
-						else
-							seed_vec1.push_back(pt);
-					}
-
-					if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
-						break;
-
-					Point seed0_new = Point(0, 0);
-					for (Point& pt : seed_vec0)
-					{
-						seed0_new.x += pt.x;
-						seed0_new.y += pt.y;
-					}
-					seed0_new.x /= seed_vec0.size();
-					seed0_new.y /= seed_vec0.size();
-
-					Point seed1_new = Point(0, 0);
-					for (Point& pt : seed_vec1)
-					{
-						seed1_new.x += pt.x;
-						seed1_new.y += pt.y;
-					}
-					seed1_new.x /= seed_vec1.size();
-					seed1_new.y /= seed_vec1.size();
-
-					if (seed0 == seed0_new && seed1 == seed1_new)
-						break;
-
-					seed0 = seed0_new;
-					seed1 = seed1_new;
-				}
-
-				if (seed_vec0.size() == 0 || seed_vec1.size() == 0)
-					return value_store.get_bool("result", false);
-
-				x_seed_vec0_max = seed_vec0[seed_vec0.size() - 1].x;
-				x_seed_vec1_min = seed_vec1[0].x;
-
-				low_pass_filter->compute_if_smaller(x_seed_vec0_max, 0.5, "x_seed_vec0_max");
-				low_pass_filter->compute_if_larger(x_seed_vec1_min, 0.5, "x_seed_vec1_min");
-
-				value_store.set_float("x_seed_vec0_max", x_seed_vec0_max);
-				value_store.set_float("x_seed_vec1_min", x_seed_vec1_min);
-
-				value_store.set_bool("x_min_max_set", true);
-
-				if (false) //for visualization
-				{
-					Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
-					for (Point& pt : seed_vec0)
-						line(image_histogram, pt, Point(pt.x, 0), Scalar(127), 1);
-
-					for (Point& pt : seed_vec1)
-						line(image_histogram, pt, Point(pt.x, 0), Scalar(254), 1);
-
-					circle(image_histogram, seed0, 5, Scalar(64), -1);
-					circle(image_histogram, seed1, 5, Scalar(64), -1);
-
-					line(image_histogram, Point(x_seed_vec0_max, 0), Point(x_seed_vec0_max, 9999), Scalar(64), 1);
-					line(image_histogram, Point(x_seed_vec1_min, 0), Point(x_seed_vec1_min, 9999), Scalar(64), 1);
-
-					imshow("image_histogramasd" + name, image_histogram);
-				}
-
-				float subject_width0 = x_seed_vec0_max - x_min;
-				float subject_width1 = x_max - x_seed_vec1_min;
-				float subject_width_max = max(subject_width0, subject_width1);
-				float gap_width = x_seed_vec1_min - x_seed_vec0_max;
-				float total_width = x_max - x_min;
-				float gap_ratio = gap_width / subject_width_max;
-
-				both_moving = (total_width > 80 && gap_ratio > 0.5);
+				else if (left_moving)
+					x_separator_left = blob_detector_image_subtraction->x_min_result;
+				else if (right_moving)
+					x_separator_right = blob_detector_image_subtraction->x_max_result;
 			}
 
-			int blobs_count_left = 0;
-			int blobs_count_right = 0;
+			//------------------------------------------------------------------------------------------------------------------------
+
+			int intensity_array0[HEIGHT_SMALL] { 0 };
 			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-				if (blob.x < x_separator_middle)
-					blobs_count_left += blob.count;
-				else
-					blobs_count_right += blob.count;
+				for (Point& pt : blob.data)
+					++intensity_array0[pt.y];
+
+			int y_min = 9999;
+			int y_max = 0;
+
+			vector<Point> hist_pt_vec0;
+			for (int i = 0; i < HEIGHT_SMALL; ++i)
+			{
+				int j = intensity_array0[i];
+				low_pass_filter->compute(j, 0.5, "histogram_j");
+
+				if (j < 10)
+					continue;
+
+				for (int j_current = 0; j_current < j; ++j_current)
+					hist_pt_vec0.push_back(Point(j_current, i));
+
+				if (i < y_min)
+					y_min = i;
+				if (i > y_max)
+					y_max = i;
+			}
+
+			Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+			for (Point& pt : hist_pt_vec0)
+				line(image_histogram, pt, Point(0, pt.y), Scalar(254), 1);
+
+			BlobDetectorNew* blob_detector_image_histogram = value_store.get_blob_detector("blob_detector_image_histogram");
+			blob_detector_image_histogram->compute(image_histogram, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
 			if (both_moving)
 			{
-				left_moving = true;
-				right_moving = true;
+				y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
+				value_store.set_int("y_separator_down_left", y_separator_down);
+				value_store.set_int("y_separator_down_right", y_separator_down);
 			}
-			else if (blobs_count_left > count_threshold || blobs_count_right > count_threshold)
+			else if (left_moving)
 			{
-				if (blobs_count_left > blobs_count_right)
-					left_moving = true;
-				else
-					right_moving = true;
+				int y_separator_down_left = blob_detector_image_histogram->blob_max_size->y_max;
+				int y_separator_down_right = value_store.get_int("y_separator_down_right", 0);
+				value_store.set_int("y_separator_down_left", y_separator_down_left);
+
+				if (y_separator_down_left > y_separator_down_right)
+					y_separator_down = y_separator_down_left;
+			}
+			else if (right_moving)
+			{
+				int y_separator_down_right = blob_detector_image_histogram->blob_max_size->y_max;
+				int y_separator_down_left = value_store.get_int("y_separator_down_left", 0);
+				value_store.set_int("y_separator_down_right", y_separator_down_right);
+
+				if (y_separator_down_right > y_separator_down_left)
+					y_separator_down = y_separator_down_right;
 			}
 
-			bool update_background = (x_max - x_min > 60) && (blobs_count_left + blobs_count_right > count_threshold);
-			value_store.set_bool("update_background", update_background);
+			if (y_separator_down < HEIGHT_SMALL / 4)
+				y_separator_down = HEIGHT_SMALL / 4;
 
-			static int compute_count = 0;
-			if (compute_count < 10)
-				++compute_count;
+			//------------------------------------------------------------------------------------------------------------------------
 
-			if ((left_moving || right_moving) && compute_count >= 10 && value_store.get_bool("x_min_max_set"))
+			if (left_moving || right_moving)
 			{
-				if (both_moving)
-				{
-					x_separator_left = x_min;
-					x_separator_right = x_max;
-
-					vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
-					if (x_separator_middle_vec->size() < 1000)
-					{
-						x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
-						sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
-					}
-					x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
-				}
-				else if (left_moving)
-				{
-					x_separator_left = x_min;
-
-					// if (x_separator_left != 0)
-						// low_pass_filter->compute_if_larger(x_separator_left, 0.5, "x_separator_left");
-				}
-				else if (right_moving)
-				{
-					x_separator_right = x_max;
-
-					// if (x_separator_right != WIDTH_SMALL)
-						// low_pass_filter->compute_if_smaller(x_separator_right, 0.5, "x_separator_right");
-				}
-
-				int intensity_array0[HEIGHT_SMALL] { 0 };
+				int blobs_y_min = 9999;
 				for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-					for (Point& pt : blob.data)
-						++intensity_array0[pt.y];
+					if (blob.y_min < blobs_y_min)
+						blobs_y_min = blob.y_min;
 
-				int y_min = 9999;
-				int y_max = 0;
+				y_separator_up = blobs_y_min + 10;
+			}
 
-				vector<Point> hist_pt_vec0;
-				for (int i = 0; i < HEIGHT_SMALL; ++i)
+			//------------------------------------------------------------------------------------------------------------------------
+
+			if ((((left_moving || right_moving) && value_store.get_bool("result", false)) || both_moving) && construct_background)
+			{
+				//triangle fill
+				if (y_separator_up > 0)
 				{
-					int j = intensity_array0[i];
-					low_pass_filter->compute(j, 0.5, "histogram_j");
+					Point pt_center = Point(x_separator_middle, y_separator_up);
+					Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
+					line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
+					line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
+					floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
 
-					if (j < 10)
-						continue;
-
-					for (int j_current = 0; j_current < j; ++j_current)
-						hist_pt_vec0.push_back(Point(j_current, i));
-
-					if (i < y_min)
-						y_min = i;
-					if (i > y_max)
-						y_max = i;
+					const int j_max = image_flood_fill.rows;
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < j_max; ++j)
+							if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
+								fill_image_background_static(i, j, image_in);
 				}
 
-				Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-				for (Point& pt : hist_pt_vec0)
-					line(image_histogram, pt, Point(0, pt.y), Scalar(254), 1);
+				for (int i = 0; i < WIDTH_SMALL; ++i)
+					for (int j = y_separator_down; j < HEIGHT_SMALL; ++j)
+						fill_image_background_static(i, j, image_in);
 
-				BlobDetectorNew* blob_detector_image_histogram = value_store.get_blob_detector("blob_detector_image_histogram");
-				blob_detector_image_histogram->compute(image_histogram, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-				if (both_moving)
-				{
-					y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
-					value_store.set_int("y_separator_down_left", y_separator_down);
-					value_store.set_int("y_separator_down_right", y_separator_down);
-				}
-				else if (left_moving)
-				{
-					int y_separator_down_left = blob_detector_image_histogram->blob_max_size->y_max;
-					int y_separator_down_right = value_store.get_int("y_separator_down_right", 0);
-					value_store.set_int("y_separator_down_left", y_separator_down_left);
-
-					if (y_separator_down_left > y_separator_down_right)
-						y_separator_down = y_separator_down_left;
-				}
-				else if (right_moving)
-				{
-					int y_separator_down_right = blob_detector_image_histogram->blob_max_size->y_max;
-					int y_separator_down_left = value_store.get_int("y_separator_down_left", 0);
-					value_store.set_int("y_separator_down_right", y_separator_down_right);
-
-					if (y_separator_down_right > y_separator_down_left)
-						y_separator_down = y_separator_down_right;
-				}
-
-				if (y_separator_down < HEIGHT_SMALL / 4)
-					y_separator_down = HEIGHT_SMALL / 4;
-
-				low_pass_filter->compute_if_smaller(y_separator_down, 0.5, "y_separator_down");
+				//------------------------------------------------------------------------------------------------------------------------
 
 				static float gray_threshold_left_stereo = 9999;
 				static float gray_threshold_right_stereo = 9999;
@@ -364,7 +413,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						sort(gray_vec_left.begin(), gray_vec_left.end());
 						float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
 
-						gray_threshold_left = gray_median_left - 30;
+						gray_threshold_left = gray_median_left - 20;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
 					}
@@ -374,7 +423,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						sort(gray_vec_right.begin(), gray_vec_right.end());
 						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
 
-						gray_threshold_right = gray_median_right - 30;
+						gray_threshold_right = gray_median_right - 20;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
 					}
@@ -385,6 +434,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 					gray_threshold_right = gray_threshold_right_stereo;
 				}
 
+				//------------------------------------------------------------------------------------------------------------------------
+
 				Mat image_in_thresholded = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
@@ -393,9 +444,9 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 						else if (i > x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_right)
 							image_in_thresholded.ptr<uchar>(j, i)[0] = 254;
 
-				uchar static_diff_max = 0;
-				uchar static_diff_max_left = 0;
-				uchar static_diff_max_right = 0;
+				//------------------------------------------------------------------------------------------------------------------------
+
+				uchar static_diff_max = 255;
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
 						if (image_in_thresholded.ptr<uchar>(j, i)[0] > 0)
@@ -404,10 +455,6 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 								const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background_static.ptr<uchar>(j, i)[0]);
 								if (diff > static_diff_max)
 									static_diff_max = diff;
-								if (diff > static_diff_max_left && i < x_separator_middle)
-									static_diff_max_left = diff;
-								else if (diff > static_diff_max_right && i > x_separator_middle)
-									static_diff_max_right = diff;
 							}
 
 				static float diff_threshold_stereo;
@@ -419,6 +466,8 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 				else
 					diff_threshold = diff_threshold_stereo;
 
+				//------------------------------------------------------------------------------------------------------------------------
+
 				Mat image_canny;
 				Canny(image_raw_in, image_canny, 50, 50, 3);
 
@@ -428,169 +477,85 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, int y_ref, bo
 							image_in_thresholded.ptr<uchar>(j, i)[0] = 0;
 
 				for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
-					if (blob.count > noise_size)
-					{
-						for (Point& pt : blob.data)
-							if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 254)
-								floodFill(image_in_thresholded, pt, Scalar(127));
-					}
-					else
-						blob.fill(image_subtraction, 0);
-
-				if (both_moving)
-				{
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 254 &&
-								(i < x_separator_left || i > x_separator_right || j > y_separator_down))
-									image_in_thresholded.ptr<uchar>(j, i)[0] = 0;
-				}
-				else if (left_moving)
-				{
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 254 &&
-								(i < x_separator_left || j > y_separator_down))
-									image_in_thresholded.ptr<uchar>(j, i)[0] = 0;
-				}
-				else if (right_moving)
-				{
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 254 &&
-								(i > x_separator_right || j > y_separator_down))
-									image_in_thresholded.ptr<uchar>(j, i)[0] = 0;
-				}
+					for (Point& pt : blob.data)
+						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 254)
+							floodFill(image_in_thresholded, pt, Scalar(127));
 
 				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 3);
+
+				//------------------------------------------------------------------------------------------------------------------------
+
+				BlobDetectorNew* blob_detector_image_in_thresholded = value_store.get_blob_detector("blob_detector_image_in_thresholded");
+				blob_detector_image_in_thresholded->compute(image_in_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+				for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)
+					if (blob.x < x_separator_left || blob.x > x_separator_right)
+						for (Point& pt : blob.data)
+							fill_image_background_static(pt.x, pt.y, image_in);
+
+				//------------------------------------------------------------------------------------------------------------------------
 
 				const int x_separator_middle_const = x_separator_middle;
 
 				if (gray_threshold_left != 9999)
-					for (int i = 0; i < x_separator_middle_const; ++i)
+					for (int i = 0; i < x_separator_middle; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
 								fill_image_background_static(i, j, image_in);
 
 				if (gray_threshold_right != 9999)
-					for (int i = x_separator_middle_const; i < WIDTH_SMALL; ++i)
+					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
 								fill_image_background_static(i, j, image_in);
 
-				if (both_moving)
+				//------------------------------------------------------------------------------------------------------------------------
+
+				if (both_moving && entropy_left + entropy_right > 1000)
 				{
-					int hit_y_max = -1;
-					for (int j = 0; j < y_separator_down / 2; ++j)
-						if (image_in_thresholded.ptr<uchar>(j, x_separator_middle)[0] == 254 &&
-							image_background_static.ptr<uchar>(j, x_separator_middle)[0] == 255)
-								hit_y_max = j;
-
-					if (hit_y_max > 0)
-					{
-						y_separator_up = hit_y_max;
-
-						//triangle fill
-						Point pt_center = Point(x_separator_middle, y_separator_up + 10);
-						Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
-						line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
-						line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
-						floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
-
-						const int j_max = image_flood_fill.rows;
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-							for (int j = 0; j < j_max; ++j)
-								if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
-									fill_image_background_static(i, j, image_in);
-					}
-
-					if (!construct_background)
-						value_store.set_bool("result", true);
-				}
-
-				Mat image_foreground = compute_image_foreground(image_in);
-
-				BlobDetectorNew* blob_detector_image_foreground = value_store.get_blob_detector("blob_detector_image_foreground");
-				blob_detector_image_foreground->compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-				for (BlobNew& blob : *blob_detector_image_foreground->blobs)
-					if (blob.y > y_separator_down)
-						for (Point& pt : blob.data)
-							fill_image_background_static(pt.x, pt.y, image_in);
-
-				if (construct_background && both_moving)
-				{
-					float left_hole_count = 0;
-					float right_hole_count = 0;
+					float hole_count_left = 0;
+					float hole_count_right = 0;
 
 					for (int i = 0; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							if (image_background_static.ptr<uchar>(j, i)[0] == 255)
+							{
 								if (i < x_separator_middle)
-									++left_hole_count;
+									++hole_count_left;
 								else
-									++right_hole_count;
+									++hole_count_right;
+							}
 
-					float area_left = (x_separator_middle - x_separator_left) * (y_separator_down - y_separator_up) + 1;
-					float area_right = (x_separator_right - x_separator_middle) * (y_separator_down - y_separator_up) + 1;
+					float hole_count = hole_count_right + hole_count_left;
+					float entropy_biased = 0;
 
-					low_pass_filter->compute(area_left, 0.1, "area_left");
-					low_pass_filter->compute(area_right, 0.1, "area_right");
+					for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+						entropy_biased += blob.count;
 
-					float left_hole_ratio = left_hole_count / area_left;
-					float right_hole_ratio = right_hole_count / area_right;
-					float hole_subject_ratio = max(left_hole_ratio, right_hole_ratio);
-
-					if (hole_subject_ratio < 0.6)
+					if (hole_count / entropy_biased < 0.7)
 					{
+						alpha = 0.5;
 						value_store.set_bool("result", true);
-						value_store.set_int("target_frame", 10);
-						fill_alpha = 0.5;
 					}
 				}
-
-				if (visualize && enable_imshow)
-				{
-					line(image_subtraction, Point(x_separator_left, 0), Point(x_separator_left, 9999), Scalar(254), 1);
-					line(image_subtraction, Point(x_separator_right, 0), Point(x_separator_right, 9999), Scalar(254), 1);
-					line(image_subtraction, Point(x_separator_middle, 0), Point(x_separator_middle, 9999), Scalar(254), 1);
-					line(image_subtraction, Point(0, y_separator_down), Point(9999, y_separator_down), Scalar(254), 1);
-					line(image_subtraction, Point(0, y_separator_up), Point(9999, y_separator_up), Scalar(254), 1);
-
-					imshow("image_subtractionTTT" + name, image_subtraction);
-					imshow("image_in_thresholdedTTT" + name, image_in_thresholded);
-					imshow("image_background_staticTTT" + name, image_background_static);
-				}
 			}
-		}
-		else
-		{
-			vector<int> blob_count_vec;
-			for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
-				blob_count_vec.push_back(blob.count);
 
-			if (blob_count_vec.size() > 0)
+			//------------------------------------------------------------------------------------------------------------------------
+
+			if (enable_imshow && visualize)
 			{
-				sort(blob_count_vec.begin(), blob_count_vec.end());
-				noise_size = blob_count_vec[blob_count_vec.size() * 0.5] * 4;
-				low_pass_filter->compute(noise_size, 0.1, "noise_size");
-			}
-		}
+				Mat image_visualization = image_background_static.clone();
+				line(image_visualization, Point(x_separator_left, 0), Point(x_separator_left, 999), Scalar(254), 1);
+				line(image_visualization, Point(x_separator_right, 0), Point(x_separator_right, 999), Scalar(254), 1);
+				line(image_visualization, Point(x_separator_middle, 0), Point(x_separator_middle, 999), Scalar(254), 1);
+				line(image_visualization, Point(0, y_separator_down), Point(999, y_separator_down), Scalar(254), 1);
+				line(image_visualization, Point(0, y_separator_up), Point(999, y_separator_up), Scalar(254), 1);
 
-		if (left_moving || right_moving || value_store.get_bool("update_background"))
-		{
-			value_store.set_mat("image_background", image_in);
-			value_store.set_bool("image_background_updated", true);
+				imshow("image_visualization" + name, image_visualization);
+				imshow("image_subtraction" + name, image_subtraction);
+			}
 		}
 	}
-
-	++current_frame;
-	value_store.set_int("current_frame", current_frame);
-	
-	if (value_store.get_bool("image_background_set") == false)
-		value_store.set_mat("image_background", image_in);
-
-	value_store.set_bool("image_background_set", true);
 
 	return value_store.get_bool("result", false);
 }
@@ -605,27 +570,5 @@ inline void MotionProcessorNew::fill_image_background_static(const int x, const 
 	if (*pix_ptr == 255)
 		*pix_ptr = image_in.ptr<uchar>(y, x)[0];
 	else
-		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * fill_alpha);
-}
-
-Mat MotionProcessorNew::compute_image_foreground(Mat& image_in)
-{
-	Mat image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	for (int i = 0; i < WIDTH_SMALL; ++i)
-		for (int j = 0; j < HEIGHT_SMALL; ++j)
-		{
-			const uchar gray_current = image_in.ptr<uchar>(j, i)[0];
-
-			if ((i <= x_separator_middle && gray_current > gray_threshold_left) ||
-				(i > x_separator_middle && gray_current > gray_threshold_right))
-			{
-				if (image_background_static.ptr<uchar>(j, i)[0] == 255)
-					image_foreground.ptr<uchar>(j, i)[0] = 254;
-				else
-					image_foreground.ptr<uchar>(j, i)[0] = abs(gray_current - image_background_static.ptr<uchar>(j, i)[0]);
-			}
-		}
-
-	threshold(image_foreground, image_foreground, diff_threshold, 254, THRESH_BINARY);
-	return image_foreground;
+		*pix_ptr = *pix_ptr + ((image_in.ptr<uchar>(y, x)[0] - *pix_ptr) * 0.1);
 }

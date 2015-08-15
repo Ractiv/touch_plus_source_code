@@ -50,5 +50,5 @@ bool has_pen = false;
 bool motion_detected = false;
 bool visualize_3d = false;
 
-int actuate_dist_raw = 7;
+int actuate_dist_raw = 10;
 int actuate_dist = actuate_dist_raw;

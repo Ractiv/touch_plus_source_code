@@ -28,16 +28,13 @@
 class MotionProcessorNew
 {
 public:
-	const int count_threshold = 500;
-	int noise_size = 0;
+	const int entropy_threshold = 500;
 
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
 	float x_separator_middle = WIDTH_SMALL / 2;
 	float x_separator_left = 0;
 	float x_separator_right = WIDTH_SMALL;
-	
-	float fill_alpha = 0.1;
 
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;
@@ -45,15 +42,15 @@ public:
 
 	bool compute_background_static = false;
 
-	bool left_moving = false;
-	bool right_moving = false;
-	bool both_moving = false;
+	bool both_moving;
+	bool left_moving;
+	bool right_moving;
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
 	ValueStore value_store;
 
-	bool compute(Mat& image_in, Mat& image_raw_in, int y_ref, bool construct_background, const string name, const bool visualize);
+	bool compute(Mat& image_in, Mat& image_raw_in, const int y_ref, bool construct_background, const string name, const bool visualize);
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 	Mat compute_image_foreground(Mat& image_in);
 };

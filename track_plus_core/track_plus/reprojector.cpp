@@ -46,7 +46,7 @@ Point3f Reprojector::reproject_to_3d(float pt0_x, float pt0_y, float pt1_x, floa
 	float real_x = map_val(pt0_x, 0, WIDTH_LARGE, -x_half, x_half);
 	float real_y = map_val(pt0_y, 0, HEIGHT_LARGE, -y_half, y_half);
 
-	return Point3f(real_x / 2, real_y / 2, depth * 10);
+	return Point3f(real_x * 6, real_y / 2, depth * 10);
 }
 
 void Reprojector::load(IPC& ipc, bool flipped)
