@@ -2,10 +2,6 @@
 
 bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_ref, bool construct_background, const string name, const bool visualize)
 {
-	static string motion_processor_primary_name = "";
-	if (motion_processor_primary_name == "")
-		motion_processor_primary_name = name;
-	
 	if (mode == "tool")
 		return false;
 
@@ -199,11 +195,58 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 			both_moving = (total_width > 80 && gap_ratio > 0.3);
 		}
 
+		static bool both_moving_0_set = false;
+		static bool both_moving_1_set = false;
+
+		static int x_separator_middle0;
+		static int x_separator_middle1;
+
+		static string motion_processor_primary_name = "";
+
 		if (both_moving)
 		{
-			left_moving = true;
-			right_moving = true;
-			value_store.set_bool("both_moving_set", true);
+			//------------------------------------------------------------------------------------------------------------------------
+
+			vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
+			if (x_separator_middle_vec->size() < 1000)
+			{
+				x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
+				sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
+			}
+			x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
+
+			if (name == "0")
+				x_separator_middle0 = x_separator_middle;
+			if (name == "1")
+				x_separator_middle1 = x_separator_middle;
+
+			//------------------------------------------------------------------------------------------------------------------------
+
+			if (both_moving_0_set == false || both_moving_1_set == false)
+			{
+				if (name == "0")
+					both_moving_0_set = true;
+				if (name == "1")
+					both_moving_1_set = true;
+
+				both_moving = false;
+			}
+			else
+			{
+				if (motion_processor_primary_name == "")
+				{
+					int x_diff0 = abs(WIDTH_SMALL / 2 - x_separator_middle0);
+					int x_diff1 = abs(WIDTH_SMALL / 2 - x_separator_middle1);
+
+					if (x_diff0 < x_diff1)
+						motion_processor_primary_name = "0";
+					else
+						motion_processor_primary_name = "1";
+				}
+
+				left_moving = true;
+				right_moving = true;
+			}
 		}
 		else if (entropy_left > entropy_threshold || entropy_right > entropy_threshold)
 		{
@@ -215,20 +258,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 
 		//------------------------------------------------------------------------------------------------------------------------
 
-		if (both_moving)
-		{
-			vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
-			if (x_separator_middle_vec->size() < 1000)
-			{
-				x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
-				sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
-			}
-			x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
-		}
-
-		//------------------------------------------------------------------------------------------------------------------------
-
-		if (value_store.get_bool("both_moving_set", false))
+		if (both_moving_0_set && both_moving_1_set)
 		{
 			Mat image_background = value_store.get_mat("image_background", true);
 			Mat image_subtraction = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -379,7 +409,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 				static float gray_threshold_left_stereo = 9999;
 				static float gray_threshold_right_stereo = 9999;
 
-				if (name == motion_processor_primary_name)
+				if (name == "0")
 				{
 					vector<uchar> gray_vec_left;
 					vector<uchar> gray_vec_right;
@@ -455,7 +485,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 							}
 
 				static float diff_threshold_stereo;
-				if (name == motion_processor_primary_name)
+				if (name == "0")
 				{
 					diff_threshold = static_diff_max * 0.3;
 					diff_threshold_stereo = diff_threshold;
@@ -513,8 +543,6 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 					float hole_count_left = 0;
 					float hole_count_right = 0;
 
-					Mat image_holes = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
 					for (int i = 0; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							if (image_background_static.ptr<uchar>(j, i)[0] == 255)
@@ -523,33 +551,29 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 									++hole_count_left;
 								else
 									++hole_count_right;
-
-								image_holes.ptr<uchar>(j, i)[0] = 254;
 							}
 
-					float hole_count = hole_count_right + hole_count_left;
-					float entropy_biased = 0;
-
-					for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-						entropy_biased += blob.count;
-
-					if (hole_count / entropy_biased < 0.7)
+					if (hole_count_right / (entropy_right + 0.1) < 1 && hole_count_left / (entropy_left + 0.1) < 1)
 					{
 						alpha = 0.5;
 						value_store.set_bool("result", true);
-					}
 
-					//------------------------------------------------------------------------------------------------------------------------
+						//------------------------------------------------------------------------------------------------------------------------
 
-					if (value_store.get_bool("result", false))
-					{
-						BlobDetectorNew* blob_detector_image_holes = value_store.get_blob_detector("blob_detector_image_holes");
-						blob_detector_image_holes->compute(image_holes, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+						Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+						{
+							int intensity = 0;
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								intensity += image_in.ptr<uchar>(j, i)[0];
 
-						for (BlobNew& blob : *blob_detector_image_holes->blobs)
-							if (blob.x < x_separator_left || blob.x > x_separator_right)
-								for (Point& pt : blob.data)
-									fill_image_background_static(pt.x, pt.y, image_in);
+							intensity /= 200;
+							line(image_histogram, Point(i, intensity), Point(i, 0), Scalar(254), 1);
+						}
+
+						line(image_histogram, Point(x_separator_left, 0), Point(x_separator_left, 999), Scalar(254), 1);
+						line(image_histogram, Point(x_separator_right, 0), Point(x_separator_right, 999), Scalar(254), 1);
+						imshow("image_histogram" + name, image_histogram);
 					}
 				}
 			}
@@ -566,7 +590,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 				line(image_visualization, Point(0, y_separator_up), Point(999, y_separator_up), Scalar(254), 1);
 
 				imshow("image_visualization" + name, image_visualization);
-				imshow("image_subtraction" + name, image_subtraction);
+				// imshow("image_subtraction" + name, image_subtraction);
 			}
 		}
 	}
