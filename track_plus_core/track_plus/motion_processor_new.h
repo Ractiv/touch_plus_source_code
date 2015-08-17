@@ -50,7 +50,9 @@ public:
 
 	ValueStore value_store;
 
-	bool compute(Mat& image_in, Mat& image_raw_in, const int y_ref, bool construct_background, const string name, const bool visualize);
+	bool compute(Mat& image_in,             Mat& image_raw, const int y_ref, float pitch,
+				 bool construct_background, string name,    bool visualize);
+
 	inline void fill_image_background_static(const int x, const int y, Mat& image_in);
 	Mat compute_image_foreground(Mat& image_in);
 };

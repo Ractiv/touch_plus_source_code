@@ -1,6 +1,7 @@
 #include "motion_processor_new.h"
 
-bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_ref, bool construct_background, const string name, const bool visualize)
+bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
+								 bool construct_background, string name,     bool visualize)
 {
 	if (mode == "tool")
 		return false;
@@ -496,7 +497,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 				//------------------------------------------------------------------------------------------------------------------------
 
 				Mat image_canny;
-				Canny(image_raw_in, image_canny, 50, 50, 3);
+				Canny(image_raw, image_canny, 50, 50, 3);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
@@ -560,20 +561,70 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 
 						//------------------------------------------------------------------------------------------------------------------------
 
-						Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-						for (int i = 0; i < WIDTH_SMALL; ++i)
+						float width_bottom = x_separator_right - x_separator_left + 10;
+						float width_top = width_bottom - power(pitch, 0.006834535, 2.199475);
+
+						int x_middle_bottom = x_separator_middle;
+						int x_middle_top = (x_middle_bottom - (WIDTH_SMALL / 2)) * 0.5 + (WIDTH_SMALL / 2);
+
+						int x_top_left = x_middle_top - (width_top / 2);
+						int x_top_right = x_middle_top + (width_top / 2);
+						int x_bottom_left = x_middle_bottom - (width_bottom / 2);
+						int x_bottom_right = x_middle_bottom + (width_bottom / 2);
+
+						Point pt_top_left = Point(x_top_left, y_separator_up);
+						Point pt_top_right = Point(x_top_right, y_separator_up);
+						Point pt_bottom_left = Point(x_bottom_left, y_separator_down);
+						Point pt_bottom_right = Point(x_bottom_right, y_separator_down);
+
+						Point pt_intersection0;
+						Point pt_intersection1;
+						Point pt_intersection2;
+						Point pt_intersection3;
+						bool b0 = get_intersection_at_y(pt_top_left, pt_bottom_left, 0, pt_intersection0);
+						bool b1 = get_intersection_at_y(pt_top_left, pt_bottom_left, HEIGHT_SMALL_MINUS, pt_intersection1);
+						bool b2 = get_intersection_at_y(pt_top_right, pt_bottom_right, 0, pt_intersection2);
+						bool b3 = get_intersection_at_y(pt_top_right, pt_bottom_right, HEIGHT_SMALL_MINUS, pt_intersection3);
+
+						if (b0 && b1 && b2 && b3)
 						{
-							int intensity = 0;
-							for (int j = 0; j < HEIGHT_SMALL; ++j)
-								intensity += image_in.ptr<uchar>(j, i)[0];
+							Mat image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-							intensity /= 200;
-							line(image_histogram, Point(i, intensity), Point(i, 0), Scalar(254), 1);
+							line(image_borders, pt_intersection0, pt_intersection1, Scalar(254), 1);
+							line(image_borders, pt_intersection2, pt_intersection3, Scalar(254), 1);
+
+							BlobDetectorNew* blob_detector_image_borders = value_store.get_blob_detector("blob_detector_image_borders");
+
+							bool b4 = false;
+							if (pt_intersection0.x > 0)
+							{
+								floodFill(image_borders, Point(0, 0), Scalar(254));
+								b4 = true;
+							}
+							else if (pt_intersection1.x > 0)
+							{
+								floodFill(image_borders, Point(0, HEIGHT_SMALL_MINUS), Scalar(254));
+								b4 = true;
+							}
+
+							bool b5 = false;
+							if (pt_intersection2.x < WIDTH_SMALL_MINUS)
+							{
+								floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
+								b5 = true;
+							}
+							else if (pt_intersection3.x < WIDTH_SMALL_MINUS)
+							{
+								floodFill(image_borders, Point(WIDTH_SMALL_MINUS, HEIGHT_SMALL_MINUS), Scalar(254));
+								b5 = true;
+							}
+
+							if (b4 && b5)
+								for (int i = 0; i < WIDTH_SMALL; ++i)
+									for (int j = 0; j < HEIGHT_SMALL; ++j)
+										if (image_borders.ptr<uchar>(j, i)[0] > 0)
+											fill_image_background_static(i, j, image_in);
 						}
-
-						line(image_histogram, Point(x_separator_left, 0), Point(x_separator_left, 999), Scalar(254), 1);
-						line(image_histogram, Point(x_separator_right, 0), Point(x_separator_right, 999), Scalar(254), 1);
-						imshow("image_histogram" + name, image_histogram);
 					}
 				}
 			}
