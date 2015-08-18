@@ -106,6 +106,11 @@
 
   //----------------------------------------------------------------------------------------------------
 
+  ipc.MapFunction("menu_plus_ready", function(messageBody)
+  {
+    ipc.SendMessage("track_plus", "menu_plus_ready", "");
+  });
+
   ipc.MapFunction("show window", function(messageBody)
   {
     win.show();

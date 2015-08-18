@@ -264,10 +264,6 @@ void on_first_frame()
     // else
         mode = "surface";
 
-    ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
-
-    COUT << "here" << endl;
-
     reprojector.load(*ipc, true);
     CameraInitializerNew::init(camera);
     pose_estimator.init();
@@ -479,7 +475,7 @@ void compute()
 
     if (mode == "surface" && proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
 
@@ -790,8 +786,8 @@ void guardian_thread_function()
         if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + ".exe") == 0)
             create_process(child_module_path, child_module_name + ".exe", true);
 
-        // if (process_running("daemon_plus.exe") == 0)
-            // ipc->send_message("everyone", "exit", "");
+        if (process_running("daemon_plus.exe") == 0)
+            ipc->send_message("everyone", "exit", "");
 
         Sleep(500);
     }
@@ -811,6 +807,8 @@ int main()
     init_paths();
 
     ipc = new IPC("track_plus");
+    thread ipc_thread(ipc_thread_function);
+
     ipc->map_function("exit", [](const string message_body)
     {
         if (child_module_name != "")
@@ -820,6 +818,21 @@ int main()
         exit(0);
     });
 
+    bool menu_plus_ready = false;
+    bool* menu_plus_ready_ptr = &menu_plus_ready;
+    ipc->map_function("menu_plus_ready", [menu_plus_ready_ptr](const string message_body)
+    {
+        *menu_plus_ready_ptr = true;
+    });
+
+    while (!menu_plus_ready)
+    {
+        ipc->send_message("menu_plus", "menu_plus_ready", "");
+        Sleep(1000);
+    }
+
+    ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
+
 #ifdef _WIN32
     thread keyboard_hook_thread(keyboard_hook_thread_function);
 #elif __APPLE__
@@ -828,7 +841,6 @@ int main()
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);
-    thread ipc_thread(ipc_thread_function);
 
     camera = new Camera(true, 1280, 480, update);
     
