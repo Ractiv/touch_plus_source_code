@@ -212,7 +212,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	sort_contour(contour_approximated_unsorted, contour_approximated, pivot);
 
 	if (name == "0")
+	{
+		// points_unwrapped_result.clear();
+		// compute_unwrap2(contour_approximated, pt_palm, points_unwrapped_result)
 		points_unwrapped_result = contour_approximated;
+	}
 
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);
 	contour_approximated.push_back(contour_sorted[contour_sorted.size() - 1]);

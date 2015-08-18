@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\curve_fitting.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\dirent.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\dtw.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\filesystem.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\foreground_extractor_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\globals.h" />
@@ -74,6 +75,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\contour_functions.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\curve_fitting.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\c_tracker.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\dtw.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\exponential.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\filesystem.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\foreground_extractor_new.cpp" />

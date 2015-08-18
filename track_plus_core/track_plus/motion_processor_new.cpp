@@ -347,26 +347,14 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			if (both_moving)
 			{
 				y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
-				value_store.set_int("y_separator_down_left", y_separator_down);
-				value_store.set_int("y_separator_down_right", y_separator_down);
+				value_store.set_int("y_separator_down", y_separator_down);
 			}
-			else if (left_moving)
+			else if (left_moving || right_moving)
 			{
-				int y_separator_down_left = blob_detector_image_histogram->blob_max_size->y_max;
-				int y_separator_down_right = value_store.get_int("y_separator_down_right", 0);
-				value_store.set_int("y_separator_down_left", y_separator_down_left);
-
-				if (y_separator_down_left > y_separator_down_right)
-					y_separator_down = y_separator_down_left;
-			}
-			else if (right_moving)
-			{
-				int y_separator_down_right = blob_detector_image_histogram->blob_max_size->y_max;
-				int y_separator_down_left = value_store.get_int("y_separator_down_left", 0);
-				value_store.set_int("y_separator_down_right", y_separator_down_right);
-
-				if (y_separator_down_right > y_separator_down_left)
-					y_separator_down = y_separator_down_right;
+				y_separator_down = value_store.get_int("y_separator_down");
+				int y_separator_down_new = blob_detector_image_histogram->blob_max_size->y_max;
+				if (y_separator_down_new > y_separator_down)
+					y_separator_down = y_separator_down_new;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------

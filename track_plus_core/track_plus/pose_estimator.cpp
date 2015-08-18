@@ -100,56 +100,6 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	waitKey(1);
 }
 
-Mat PoseEstimator::compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
-{
-	Mat cost_mat = Mat(vec1.size(), vec0.size(), CV_32FC1);
-
-	const int vec0_size = vec0.size();
-	const int vec1_size = vec1.size();
-	for (int i = 0; i < vec0_size; ++i)
-		for (int j = 0; j < vec1_size; ++j)
-			cost_mat.ptr<float>(j, i)[0] = get_distance(vec0[i], vec1[j]);
-
-	return cost_mat;
-}
-
-float PoseEstimator::compute_dtw(Mat& cost_mat)
-{
-	const int i_max = cost_mat.cols;
-	const int j_max = cost_mat.rows;
-	
-	for (int i = 0; i < i_max; ++i)
-		for (int j = 0; j < j_max; ++j)
-		{
-			float val0;
-			if (i - 1 < 0)
-				val0 = FLT_MAX;
-			else
-				val0 = cost_mat.ptr<float>(j, i - 1)[0];
-
-			float val1;
-			if (i - 1 < 0 || j - i < 0)
-				val1 = FLT_MAX;
-			else
-				val1 = cost_mat.ptr<float>(j - 1, i - 1)[0];
-
-			float val2;
-			if (j - 1 < 0)
-				val2 = FLT_MAX;
-			else
-				val2 = cost_mat.ptr<float>(j - 1, i)[0];
-
-			float val_min = std::min(std::min(val0, val1), val2);
-
-			if (val_min == FLT_MAX)
-				continue;
-			
-			cost_mat.ptr<float>(j, i)[0] += val_min;
-		}
-
-	return cost_mat.ptr<float>(j_max - 1, i_max - 1)[0];
-}
-
 bool PoseEstimator::accumulate_pose(const string name_in, const int count_max, string& name_out)
 {
 	if (count_max > 2)
