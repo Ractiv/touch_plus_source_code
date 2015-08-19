@@ -30,6 +30,7 @@ namespace win_cursor_plus
         public static bool Updated = true;
         public static Dictionary<string, bool> FileNameProcessedMap = new Dictionary<string, bool>();
         public static int SentCount = 0;
+        public static int LockFileCount = 0;
 
         private string selfName = "";
         private Dictionary<string, Func<string, int>> responseMap = new Dictionary<string, Func<string, int>>();
@@ -70,11 +71,17 @@ namespace win_cursor_plus
 
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
             foreach (string fileNameCurrent in fileNameVec)
-                if (fileNameCurrent == "lock")
+            {
+                string fileNameLock = "";
+                if (fileNameCurrent.Length >= 4)
+                    fileNameLock = fileNameCurrent.Substring(0, 4);
+
+                if (fileNameLock == "lock")
                 {
                     IPC.Updated = true;
                     return;
                 }
+            }
 
             foreach (string fileNameCurrent in fileNameVec)
             {
@@ -157,7 +164,10 @@ namespace win_cursor_plus
 
         public void SendMessage(string recipient, string messageHead, string messageBody)
         {
-            FileSystem.WriteStringToFile(Globals.IpcPath + "\\lock", "");
+            string lockFileName = "lock_" + selfName + LockFileCount.ToString();
+            FileSystem.WriteStringToFile(Globals.IpcPath + "\\" + lockFileName, "");
+            ++LockFileCount;
+
             List<string> fileNameVec = FileSystem.ListFilesInDirectory(Globals.IpcPath);
 
             bool found = true;
@@ -179,7 +189,7 @@ namespace win_cursor_plus
             FileSystem.WriteStringToFile(pathNew, messageHead + "!" + messageBody);
 
             ++IPC.SentCount;
-            FileSystem.DeleteFile(Globals.IpcPath + "\\lock");
+            FileSystem.DeleteFile(Globals.IpcPath + "\\" + lockFileName);
 
             Console.WriteLine("message sent: " + recipient + " " + messageHead + " " + messageBody);
         }

@@ -143,17 +143,6 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 	return false;
 }
 
-float CameraInitializerNew::linear(float x, float m, float c)
-{
-	return (m * x) + c;
-}
-
-float CameraInitializerNew::exponential(float x, float a, float b, float c)
-{
-	const float e = 2.718;
-	return a + (b * pow(e, -c * x));
-}
-
 void CameraInitializerNew::preset0(Camera* camera)
 {
 	camera->setGlobalGain(0, 1.0);

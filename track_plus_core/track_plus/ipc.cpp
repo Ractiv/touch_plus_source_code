@@ -37,11 +37,17 @@ void IPC::update()
 
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);
 	for (string file_name_current : file_name_vec)
-		if (file_name_current == "lock")
+	{
+		string file_name_lock = "";
+		if (file_name_current.size() >= 4)
+			file_name_lock = file_name_current.substr(0, 4);
+
+		if (file_name_lock == "lock")
 		{
 			updated = true;
 			return;
 		}
+	}
 
 	for (string file_name_current : file_name_vec)
 	{
@@ -123,7 +129,11 @@ void IPC::clear()
 
 void IPC::send_message(const string recipient, const string message_head, const string message_body)
 {
-	write_string_to_file(ipc_path + slash + "lock", "");
+	static int lock_file_count = 0;
+	string lock_file_name = "lock_" + self_name + to_string(lock_file_count);
+	write_string_to_file(ipc_path + slash + lock_file_name, "");
+	++lock_file_count;
+
 	vector<string> file_name_vec = list_files_in_directory(ipc_path);
 
 	bool found = true;
@@ -147,7 +157,7 @@ void IPC::send_message(const string recipient, const string message_head, const 
 	write_string_to_file(path_new, message_head + "!" + message_body);
 
 	++sent_count;
-	delete_file(ipc_path + slash + "lock");
+	delete_file(ipc_path + slash + lock_file_name);
 	
 	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
 }

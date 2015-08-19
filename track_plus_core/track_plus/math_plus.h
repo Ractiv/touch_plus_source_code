@@ -40,6 +40,10 @@ Point3f cross_product(Point3f u, Point3f v);
 float dot_product(Point3f u, Point3f v);
 Point3f normalize(Point3f value);
 
+float linear(float x, float m, float c);
+float exponential(float x, float a, float b, float c);
+float power(float x, float a, float b);
+
 //abc are sides, ABC are angles opposing abc sides in radians
 float solve_triangle_A_abc(float a, float b, float c);
 float solve_triangle_B_abc(float a, float b, float c);

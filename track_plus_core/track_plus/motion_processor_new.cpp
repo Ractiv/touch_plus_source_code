@@ -1,6 +1,7 @@
 #include "motion_processor_new.h"
 
-bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_ref, bool construct_background, const string name, const bool visualize)
+bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
+								 bool construct_background, string name,     bool visualize)
 {
 	if (mode == "tool")
 		return false;
@@ -346,26 +347,14 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 			if (both_moving)
 			{
 				y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
-				value_store.set_int("y_separator_down_left", y_separator_down);
-				value_store.set_int("y_separator_down_right", y_separator_down);
+				value_store.set_int("y_separator_down", y_separator_down);
 			}
-			else if (left_moving)
+			else if (left_moving || right_moving)
 			{
-				int y_separator_down_left = blob_detector_image_histogram->blob_max_size->y_max;
-				int y_separator_down_right = value_store.get_int("y_separator_down_right", 0);
-				value_store.set_int("y_separator_down_left", y_separator_down_left);
-
-				if (y_separator_down_left > y_separator_down_right)
-					y_separator_down = y_separator_down_left;
-			}
-			else if (right_moving)
-			{
-				int y_separator_down_right = blob_detector_image_histogram->blob_max_size->y_max;
-				int y_separator_down_left = value_store.get_int("y_separator_down_left", 0);
-				value_store.set_int("y_separator_down_right", y_separator_down_right);
-
-				if (y_separator_down_right > y_separator_down_left)
-					y_separator_down = y_separator_down_right;
+				y_separator_down = value_store.get_int("y_separator_down");
+				int y_separator_down_new = blob_detector_image_histogram->blob_max_size->y_max;
+				if (y_separator_down_new > y_separator_down)
+					y_separator_down = y_separator_down_new;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -467,9 +456,9 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
 						if (i < x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_left)
-							image_in_thresholded.ptr<uchar>(j, i)[0] = 254;
+							image_in_thresholded.ptr<uchar>(j, i)[0] = 127;
 						else if (i > x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_right)
-							image_in_thresholded.ptr<uchar>(j, i)[0] = 254;
+							image_in_thresholded.ptr<uchar>(j, i)[0] = 127;
 
 				//------------------------------------------------------------------------------------------------------------------------
 
@@ -496,7 +485,7 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 				//------------------------------------------------------------------------------------------------------------------------
 
 				Mat image_canny;
-				Canny(image_raw_in, image_canny, 50, 50, 3);
+				Canny(image_raw, image_canny, 20, 60, 3);
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = 0; j < HEIGHT_SMALL; ++j)
@@ -505,15 +494,15 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 
 				for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
 					for (Point& pt : blob.data)
-						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 254)
-							floodFill(image_in_thresholded, pt, Scalar(127));
+						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
+							floodFill(image_in_thresholded, pt, Scalar(254));
 
 				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 3);
 
 				//------------------------------------------------------------------------------------------------------------------------
 
 				BlobDetectorNew* blob_detector_image_in_thresholded = value_store.get_blob_detector("blob_detector_image_in_thresholded");
-				blob_detector_image_in_thresholded->compute(image_in_thresholded, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+				blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
 				for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)
 					if (blob.x < x_separator_left || blob.x > x_separator_right)
@@ -560,20 +549,73 @@ bool MotionProcessorNew::compute(Mat& image_in, Mat& image_raw_in, const int y_r
 
 						//------------------------------------------------------------------------------------------------------------------------
 
-						Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-						{
-							int intensity = 0;
-							for (int j = 0; j < HEIGHT_SMALL; ++j)
-								intensity += image_in.ptr<uchar>(j, i)[0];
+						float width_bottom = x_separator_right - x_separator_left;
+						float width_top = width_bottom - power(pitch, 0.006834535, 2.199475);
 
-							intensity /= 200;
-							line(image_histogram, Point(i, intensity), Point(i, 0), Scalar(254), 1);
+						int x_middle_bottom = x_separator_middle;
+						int x_middle_top = (x_separator_middle - (WIDTH_SMALL / 2)) * 0.1 + (WIDTH_SMALL / 2);
+
+						int x_top_left = x_middle_top - (width_top / 2);
+						int x_top_right = x_middle_top + (width_top / 2);
+						int x_bottom_left = x_middle_bottom - (width_bottom / 2);
+						int x_bottom_right = x_middle_bottom + (width_bottom / 2);
+
+						Point pt_top_left = Point(x_top_left, y_separator_up);
+						Point pt_top_right = Point(x_top_right, y_separator_up);
+						Point pt_bottom_left = Point(x_bottom_left, y_separator_down);
+						Point pt_bottom_right = Point(x_bottom_right, y_separator_down);
+
+						if (x_separator_middle < (WIDTH_SMALL / 2) && pt_top_right.x > pt_bottom_right.x)
+							pt_bottom_right.x = pt_top_right.x;
+						if (x_separator_middle > (WIDTH_SMALL / 2) && pt_top_left.x < pt_bottom_left.x)
+							pt_bottom_left.x = pt_top_left.x;
+
+						Point pt_intersection0 = Point(-1, 0);
+						Point pt_intersection1 = Point(-1, 0);
+						Point pt_intersection2 = Point(WIDTH_SMALL, 0);
+						Point pt_intersection3 = Point(WIDTH_SMALL, 0);
+						get_intersection_at_y(pt_top_left, pt_bottom_left, 0, pt_intersection0);
+						get_intersection_at_y(pt_top_left, pt_bottom_left, HEIGHT_SMALL_MINUS, pt_intersection1);
+						get_intersection_at_y(pt_top_right, pt_bottom_right, 0, pt_intersection2);
+						get_intersection_at_y(pt_top_right, pt_bottom_right, HEIGHT_SMALL_MINUS, pt_intersection3);
+
+						Mat image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+						line(image_borders, pt_intersection0, pt_intersection1, Scalar(254), 1);
+						line(image_borders, pt_intersection2, pt_intersection3, Scalar(254), 1);
+						line(image_borders,	Point(x_middle_top, y_separator_up), Point(x_middle_bottom, y_separator_down), Scalar(254), 1);
+
+						BlobDetectorNew* blob_detector_image_borders = value_store.get_blob_detector("blob_detector_image_borders");
+
+						bool proceed0 = false;
+						if (pt_intersection0.x > 0)
+						{
+							floodFill(image_borders, Point(0, 0), Scalar(254));
+							proceed0 = true;
+						}
+						else if (pt_intersection1.x > 0)
+						{
+							floodFill(image_borders, Point(0, HEIGHT_SMALL_MINUS), Scalar(254));
+							proceed0 = true;
 						}
 
-						line(image_histogram, Point(x_separator_left, 0), Point(x_separator_left, 999), Scalar(254), 1);
-						line(image_histogram, Point(x_separator_right, 0), Point(x_separator_right, 999), Scalar(254), 1);
-						imshow("image_histogram" + name, image_histogram);
+						bool proceed1 = false;
+						if (pt_intersection2.x < WIDTH_SMALL_MINUS)
+						{
+							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
+							proceed1 = true;
+						}
+						else if (pt_intersection3.x < WIDTH_SMALL_MINUS)
+						{
+							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, HEIGHT_SMALL_MINUS), Scalar(254));
+							proceed1 = true;
+						}
+
+						if (proceed0 || proceed1)
+							for (int i = 0; i < WIDTH_SMALL; ++i)
+								for (int j = 0; j < HEIGHT_SMALL; ++j)
+									if (image_borders.ptr<uchar>(j, i)[0] > 0 && image_in_thresholded.ptr<uchar>(j, i)[0] < 200)
+										fill_image_background_static(i, j, image_in);
 					}
 				}
 			}

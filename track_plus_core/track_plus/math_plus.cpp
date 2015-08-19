@@ -175,6 +175,22 @@ Point3f normalize(Point3f value)
     return result;
 }
 
+float linear(float x, float m, float c)
+{
+	return (m * x) + c;
+}
+
+float exponential(float x, float a, float b, float c)
+{
+	const float e = 2.718;
+	return a + (b * pow(e, -c * x));
+}
+
+float power(float x, float a, float b)
+{
+	return a * pow(x, b);
+}
+
 float solve_triangle_A_abc(float a, float b, float c)
 {
 	return acos((-(a * a) + (b * b) + (c * c)) / (2 * b * c));

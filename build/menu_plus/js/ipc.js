@@ -45,6 +45,7 @@ var IPC = function(selfNameIn)
 IPC.Updated = 0;
 IPC.FileNameProcessedMap = new Array();
 IPC.SentCount = 0;
+IPC.LockFileCount = 0;
 
 IPC.prototype.selfName = "";
 IPC.prototype.responseMap = new Array();
@@ -62,7 +63,11 @@ IPC.prototype.Update = function()
 	for (var fileNameVecIndex in fileNameVec)
 	{
 		var fileNameCurrent = fileNameVec[fileNameVecIndex];
-		if (fileNameCurrent == "lock")
+		var fileNameLock = "";
+		if (fileNameCurrent.length >= 4)
+			fileNameLock = fileNameCurrent.substring(0, 4);
+
+		if (fileNameLock == "lock")
 		{
 			IPC.Updated = 0;
 			return;
@@ -159,19 +164,20 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 {
 	var self = this;
 
-	WriteStringToFile(IpcPath + "/lock", "");
+	var lockFileName = "lock_" + self.selfName + IPC.LockFileCount.toString();
+	WriteStringToFile(IpcPath + "/" + lockFileName, "");
+	++IPC.LockFileCount;
+
 	var fileNameVec = ListFilesInDirectory(IpcPath);
 
 	var found = true;
 	var fileCount = 0;
-
 	while (found)
 	{
 		found = false;
 		for (var fileNameVecIndex in fileNameVec)
 		{
 			var fileNameCurrent = fileNameVec[fileNameVecIndex];
-
 			if (fileNameCurrent == recipient + fileCount.toString())
 			{
 				found = true;
@@ -185,7 +191,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 	WriteStringToFile(pathNew, messageHead + "!" + messageBody);
 
 	++IPC.SentCount;
-	DeleteFile(IpcPath + "/lock");
+	DeleteFile(IpcPath + "/" + lockFileName);
 
 	console.log("message sent: " + recipient + " " + messageHead + " " + messageBody);
 };
