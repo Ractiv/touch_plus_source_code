@@ -30,10 +30,10 @@ vector<vector<Point>> legacyFindContours(Mat& Segmented);
 
 void approximate_contour(vector<Point>& points, vector<Point>& points_approximated, int theta_threshold, int skip_count);
 
-void compute_unwrap(vector<Point>& points, Point& pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,
+void compute_unwrap(vector<Point>& points, Point pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,
 					vector<Point>& points_unwrapped);
 
-void compute_unwrap2(vector<Point>& points, Point& pivot, vector<Point>& points_unwrapped);
+void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_unwrapped);
 
 void midpoint_circle(int x_in, int y_in, int radius_in, vector<Point>& result_out);
 

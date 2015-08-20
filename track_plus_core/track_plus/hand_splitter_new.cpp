@@ -23,7 +23,7 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	int x_separator_middle = 0;
 
 	if (mode == "tool")
-		x_separator_middle = WIDTH_SMALL / 2;
+		x_separator_middle = WIDTH_SMALL_HALF;
 	else if (mode == "surface")
 		x_separator_middle = motion_processor.x_separator_middle;
 

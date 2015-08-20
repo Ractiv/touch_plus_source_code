@@ -82,7 +82,7 @@ void approximate_contour(vector<Point>& points, vector<Point>& points_approximat
 		points_approximated.push_back(pt_end);
 }
 
-void compute_unwrap(vector<Point>& points, Point& pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,
+void compute_unwrap(vector<Point>& points, Point pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,
 					vector<Point>& points_unwrapped)
 {
 	if (points.size() == 0)
@@ -203,7 +203,7 @@ void compute_unwrap(vector<Point>& points, Point& pivot, vector<int>& convex_ind
 	}
 }
 
-void compute_unwrap2(vector<Point>& points, Point& pivot, vector<Point>& points_unwrapped)
+void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_unwrapped)
 {
 	if (points.size() == 0)
 		return;

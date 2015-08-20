@@ -236,8 +236,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			{
 				if (motion_processor_primary_name == "")
 				{
-					int x_diff0 = abs(WIDTH_SMALL / 2 - x_separator_middle0);
-					int x_diff1 = abs(WIDTH_SMALL / 2 - x_separator_middle1);
+					int x_diff0 = abs(WIDTH_SMALL_HALF - x_separator_middle0);
+					int x_diff1 = abs(WIDTH_SMALL_HALF - x_separator_middle1);
 
 					if (x_diff0 < x_diff1)
 						motion_processor_primary_name = "0";
@@ -429,7 +429,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						sort(gray_vec_left.begin(), gray_vec_left.end());
 						float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
 
-						gray_threshold_left = gray_median_left - 20;
+						gray_threshold_left = gray_median_left - 10;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
 					}
@@ -439,7 +439,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						sort(gray_vec_right.begin(), gray_vec_right.end());
 						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
 
-						gray_threshold_right = gray_median_right - 20;
+						gray_threshold_right = gray_median_right - 10;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
 					}
@@ -553,7 +553,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						float width_top = width_bottom - power(pitch, 0.006834535, 2.199475);
 
 						int x_middle_bottom = x_separator_middle;
-						int x_middle_top = (x_separator_middle - (WIDTH_SMALL / 2)) * 0.1 + (WIDTH_SMALL / 2);
+						int x_middle_top = (x_separator_middle - (WIDTH_SMALL_HALF)) * 0.1 + (WIDTH_SMALL_HALF);
 
 						int x_top_left = x_middle_top - (width_top / 2);
 						int x_top_right = x_middle_top + (width_top / 2);
@@ -565,9 +565,9 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						Point pt_bottom_left = Point(x_bottom_left, y_separator_down);
 						Point pt_bottom_right = Point(x_bottom_right, y_separator_down);
 
-						if (x_separator_middle < (WIDTH_SMALL / 2) && pt_top_right.x > pt_bottom_right.x)
+						if (x_separator_middle < (WIDTH_SMALL_HALF) && pt_top_right.x > pt_bottom_right.x)
 							pt_bottom_right.x = pt_top_right.x;
-						if (x_separator_middle > (WIDTH_SMALL / 2) && pt_top_left.x < pt_bottom_left.x)
+						if (x_separator_middle > (WIDTH_SMALL_HALF) && pt_top_left.x < pt_bottom_left.x)
 							pt_bottom_left.x = pt_top_left.x;
 
 						Point pt_intersection0 = Point(-1, 0);

@@ -213,9 +213,14 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	if (name == "0")
 	{
-		// points_unwrapped_result.clear();
-		// compute_unwrap2(contour_approximated, pt_palm, points_unwrapped_result)
-		points_unwrapped_result = contour_approximated;
+		const int palm_x_offset = pt_palm.x - WIDTH_SMALL_HALF;
+		const int palm_y_offset = pt_palm.y - HEIGHT_SMALL_HALF;
+
+		vector<Point> contour_approximated_centered;
+		for (Point& pt : contour_approximated)
+			contour_approximated_centered.push_back(Point(pt.x - palm_x_offset, pt.y - palm_y_offset));
+
+		points_unwrapped_result = contour_approximated_centered;
 	}
 
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);

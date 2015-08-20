@@ -648,7 +648,7 @@ void pose_estimator_thread_function()
         if (initialized)
             pose_estimator.compute(*points_ptr);
 
-        Sleep(200);
+        Sleep(100);
     }
 }
 

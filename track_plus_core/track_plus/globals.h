@@ -30,6 +30,8 @@ using namespace std;
 #define HEIGHT_SMALL       120
 #define WIDTH_SMALL_MINUS  159
 #define HEIGHT_SMALL_MINUS 119
+#define WIDTH_SMALL_HALF   80
+#define HEIGHT_SMALL_HALF  60
 #define WIDTH_MIN          80
 #define HEIGHT_MIN         60
 
