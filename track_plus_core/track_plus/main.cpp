@@ -169,6 +169,9 @@ void wait_for_device()
         if (camera_count_new > camera_count_old)
         {
             ipc->clear();
+
+            COUT << "exit 0" << endl;
+
             exit(0);
         }
 
@@ -345,6 +348,9 @@ void compute()
     //         ipc->send_message(child_module_name, "exit", "");
 
     //     ipc->clear();
+
+            // COUT << "exit 1" << endl;
+
     //     exit(0);
     // }
 
@@ -814,6 +820,9 @@ int main()
             ipc->send_message(child_module_name, "exit", "");
 
         ipc->clear();
+
+        COUT << "exit 2" << endl;
+
         exit(0);
     });
 

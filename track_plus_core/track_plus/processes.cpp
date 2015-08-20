@@ -18,7 +18,7 @@
 
 #include "processes.h"
 
-int check_process_running(const string name)
+int check_process_running(string name)
 {
     #ifdef _WIN32
     int process_count = 0;
@@ -61,7 +61,7 @@ int check_process_running(const string name)
 #endif
 }
 
-int process_running(const string name)
+int process_running(string name)
 {
     int result = check_process_running(name);
     
@@ -71,8 +71,8 @@ int process_running(const string name)
     return result;
 }
 
-void create_process(const string path, const string name, bool show_window)
-{
+void create_process(string path, string name, bool show_window)
+{ 
 #ifdef _WIN32
     PROCESS_INFORMATION ProcessInfo;
     STARTUPINFO StartupInfo;
@@ -88,52 +88,14 @@ void create_process(const string path, const string name, bool show_window)
     CloseHandle(ProcessInfo.hThread);
     CloseHandle(ProcessInfo.hProcess);
 #elif __APPLE__
-    printf("in create process -- path=%s  -- name = %s\n",path.c_str(),name.c_str());
-    
-    while (true)
-    {
-        pid_t pID = vfork();
-        if (pID == 0)                // child
-        {
-            // Code only executed by child process
-            execl(path.c_str(), path.c_str(),  (char*) 0);
-            printf("Child going to exit\n");
-            _exit(0);
-            
-        }
-        else if (pID < 0)            // failed to fork
-        {
-            cerr << "Failed to fork" << endl;
-            exit(1);
-            // Throw exception
-        }
-        else                                   // parent
-        {
-            // Code only executed by parent process
-            
-            printf("Parent Process started\n");
-            printf("parent waiting\n");
-            int childExitStatus;
-            printf("child running with process ID = %d\n",pID);
-            
-            wait(&pID);
-            usleep(3000000);
-            if( WIFEXITED(childExitStatus) )
-            {
-                // Child process exited thus exec failed.
-                // LOG failure of exec in child process.
-                COUT << "Result of waitpid: Child process exited thus exec failed." << endl;
-            }
-            printf("done waiting, child exited\n");
-        }
-    }
+    system(path.c_str());
 #endif
-    
+
     while (process_running(name.c_str()) == 0)
         Sleep(1);
 }
 
-void kill_process(const string name)
+void kill_process(string name)
 {
 #ifdef _WIN32
     CHAR szProcBuff[101];
@@ -159,4 +121,6 @@ void kill_process(const string name)
         string command = "killall -kill " + name;
         system(command.c_str());
 #endif
+    while (process_running(name.c_str()) > 0)
+        Sleep(1);
 }

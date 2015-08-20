@@ -16,7 +16,11 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-require("nw.gui").Window.get().evalNWBin(null, ExecutablePath + "/menu_plus/js/aws-credentials.bin");
+// require("nw.gui").Window.get().evalNWBin(null, ExecutablePath + "/menu_plus/js/aws-credentials.bin");
+
+var AwsAccessKeyID = "";
+var AwsSecretAccessKey = "";
+var AwsBucketName = "";
 
 var S3 = function()
 {
@@ -45,19 +49,19 @@ S3.prototype.ReadTextKey = function(keyName, callback, errorCallback)
 	{
 		if (!err && callback != null && callback != undefined)
 		{
-			console.log("text key read: " + keyName);
+			if (Verbose) console.log("text key read: " + keyName);
 			callback(data.Body.toString());
 		}
 		else if (err && errorCallback != null && errorCallback != undefined)
 		{
-			console.log("read text key failed: " + keyName);
+			if (Verbose) console.log("read text key failed: " + keyName);
 			errorCallback();
 		}
 	});
 
 	request.on("httpDownloadProgress", function(progress)
 	{
-		console.log(progress.loaded + " of " + progress.total + " bytes");
+		if (Verbose) console.log(progress.loaded + " of " + progress.total + " bytes");
 	});
 };
 
@@ -118,7 +122,7 @@ S3.prototype.DownloadKey = function(keyName, path, callback, errorCallback, prog
 
 	request.on("httpDownloadProgress", function(progress)
 	{
-		console.log(progress.loaded + " of " + progress.total + " bytes");
+		if (Verbose) console.log(progress.loaded + " of " + progress.total + " bytes");
 		progressCallback(progress.loaded, progress.total);
 	});
 };

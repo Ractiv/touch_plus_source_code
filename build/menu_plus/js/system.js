@@ -6,7 +6,7 @@ var win = gui.Window.get();
 var winShow = false;
 var winShowOld = false;
   
-win.hide();
+// win.hide();
 
 function terminate()
 {

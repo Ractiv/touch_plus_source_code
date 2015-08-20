@@ -56,7 +56,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 		return;
 
 	self.checkingForUpdate = true;
-	console.log("checking for updates");
+	if (Verbose) console.log.log("checking for updates");
 
 	self.s3.GetKeys(function(keys)
 	{
@@ -107,7 +107,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 					}
 
 					self.checkingForUpdate = false;
-					console.log("update failed");
+					if (Verbose) console.log.log("update failed");
 				});
 
 				break;
@@ -127,7 +127,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 		}
 
 		self.checkingForUpdate = false;
-		console.log("update failed");
+		if (Verbose) console.log.log("update failed");
 	});
 };
 
@@ -168,7 +168,7 @@ Updater.prototype.patch = function(targetVersion)
 			self.patching = false;
 			self.manualInvoke = false;
 
-			console.log("update finished");
+			if (Verbose) console.log.log("update finished");
 
 		}, 1000);
 	},
@@ -184,7 +184,7 @@ Updater.prototype.patch = function(targetVersion)
 		}
 
 		self.patching = false;
-		console.log("update failed");
+		if (Verbose) console.log.log("update failed");
 	},
 	function(loaded, total)
 	{

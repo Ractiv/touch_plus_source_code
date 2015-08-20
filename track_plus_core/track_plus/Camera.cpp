@@ -37,11 +37,13 @@ Camera::Camera(){}
 
 Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in)
 {
-    height	= _height;
-    width	= _width;
+    height = _height;
+    width = _width;
     callback = callback_in;
-    doSetup(1);
-    
+    int present = doSetup(1);
+    if (!present)
+        return;
+
 #ifdef __APPLE__
     startVideoStream(_width, _height, 60, MJPEG);
 #endif
@@ -317,7 +319,10 @@ int Camera::do_software_unlock()
     
     dev_handle = libusb_open_device_with_vid_pid(ctx, 0x1e4e, 0x0107); //vendorID and productID for usb device
     if (dev_handle == NULL)
+    {
         COUT << "Cannot open device" << endl;
+        return 0;
+    }
     else
         COUT << "Device Opened" << endl;
     
@@ -333,11 +338,11 @@ int Camera::do_software_unlock()
     }
     
     r = libusb_claim_interface(dev_handle, 0); //claim interface 0 (the first) of device (mine had jsut 1)
-    if(r < 0)
+    if (r < 0)
     {
         COUT << "Cannot Claim Interface" << endl;
         
-        return 1;
+        return 0;
     }
     
     COUT << "Claimed Interface" << endl;
@@ -345,7 +350,7 @@ int Camera::do_software_unlock()
     device = libusb_get_device(dev_handle);
     int configuration = -1;
     
-    r= libusb_get_configuration(dev_handle,&configuration);
+    r = libusb_get_configuration(dev_handle,&configuration);
     if (r == 0)
     {
         COUT << "GET CONFIGURATION SUCCESS -- Value is " << configuration << endl;
@@ -408,10 +413,10 @@ int Camera::do_software_unlock()
     fprintf(stderr, "Camera unlocked\n");
     
     r = libusb_release_interface(dev_handle, 0); //release the claimed interface
-    if(r != 0)
+    if (r != 0)
     {
         COUT << "Cannot Release Interface" << endl;
-        return 1;
+        return 0;
     }
     
     libusb_close(dev_handle); //close the device we opened
@@ -423,8 +428,10 @@ int Camera::do_software_unlock()
 
 int Camera::doSetup(const int & format)
 {
-    do_software_unlock();
-    
+    int present = do_software_unlock();
+    if (present == 0)
+        return 0;
+
 #ifdef _WIN32
     ds_camera_ = new CCameraDS();
     int camera_count = CCameraDS::CameraCount();
@@ -448,14 +455,17 @@ int Camera::doSetup(const int & format)
     }
     
     if (-1 == touchCameraId)
-        return false;
+        return 0;
     
     const int fmt = 1;
     myBuffer = (unsigned char *)malloc(1280 * 480 * 3);
     image_out.data = myBuffer;
     bool retV = ds_camera_->OpenCamera(touchCameraId, format, 1280, 480, 60, frameCallback);
+
     COUT << "camera opened = " << retV << endl;
+
     return retV;
+
 #elif __APPLE__
     uvc_error_t res;
     uvc_device_t* dev;
@@ -470,7 +480,10 @@ int Camera::doSetup(const int & format)
     puts("UVC initialized");
     res = uvc_find_device(ctx, &dev, 0x1e4e, 0x0107, NULL); //filter devices: vendor_id, product_id, "serial_num"
     if (res < 0)
+    {
         uvc_perror(res, "uvc_find_device"); //no devices found
+        return 0;
+    }
     else
     {
         puts("Device found");
@@ -494,6 +507,7 @@ int Camera::setExposureTime(int whichSide, float expTime)
 #ifdef _WIN32
     int retCode= eSPAEAWB_SetExposureTime(whichSide, expTime);
     return retCode;
+
 #elif __APPLE__
     //convert to the time to integer
     unsigned short mytime = (unsigned short)(expTime * 90.08);

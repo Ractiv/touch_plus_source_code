@@ -30,10 +30,11 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
 #include "globals.h"
 
 using namespace std;
 
-int process_running(const string name);
-void create_process(const string path, const string name, bool show_window = true);
-void kill_process(const string name);
+int process_running(string name);
+void create_process(string path, string name, bool show_window = true);
+void kill_process(string name);

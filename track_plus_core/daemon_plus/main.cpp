@@ -54,20 +54,23 @@ void guardian_thread_function()
 		if (process_running("track_plus" + extension0) == 0)
 		{
 			COUT << "track_plus created" << endl;
-
 #ifdef SHOW_CONSOLE
 			bool show_console = true;
 #else
 			bool show_console = false;
 #endif
 			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
-			ipc.send_message("menu_plus", "show stage", "");
 		}
 
-		if (process_running("menu_plus" + extension1) == 0)
+		if (process_running("menu_plus" + extension0) == 0)
 		{
 			COUT << "menu_plus created" << endl;
-			create_process(executable_path + slash + "menu_plus" + slash + "menu_plus" + extension1, "menu_plus" + extension1);
+#ifdef _WIN32
+			string menu_path = executable_path + slash + "menu_plus" + slash + "menu_plus" + extension0;
+#elif __APPLE__
+			string menu_path = executable_path + slash + "menu_plus/menu_plus/Contents/MacOS" + slash + "menu_plus" + extension0;
+#endif
+			create_process(menu_path, "menu_plus" + extension0);
 		}
 
 		Sleep(500);
