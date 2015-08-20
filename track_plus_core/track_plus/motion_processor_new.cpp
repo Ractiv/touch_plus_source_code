@@ -585,8 +585,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						line(image_borders, pt_intersection2, pt_intersection3, Scalar(254), 1);
 						line(image_borders,	Point(x_middle_top, y_separator_up), Point(x_middle_bottom, y_separator_down), Scalar(254), 1);
 
-						BlobDetectorNew* blob_detector_image_borders = value_store.get_blob_detector("blob_detector_image_borders");
-
 						bool proceed0 = false;
 						if (pt_intersection0.x > 0)
 						{

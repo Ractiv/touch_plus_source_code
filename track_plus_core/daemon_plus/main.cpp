@@ -215,7 +215,7 @@ int main()
 
 		Sleep(500);
 	}
-#else if __APPLE__
+#elif __APPLE__
     //todo: port to OSX
 #endif
     
