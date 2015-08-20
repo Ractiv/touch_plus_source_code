@@ -92,7 +92,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
         create_directory(data_path);
         create_directory(data_path_current_module);
 
-		copy_file(executable_path + slash + "rectifier.exe", data_path_current_module + slash + "rectifier.exe");
+		copy_file(executable_path + slash + "rectifier" + extension0, data_path_current_module + slash + "rectifier" + extension0);
 		copy_file(executable_path + slash + "opencv_core249.dll", data_path_current_module + slash + "opencv_core249.dll");
 		copy_file(executable_path + slash + "opencv_highgui249.dll", data_path_current_module + slash + "opencv_highgui249.dll");
 		copy_file(executable_path + slash + "opencv_imgproc249.dll", data_path_current_module + slash + "opencv_imgproc249.dll");
@@ -135,7 +135,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 								bool has_complete_calib_data = false;
 								while (!has_complete_calib_data)
 								{
-									system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier.exe").c_str());
+									system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier" + extension0).c_str());
 
 									if (directory_exists(data_path_current_module))
 										if (file_exists(data_path_current_module + slash + "0.jpg"))

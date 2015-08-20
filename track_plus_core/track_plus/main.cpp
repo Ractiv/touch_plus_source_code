@@ -204,7 +204,6 @@ void init_paths()
 #endif
     data_path = executable_path + slash + "userdata";
     settings_file_path = data_path + slash + "settings.nrocinunerrad";
-    menu_file_path = executable_path + slash + "menu_pluslash + smenu_plus.exe";
     ipc_path = executable_path + slash + "ipc";
     pose_database_path = executable_path + slash + "database";
 }
@@ -280,9 +279,9 @@ void on_first_frame()
             child_module_name = "win_cursor_plus";
 #ifdef _WIN32
             if (IsWindows8OrGreater())
-                child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus.exe";
+                child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus" + extension0;
             else
-                child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus.exe";
+                child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus" + extension0;
 #elif __APPLE__
             //todo: port to OSX
 #endif
@@ -771,10 +770,10 @@ void guardian_thread_function()
         if (child_module_name != "" && child_module_path != "")
         {
             static bool first = true;
-            if (first && (process_running(child_module_name + ".exe") > 0))
+            if (first && (process_running(child_module_name + extension0) > 0))
             {
-                kill_process(child_module_name + ".exe");
-                while (process_running(child_module_name + ".exe") > 0)
+                kill_process(child_module_name + extension0);
+                while (process_running(child_module_name + extension0) > 0)
                 {
                     COUT << "wait kill" << endl;
                     Sleep(100);
@@ -783,10 +782,10 @@ void guardian_thread_function()
             first = false;
         }
 
-        if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + ".exe") == 0)
-            create_process(child_module_path, child_module_name + ".exe", true);
+        if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
+            create_process(child_module_path, child_module_name + extension0, true);
 
-        if (process_running("daemon_plus.exe") == 0)
+        if (process_running("daemon_plus" + extension0) == 0)
             ipc->send_message("everyone", "exit", "");
 
         Sleep(500);

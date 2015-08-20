@@ -28,8 +28,12 @@ const string cmd_quote = "\"";
 
 #ifdef _WIN32
 const string slash = "\\";
+const string extension0 = ".exe";
+const string extension1 = ".exe";
 #elif __APPLE__
 const string slash = "/";
+const string extension0 = "";
+const string extension1 = ".app";
 #endif
 
 string executable_path = "";

@@ -47,6 +47,8 @@ const extern unsigned char initial_delay_count_total;
 
 const extern string cmd_quote;
 const extern string slash;
+const extern string extension0;
+const extern string extension1;
 
 extern string executable_path;
 extern string data_path;

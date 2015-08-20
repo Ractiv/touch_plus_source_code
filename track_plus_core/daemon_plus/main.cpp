@@ -51,7 +51,7 @@ void guardian_thread_function()
 			continue;
 		}
 
-		if (process_running("track_plus.exe") == 0)
+		if (process_running("track_plus" + extension0) == 0)
 		{
 			COUT << "track_plus created" << endl;
 
@@ -60,14 +60,14 @@ void guardian_thread_function()
 #else
 			bool show_console = false;
 #endif
-			create_process(executable_path + slash + "track_plus.exe", "track_plus.exe", show_console);
+			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
 			ipc.send_message("menu_plus", "show stage", "");
 		}
 
-		if (process_running("menu_plus.exe") == 0)
+		if (process_running("menu_plus" + extension1) == 0)
 		{
 			COUT << "menu_plus created" << endl;
-			create_process(executable_path + slash + "menu_plus" + slash + "menu_plus.exe", "menu_plus.exe");
+			create_process(executable_path + slash + "menu_plus" + slash + "menu_plus" + extension1, "menu_plus" + extension1);
 		}
 
 		Sleep(500);
@@ -197,16 +197,14 @@ int main()
 		exit(0);
 	});
     
-#ifdef _WIN32
 	thread guardian_thread(guardian_thread_function);
-#endif
 	thread ipc_thread(ipc_thread_function);
 
 #ifdef _WIN32
 	while (true)
 	{
 		if (settings.launch_on_startup == "1" && !file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
-			create_shortcut(executable_path + slash + "daemon_plus.exe",
+			create_shortcut(executable_path + slash + "daemon_plus" + extension0,
 							get_startup_folder_path() + slash + "Touch+ Software.lnk",
 							executable_path);
 
@@ -218,8 +216,6 @@ int main()
 #elif __APPLE__
     //todo: port to OSX
 #endif
-    
-    COUT << process_running("daemon_plus") << endl;
     
     while (true)
         Sleep(1000);

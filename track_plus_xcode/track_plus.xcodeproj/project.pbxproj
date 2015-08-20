@@ -201,10 +201,10 @@
 		2B0E480D1B8596CC00CEAEAB /* string_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = string_functions.h; path = ../track_plus_core/track_plus/string_functions.h; sourceTree = "<group>"; };
 		2B0E480F1B8596E300CEAEAB /* processes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = processes.cpp; path = ../track_plus_core/track_plus/processes.cpp; sourceTree = "<group>"; };
 		2B0E48101B8596E300CEAEAB /* processes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = processes.h; path = ../track_plus_core/track_plus/processes.h; sourceTree = "<group>"; };
-		2B6B39751B73BE8C004FF61D /* track_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = track_plus; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B6B39831B73BEBF004FF61D /* daemon_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = daemon_plus; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B6B39751B73BE8C004FF61D /* track_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = track_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/track_plus; sourceTree = "<absolute>"; };
+		2B6B39831B73BEBF004FF61D /* daemon_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = daemon_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/daemon_plus; sourceTree = "<absolute>"; };
 		2B7FE4AA1B761D880069CFD1 /* libsfml-network.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.dylib"; path = "../dependencies/OSX/SFML/lib/libsfml-network.dylib"; sourceTree = "<group>"; };
-		2B80F4AD1B79B18D006B0F84 /* osx_cursor_plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = osx_cursor_plus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B80F4AD1B79B18D006B0F84 /* osx_cursor_plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = osx_cursor_plus.app; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/osx_cursor_plus/osx_cursor_plus.app; sourceTree = "<absolute>"; };
 		2B80F4B01B79B18D006B0F84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B80F4B11B79B18D006B0F84 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		2B80F4B21B79B18D006B0F84 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -391,18 +391,7 @@
 				2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */,
 				2BAB62E11B74551A00202DAA /* libopencv_imgproc.3.0.0.dylib */,
 				2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */,
-				2B6B39761B73BE8C004FF61D /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		2B6B39761B73BE8C004FF61D /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				2B6B39751B73BE8C004FF61D /* track_plus */,
-				2B6B39831B73BEBF004FF61D /* daemon_plus */,
-				2B80F4AD1B79B18D006B0F84 /* osx_cursor_plus.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */ = {
@@ -509,7 +498,7 @@
 				Base,
 			);
 			mainGroup = 2B6B396C1B73BE8B004FF61D;
-			productRefGroup = 2B6B39761B73BE8C004FF61D /* Products */;
+			productRefGroup = 2B6B396C1B73BE8B004FF61D;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (

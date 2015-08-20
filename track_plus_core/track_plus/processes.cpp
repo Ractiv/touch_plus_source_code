@@ -18,9 +18,9 @@
 
 #include "processes.h"
 
-int process_running(const string name)
+int check_process_running(const string name)
 {
-#ifdef _WIN32
+    #ifdef _WIN32
     int process_count = 0;
     HANDLE SnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -59,6 +59,16 @@ int process_running(const string name)
     
     return false;
 #endif
+}
+
+int process_running(const string name)
+{
+    int result = check_process_running(name);
+    
+    if (result == 0)
+        COUT << "process not running " << name << endl;
+
+    return result;
 }
 
 void create_process(const string path, const string name, bool show_window)
