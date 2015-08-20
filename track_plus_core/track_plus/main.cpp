@@ -266,7 +266,7 @@ void on_first_frame()
     // else
         mode = "surface";
 
-    reprojector.load(*ipc, true);
+    //reprojector.load(*ipc, true);
     CameraInitializerNew::init(camera);
     pose_estimator.init();
 
