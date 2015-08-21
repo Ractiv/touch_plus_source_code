@@ -861,7 +861,7 @@ int main()
 #elif __APPLE__
     //todo: port to OSX
 #endif
-    thread guardian_thread(guardian_thread_function);
+    // thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);
 

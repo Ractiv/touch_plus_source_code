@@ -57,6 +57,8 @@ void guardian_thread_function()
 			continue;
 		}
 
+		static bool first = true;
+
 		if (process_running("menu_plus" + extension0, true) == 0)
 		{
 			COUT << "menu_plus created" << endl;
@@ -73,7 +75,10 @@ void guardian_thread_function()
 			COUT << "track_plus created" << endl;
 			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
 		}
+		else if (first)
+			kill_process("track_plus");
 
+		first = false;
 		Sleep(500);
 	}
 }

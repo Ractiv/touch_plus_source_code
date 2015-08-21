@@ -92,6 +92,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
         create_directory(data_path);
         create_directory(data_path_current_module);
 
+#ifdef _WIN32
 		copy_file(executable_path + slash + "rectifier" + extension0, data_path_current_module + slash + "rectifier" + extension0);
 		copy_file(executable_path + slash + "opencv_core249.dll", data_path_current_module + slash + "opencv_core249.dll");
 		copy_file(executable_path + slash + "opencv_highgui249.dll", data_path_current_module + slash + "opencv_highgui249.dll");
@@ -99,6 +100,10 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		copy_file(executable_path + slash + "opencv_calib3d249.dll", data_path_current_module + slash + "opencv_calib3d249.dll");
 		copy_file(executable_path + slash + "opencv_flann249.dll", data_path_current_module + slash + "opencv_flann249.dll");
 		copy_file(executable_path + slash + "opencv_features2d249.dll", data_path_current_module + slash + "opencv_features2d249.dll");
+		
+#elif __APPLE__
+		//todo: port to OSX
+#endif
 
 		//http://s3-us-west-2.amazonaws.com/ractiv.com/data/
 		//http://d2i9bzz66ghms6.cloudfront.net/data/
@@ -132,6 +137,12 @@ void Reprojector::load(IPC& ipc, bool flipped)
 								ipc_ptr->send_message("daemon_plus", "exit", "");
 							else
 							{
+								while (true)
+								{
+									COUT << "finished download" << endl;
+									Sleep(1000);
+								}
+
 								bool has_complete_calib_data = false;
 								while (!has_complete_calib_data)
 								{

@@ -49,19 +49,19 @@ S3.prototype.ReadTextKey = function(keyName, callback, errorCallback)
 	{
 		if (!err && callback != null && callback != undefined)
 		{
-			console.log("text key read: " + keyName);
+			//console.log("text key read: " + keyName);
 			callback(data.Body.toString());
 		}
 		else if (err && errorCallback != null && errorCallback != undefined)
 		{
-			console.log("read text key failed: " + keyName);
+			//console.log("read text key failed: " + keyName);
 			errorCallback();
 		}
 	});
 
 	request.on("httpDownloadProgress", function(progress)
 	{
-		console.log(progress.loaded + " of " + progress.total + " bytes");
+		//console.log(progress.loaded + " of " + progress.total + " bytes");
 	});
 };
 
@@ -122,7 +122,7 @@ S3.prototype.DownloadKey = function(keyName, path, callback, errorCallback, prog
 
 	request.on("httpDownloadProgress", function(progress)
 	{
-		console.log(progress.loaded + " of " + progress.total + " bytes");
+		//console.log(progress.loaded + " of " + progress.total + " bytes");
 		progressCallback(progress.loaded, progress.total);
 	});
 };

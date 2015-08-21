@@ -65,11 +65,11 @@ UDP.prototype.Assign = function(portIn)
 
 	self.socket.on("error", function(err)
 	{
-	  	console.log("Socket error: " + err.message);
+	  	// console.log("Socket error: " + err.message);
 
 	}).on("listening", function()
 	{
-	  	console.log("Successfully bound to socket!");
+	  	// console.log("Successfully bound to socket!");
 		// self.socket.setBroadcast(true);
 	});
 
