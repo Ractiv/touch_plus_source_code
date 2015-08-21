@@ -612,7 +612,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (proceed0 || proceed1)
 							for (int i = 0; i < WIDTH_SMALL; ++i)
 								for (int j = 0; j < HEIGHT_SMALL; ++j)
-									if (image_borders.ptr<uchar>(j, i)[0] > 0 && image_in_thresholded.ptr<uchar>(j, i)[0] < 200)
+									if (image_borders.ptr<uchar>(j, i)[0] > 0 /*&& image_in_thresholded.ptr<uchar>(j, i)[0] < 200*/)
 										fill_image_background_static(i, j, image_in);
 					}
 				}
