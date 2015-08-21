@@ -28,13 +28,13 @@ var IPC = function(selfNameIn)
 		{
 			var port = self.udp.Assign();
 			self.SendMessage("track_plus", "open udp channel", port.toString());
-			if (Verbose) console.log("bound to UDP port" + port);
+			console.log("bound to UDP port" + port);
 		}
 		else
 		{
 			var port = parseInt(messageBody);
 			self.udp.Assign(port);
-			if (Verbose) console.log("bound to UDP port " + port);
+			console.log("bound to UDP port " + port);
 		}
 
 	});
@@ -108,7 +108,7 @@ IPC.prototype.Update = function()
 				var messageHead = messageVec[0];
 				var messageBody = messageVec[1];
 
-				if (Verbose) console.log("message received " + messageHead + " " + messageBody + " " + fileNameCurrent + " " + fileName);
+				console.log("message received " + messageHead + " " + messageBody + " " + fileNameCurrent + " " + fileName);
 
 				if (self.responseMap[messageHead] == null)
 				{
@@ -193,7 +193,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 	++IPC.SentCount;
 	DeleteFile(IpcPath + "/" + lockFileName);
 
-	if (Verbose) console.log("message sent: " + recipient + " " + messageHead + " " + messageBody);
+	console.log("message sent: " + recipient + " " + messageHead + " " + messageBody);
 };
 
 IPC.prototype.GetResponse = function(recipient, messageHead, messageBody, callback)

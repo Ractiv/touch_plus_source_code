@@ -43,6 +43,12 @@ UDP udp;
 
 void guardian_thread_function()
 {
+#ifdef SHOW_CONSOLE
+	bool show_console = true;
+#else
+	bool show_console = false;
+#endif
+
 	while (true)
 	{
 		if (block_guardian)
@@ -51,18 +57,7 @@ void guardian_thread_function()
 			continue;
 		}
 
-		if (process_running("track_plus" + extension0) == 0)
-		{
-			COUT << "track_plus created" << endl;
-#ifdef SHOW_CONSOLE
-			bool show_console = true;
-#else
-			bool show_console = false;
-#endif
-			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
-		}
-
-		if (process_running("menu_plus" + extension0) == 0)
+		if (process_running("menu_plus" + extension0, true) == 0)
 		{
 			COUT << "menu_plus created" << endl;
 #ifdef _WIN32
@@ -70,7 +65,13 @@ void guardian_thread_function()
 #elif __APPLE__
 			string menu_path = executable_path + slash + "menu_plus/menu_plus/Contents/MacOS" + slash + "menu_plus" + extension0;
 #endif
-			create_process(menu_path, "menu_plus" + extension0);
+			create_process(menu_path, "menu_plus" + extension0, show_console, true);
+		}
+
+		if (process_running("track_plus" + extension0) == 0)
+		{
+			COUT << "track_plus created" << endl;
+			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
 		}
 
 		Sleep(500);

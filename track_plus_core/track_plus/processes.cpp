@@ -18,7 +18,7 @@
 
 #include "processes.h"
 
-int check_process_running(string name)
+int check_process_running(string name, bool partial)
 {
     #ifdef _WIN32
     int process_count = 0;
@@ -41,29 +41,38 @@ int check_process_running(string name)
     while (Process32Next(SnapShot, &procEntry));
 
     return process_count;
+
 #elif __APPLE__
     string command = "ps -e > " + executable_path + "/processes.txt";
     system(command.c_str());
     
     vector<string> lines = read_text_file(executable_path + "/processes.txt");
+    delete_file(executable_path + "/processes.txt");
+
     for (string& str : lines)
-    {
-        vector<string> str_parts = split_string(str, "/");
-        if (str_parts.size() > 1)
+        if (partial)
         {
-            string process_name = str_parts[str_parts.size() - 1];
-            if (process_name == name)
+            if (str.find(name) != std::string::npos)
                 return true;
         }
-    }
-    
+        else
+        {
+            vector<string> str_parts = split_string(str, "/");
+            if (str_parts.size() > 1)
+            {
+                string process_name = str_parts[str_parts.size() - 1];
+                if (process_name == name)
+                    return true;
+            }
+        }
+
     return false;
 #endif
 }
 
-int process_running(string name)
+int process_running(string name, bool partial)
 {
-    int result = check_process_running(name);
+    int result = check_process_running(name, partial);
     
     if (result == 0)
         COUT << "process not running " << name << endl;
@@ -71,7 +80,7 @@ int process_running(string name)
     return result;
 }
 
-void create_process(string path, string name, bool show_window)
+void create_process(string path, string name, bool show_window, bool partial)
 { 
 #ifdef _WIN32
     PROCESS_INFORMATION ProcessInfo;
@@ -87,12 +96,14 @@ void create_process(string path, string name, bool show_window)
 
     CloseHandle(ProcessInfo.hThread);
     CloseHandle(ProcessInfo.hProcess);
+
 #elif __APPLE__
-    system(path.c_str());
+    string command = path + " &";
+    system(command.c_str());
 #endif
 
-    while (process_running(name.c_str()) == 0)
-        Sleep(1);
+    while (process_running(name.c_str(), partial) == 0)
+        Sleep(100);
 }
 
 void kill_process(string name)
@@ -117,10 +128,12 @@ void kill_process(string name)
 
             CloseHandle(hProcess);
         }
+
 #elif __APPLE__
         string command = "killall -kill " + name;
         system(command.c_str());
 #endif
+
     while (process_running(name.c_str()) > 0)
         Sleep(1);
 }

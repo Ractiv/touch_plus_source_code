@@ -174,11 +174,26 @@ void wait_for_device()
 
             exit(0);
         }
-
         camera_count_old = camera_count_new;
+
 #elif __APPLE__
-      //todo:: port to OSX
+        string command = "ioreg -p IOUSB -w0 | sed 's/[^o]*o //; s/@.*$//' | grep -v '^Root.*' > " + executable_path + "/devices.txt";
+        system(command.c_str());
+        
+        vector<string> lines = read_text_file(executable_path + "/devices.txt");
+        delete_file(executable_path + "/devices.txt");
+
+        for (string& str : lines)
+            if (str == "Touch+ Camera")
+            {
+                ipc->clear();
+
+                COUT << "exit 0" << endl;
+
+                exit(0);
+            }
 #endif
+
         Sleep(500);
     }
 }
@@ -266,7 +281,7 @@ void on_first_frame()
     // else
         mode = "surface";
 
-    //reprojector.load(*ipc, true);
+    reprojector.load(*ipc, true);
     CameraInitializerNew::init(camera);
     pose_estimator.init();
 
@@ -791,8 +806,8 @@ void guardian_thread_function()
         if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
             create_process(child_module_path, child_module_name + extension0, true);
 
-        if (process_running("daemon_plus" + extension0) == 0)
-            ipc->send_message("everyone", "exit", "");
+        // if (process_running("daemon_plus" + extension0) == 0)
+            // ipc->send_message("everyone", "exit", "");
 
         Sleep(500);
     }
