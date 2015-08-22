@@ -308,3 +308,8 @@ FakesAssemblies/
 *.opt
 *.iobj
 *.ipdb
+build/daemon_plus
+
+build/rectifier_plus
+
+build/track_plus
