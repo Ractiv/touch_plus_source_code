@@ -58,6 +58,18 @@
 		2B0E480B1B8596B500CEAEAB /* udp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B0E48091B8596B500CEAEAB /* udp.cpp */; };
 		2B0E480E1B8596CC00CEAEAB /* string_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B0E480C1B8596CC00CEAEAB /* string_functions.cpp */; };
 		2B0E48111B8596E300CEAEAB /* processes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B0E480F1B8596E300CEAEAB /* processes.cpp */; };
+		2B45DA501B887E460090EE2B /* Rectifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA4E1B887E460090EE2B /* Rectifier.cpp */; };
+		2B45DA531B8881340090EE2B /* curve_fitting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA511B8881330090EE2B /* curve_fitting.cpp */; };
+		2B45DA551B8881500090EE2B /* exponential.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA541B8881500090EE2B /* exponential.cpp */; };
+		2B45DA5B1B8881610090EE2B /* lmcurve.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA561B8881610090EE2B /* lmcurve.c */; };
+		2B45DA5C1B8881610090EE2B /* lmmin.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA581B8881610090EE2B /* lmmin.c */; };
+		2B45DA5E1B88816C0090EE2B /* quadratic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA5D1B88816C0090EE2B /* quadratic.cpp */; };
+		2B45DA5F1B8882AA0090EE2B /* libopencv_calib3d.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */; };
+		2B45DA601B8882AA0090EE2B /* libopencv_core.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */; };
+		2B45DA611B8882AA0090EE2B /* libopencv_highgui.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */; };
+		2B45DA621B8882AA0090EE2B /* libopencv_imgproc.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62E11B74551A00202DAA /* libopencv_imgproc.3.0.0.dylib */; };
+		2B45DA641B8883EF0090EE2B /* libopencv_imgcodecs.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB633D1B74568300202DAA /* libopencv_imgcodecs.3.0.0.dylib */; };
+		2B45DA651B8883EF0090EE2B /* libopencv_video.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB633B1B74564400202DAA /* libopencv_video.3.0.0.dylib */; };
 		2B7FE4AC1B761DA90069CFD1 /* libsfml-network.2.3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB632F1B74554100202DAA /* libsfml-network.2.3.1.dylib */; };
 		2B80F4B31B79B18D006B0F84 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F4B21B79B18D006B0F84 /* AppDelegate.m */; };
 		2B80F4B51B79B18D006B0F84 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F4B41B79B18D006B0F84 /* main.m */; };
@@ -75,6 +87,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		2B45DA451B887CC80090EE2B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		2B6B39731B73BE8C004FF61D /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -204,6 +225,18 @@
 		2B45DA401B887B930090EE2B /* track_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = track_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/track_plus; sourceTree = "<absolute>"; };
 		2B45DA411B887B930090EE2B /* daemon_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = daemon_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/daemon_plus; sourceTree = "<absolute>"; };
 		2B45DA421B887B930090EE2B /* osx_cursor_plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = osx_cursor_plus.app; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/osx_cursor_plus/osx_cursor_plus.app; sourceTree = "<absolute>"; };
+		2B45DA4E1B887E460090EE2B /* Rectifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rectifier.cpp; path = ../../track_plus_core/rectifier_plus/Rectifier.cpp; sourceTree = "<group>"; };
+		2B45DA4F1B887E460090EE2B /* Rectifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Rectifier.h; path = ../../track_plus_core/rectifier_plus/Rectifier.h; sourceTree = "<group>"; };
+		2B45DA511B8881330090EE2B /* curve_fitting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = curve_fitting.cpp; path = ../../track_plus_core/track_plus/curve_fitting.cpp; sourceTree = "<group>"; };
+		2B45DA521B8881340090EE2B /* curve_fitting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curve_fitting.h; path = ../../track_plus_core/track_plus/curve_fitting.h; sourceTree = "<group>"; };
+		2B45DA541B8881500090EE2B /* exponential.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = exponential.cpp; path = ../../track_plus_core/track_plus/exponential.cpp; sourceTree = "<group>"; };
+		2B45DA561B8881610090EE2B /* lmcurve.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmcurve.c; path = ../../track_plus_core/track_plus/lmcurve.c; sourceTree = "<group>"; };
+		2B45DA571B8881610090EE2B /* lmcurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmcurve.h; path = ../../track_plus_core/track_plus/lmcurve.h; sourceTree = "<group>"; };
+		2B45DA581B8881610090EE2B /* lmmin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmmin.c; path = ../../track_plus_core/track_plus/lmmin.c; sourceTree = "<group>"; };
+		2B45DA591B8881610090EE2B /* lmmin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmmin.h; path = ../../track_plus_core/track_plus/lmmin.h; sourceTree = "<group>"; };
+		2B45DA5A1B8881610090EE2B /* lmstruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmstruct.h; path = ../../track_plus_core/track_plus/lmstruct.h; sourceTree = "<group>"; };
+		2B45DA5D1B88816C0090EE2B /* quadratic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = quadratic.cpp; path = ../../track_plus_core/track_plus/quadratic.cpp; sourceTree = "<group>"; };
+		2B45DA661B8884D50090EE2B /* rectifier_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = rectifier_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/rectifier_plus; sourceTree = "<absolute>"; };
 		2B7FE4AA1B761D880069CFD1 /* libsfml-network.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.dylib"; path = "../dependencies/OSX/SFML/lib/libsfml-network.dylib"; sourceTree = "<group>"; };
 		2B80F4B01B79B18D006B0F84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B80F4B11B79B18D006B0F84 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -223,6 +256,19 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2B45DA441B887CC80090EE2B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B45DA641B8883EF0090EE2B /* libopencv_imgcodecs.3.0.0.dylib in Frameworks */,
+				2B45DA651B8883EF0090EE2B /* libopencv_video.3.0.0.dylib in Frameworks */,
+				2B45DA5F1B8882AA0090EE2B /* libopencv_calib3d.3.0.0.dylib in Frameworks */,
+				2B45DA601B8882AA0090EE2B /* libopencv_core.3.0.0.dylib in Frameworks */,
+				2B45DA611B8882AA0090EE2B /* libopencv_highgui.3.0.0.dylib in Frameworks */,
+				2B45DA621B8882AA0090EE2B /* libopencv_imgproc.3.0.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2B6B39721B73BE8C004FF61D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -375,6 +421,24 @@
 			name = daemon_plus;
 			sourceTree = "<group>";
 		};
+		2B45DA481B887CC80090EE2B /* rectifier_plus */ = {
+			isa = PBXGroup;
+			children = (
+				2B45DA5D1B88816C0090EE2B /* quadratic.cpp */,
+				2B45DA561B8881610090EE2B /* lmcurve.c */,
+				2B45DA571B8881610090EE2B /* lmcurve.h */,
+				2B45DA581B8881610090EE2B /* lmmin.c */,
+				2B45DA591B8881610090EE2B /* lmmin.h */,
+				2B45DA5A1B8881610090EE2B /* lmstruct.h */,
+				2B45DA541B8881500090EE2B /* exponential.cpp */,
+				2B45DA511B8881330090EE2B /* curve_fitting.cpp */,
+				2B45DA521B8881340090EE2B /* curve_fitting.h */,
+				2B45DA4E1B887E460090EE2B /* Rectifier.cpp */,
+				2B45DA4F1B887E460090EE2B /* Rectifier.h */,
+			);
+			path = rectifier_plus;
+			sourceTree = "<group>";
+		};
 		2B6B396C1B73BE8B004FF61D = {
 			isa = PBXGroup;
 			children = (
@@ -391,6 +455,7 @@
 				2B0E47FC1B85952200CEAEAB /* daemon_plus */,
 				2B0E47661B8594C100CEAEAB /* track_plus */,
 				2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */,
+				2B45DA481B887CC80090EE2B /* rectifier_plus */,
 			);
 			sourceTree = "<group>";
 		};
@@ -418,6 +483,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2B45DA461B887CC80090EE2B /* rectifier_plus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B45DA4B1B887CC80090EE2B /* Build configuration list for PBXNativeTarget "rectifier_plus" */;
+			buildPhases = (
+				2B45DA431B887CC80090EE2B /* Sources */,
+				2B45DA441B887CC80090EE2B /* Frameworks */,
+				2B45DA451B887CC80090EE2B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = rectifier_plus;
+			productName = rectifier_plus;
+			productReference = 2B45DA661B8884D50090EE2B /* rectifier_plus */;
+			productType = "com.apple.product-type.tool";
+		};
 		2B6B39741B73BE8C004FF61D /* track_plus */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2B6B397C1B73BE8C004FF61D /* Build configuration list for PBXNativeTarget "track_plus" */;
@@ -478,6 +560,9 @@
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Ractiv Inc.";
 				TargetAttributes = {
+					2B45DA461B887CC80090EE2B = {
+						CreatedOnToolsVersion = 6.3;
+					};
 					2B6B39741B73BE8C004FF61D = {
 						CreatedOnToolsVersion = 6.3;
 					};
@@ -504,6 +589,7 @@
 			targets = (
 				2B6B39741B73BE8C004FF61D /* track_plus */,
 				2B6B39821B73BEBF004FF61D /* daemon_plus */,
+				2B45DA461B887CC80090EE2B /* rectifier_plus */,
 				2B80F4AC1B79B18D006B0F84 /* osx_cursor_plus */,
 			);
 		};
@@ -522,6 +608,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2B45DA431B887CC80090EE2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B45DA5C1B8881610090EE2B /* lmmin.c in Sources */,
+				2B45DA5B1B8881610090EE2B /* lmcurve.c in Sources */,
+				2B45DA5E1B88816C0090EE2B /* quadratic.cpp in Sources */,
+				2B45DA501B887E460090EE2B /* Rectifier.cpp in Sources */,
+				2B45DA531B8881340090EE2B /* curve_fitting.cpp in Sources */,
+				2B45DA551B8881500090EE2B /* exponential.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2B6B39711B73BE8C004FF61D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -610,6 +709,34 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		2B45DA4C1B887CC80090EE2B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/Lai/Documents/touch_plus_source_code/dependencies/OSX/OpenCV/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		2B45DA4D1B887CC80090EE2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/Lai/Documents/touch_plus_source_code/dependencies/OSX/OpenCV/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		2B6B397A1B73BE8C004FF61D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -830,6 +957,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2B45DA4B1B887CC80090EE2B /* Build configuration list for PBXNativeTarget "rectifier_plus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B45DA4C1B887CC80090EE2B /* Debug */,
+				2B45DA4D1B887CC80090EE2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		2B6B39701B73BE8B004FF61D /* Build configuration list for PBXProject "track_plus" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

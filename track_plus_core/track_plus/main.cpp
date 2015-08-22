@@ -240,6 +240,8 @@ void load_settings()
 
 void on_first_frame()
 {
+    COUT << "on first frame" << endl;
+
     serial_number = camera->getSerialNumber();
 
     if (serial_number.size() == 10)
@@ -287,23 +289,16 @@ void on_first_frame()
 
     if (mode == "surface")
     {
-        if (visualize_3d)
-        {
-            child_module_name = "unity_plus";
-            ipc->open_udp_channel("unity_plus", 3333);
-        }
-        else
-        {
-            child_module_name = "win_cursor_plus";
 #ifdef _WIN32
-            if (IsWindows8OrGreater())
-                child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus" + extension0;
-            else
-                child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus" + extension0;
+        child_module_name = "win_cursor_plus";
+        
+        if (IsWindows8OrGreater())
+            child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus" + extension0;
+        else
+            child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus" + extension0;
 #elif __APPLE__
-            //todo: port to OSX
+        //todo: port to OSX
 #endif
-        }
     }
     else
     {
@@ -806,8 +801,8 @@ void guardian_thread_function()
         if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
             create_process(child_module_path, child_module_name + extension0, true);
 
-        // if (process_running("daemon_plus" + extension0) == 0)
-            // ipc->send_message("everyone", "exit", "");
+        if (process_running("daemon_plus" + extension0) == 0)
+            ipc->send_message("everyone", "exit", "");
 
         Sleep(500);
     }
@@ -861,7 +856,7 @@ int main()
 #elif __APPLE__
     //todo: port to OSX
 #endif
-    // thread guardian_thread(guardian_thread_function);
+    thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);
 

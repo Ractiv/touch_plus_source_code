@@ -69,7 +69,6 @@ extern bool record_pose;
 extern bool pinch_to_zoom;
 extern bool has_plate;
 extern bool has_pen;
-extern bool visualize_3d;
 
 extern int actuate_dist_raw;
 extern int actuate_dist;
