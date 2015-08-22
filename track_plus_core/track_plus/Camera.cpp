@@ -71,6 +71,7 @@ int decompressJPEG = 0;
 libusb_device_handle* dev_handle;
 uvc_context_t* ctx = NULL;
 uvc_device_handle_t* devh = NULL;
+uvc_device_t* dev;
 unsigned char* liveData;
 uvc_frame_t* bgr;
 
@@ -185,8 +186,6 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
                                               );
     }
     
-    COUT << "here 0" << endl;
-
     /* Print out the result */
     uvc_print_stream_ctrl(&ctrl, stderr);
     if (res < 0)
@@ -196,8 +195,6 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
     }
     else
     {
-        COUT << "here 1" << endl;
-
         int value = 0;
         bgr = uvc_allocate_frame(width*height*3);
         if (!bgr)
@@ -206,12 +203,7 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
             return -1;
         }
 
-        COUT << "here 2" << endl;
-
         res = uvc_start_streaming(devh, &ctrl, cb, (void*)(&value), 0);
-
-        COUT << "here 3" << endl;
-
         if (res < 0)
         {
             COUT << "error 1" << endl;
@@ -228,7 +220,7 @@ int Camera::stopVideoStream()
     uvc_stop_streaming(devh);
     uvc_free_frame(bgr);
     uvc_close(devh);
-    // uvc_unref_device(dev);
+    uvc_unref_device(dev);
     uvc_exit(ctx);
     return 0;
 }
@@ -483,7 +475,6 @@ int Camera::doSetup(const int & format)
 
 #elif __APPLE__
     uvc_error_t res;
-    uvc_device_t* dev;
     
     res = uvc_init(&ctx, NULL);
     if (res < 0)
