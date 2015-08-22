@@ -19,7 +19,6 @@
 // Rectifier.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
 #include "Rectifier.h"
 
 void CRectifier::SetPatternSize(int width, int height)	{

@@ -43,6 +43,13 @@ int check_process_running(string name, bool partial)
     return process_count;
 
 #elif __APPLE__
+    vector<string> file_name_vec = list_files_in_directory(executable_path);
+    for (string file_name_current : file_name_vec)
+        if (file_name_current == "lock")
+            return true;
+
+    write_string_to_file(executable_path + "/lock", "");
+
     string command = "ps -e > " + executable_path + "/processes.txt";
     system(command.c_str());
     
@@ -53,7 +60,10 @@ int check_process_running(string name, bool partial)
         if (partial)
         {
             if (str.find(name) != std::string::npos)
+            {
+                delete_file(executable_path + "/lock");
                 return true;
+            }
         }
         else
         {
@@ -62,10 +72,13 @@ int check_process_running(string name, bool partial)
             {
                 string process_name = str_parts[str_parts.size() - 1];
                 if (process_name == name)
+                {
+                    delete_file(executable_path + "/lock");
                     return true;
+                }
             }
         }
-
+    delete_file(executable_path + "/lock");
     return false;
 #endif
 }

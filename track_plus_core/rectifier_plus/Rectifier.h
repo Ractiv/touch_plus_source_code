@@ -25,10 +25,9 @@
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <iostream>
-#include <windows.h>
 
 
-#include "..\CurveFitting\curve_fitting.h"
+#include "curve_fitting.h"
 
 using namespace std;
 using namespace cv;

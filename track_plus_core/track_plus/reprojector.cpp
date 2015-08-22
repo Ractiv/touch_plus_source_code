@@ -89,20 +89,20 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		while (block_thread)
 			Sleep(100);
 
-        create_directory(data_path);
-        create_directory(data_path_current_module);
+		if (!directory_exists(data_path))
+       		create_directory(data_path);
 
+       	if (!directory_exists(data_path_current_module))
+        	create_directory(data_path_current_module);
+
+		copy_file(executable_path + slash + "rectifier_plus" + extension0, data_path_current_module + slash + "rectifier_plus" + extension0);
 #ifdef _WIN32
-		copy_file(executable_path + slash + "rectifier" + extension0, data_path_current_module + slash + "rectifier" + extension0);
 		copy_file(executable_path + slash + "opencv_core249.dll", data_path_current_module + slash + "opencv_core249.dll");
 		copy_file(executable_path + slash + "opencv_highgui249.dll", data_path_current_module + slash + "opencv_highgui249.dll");
 		copy_file(executable_path + slash + "opencv_imgproc249.dll", data_path_current_module + slash + "opencv_imgproc249.dll");
 		copy_file(executable_path + slash + "opencv_calib3d249.dll", data_path_current_module + slash + "opencv_calib3d249.dll");
 		copy_file(executable_path + slash + "opencv_flann249.dll", data_path_current_module + slash + "opencv_flann249.dll");
 		copy_file(executable_path + slash + "opencv_features2d249.dll", data_path_current_module + slash + "opencv_features2d249.dll");
-		
-#elif __APPLE__
-		//todo: port to OSX
 #endif
 
 		//http://s3-us-west-2.amazonaws.com/ractiv.com/data/
@@ -137,16 +137,17 @@ void Reprojector::load(IPC& ipc, bool flipped)
 								ipc_ptr->send_message("daemon_plus", "exit", "");
 							else
 							{
-								while (true)
-								{
-									COUT << "finished download" << endl;
-									Sleep(1000);
-								}
-
 								bool has_complete_calib_data = false;
 								while (!has_complete_calib_data)
 								{
-									system(("cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier" + extension0).c_str());
+#ifdef _WIN32
+									string command = "cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier_plus" + extension0;
+#elif __APPLE__
+									string command  = "cd " + data_path_current_module;
+										   command += " && chmod +x ./rectifier_plus" + extension0;
+										   command += " && ./rectifier_plus" + extension0;
+#endif
+									system(command.c_str());
 
 									if (directory_exists(data_path_current_module))
 										if (file_exists(data_path_current_module + slash + "0.jpg"))
