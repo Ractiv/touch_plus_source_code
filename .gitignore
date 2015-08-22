@@ -4,6 +4,9 @@
 track_plus.exe
 daemon_plus.exe
 win_cursor_plus.exe
+track_plus
+daemon_plus
+win_cursor_plus
 patch.zip
 ipc/
 userdata/
@@ -308,8 +311,3 @@ FakesAssemblies/
 *.opt
 *.iobj
 *.ipdb
-build/daemon_plus
-
-build/rectifier_plus
-
-build/track_plus
