@@ -93,7 +93,7 @@ unsigned char Camera::read_ADDR_81(libusb_device_handle* dev_handle, unsigned sh
 
 unsigned char Camera::read_ADDR_81(libusb_device_handle* dev_handle, unsigned char* data, unsigned short wValue, int length)
 {
-    unsigned short wIndex     = 0x0400;
+    unsigned short wIndex = 0x0400;
     unsigned char bmRequestType_get = 0xa1;
     libusb_control_transfer(dev_handle, bmRequestType_get, 0x81,wValue, wIndex, data, length, 10000);
     return 0;
@@ -185,12 +185,19 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
                                               );
     }
     
+    COUT << "here 0" << endl;
+
     /* Print out the result */
     uvc_print_stream_ctrl(&ctrl, stderr);
     if (res < 0)
+    {
+        COUT << "error 0" << endl;
         uvc_perror(res, "get_mode"); /* device doesn't provide a matching stream */
+    }
     else
     {
+        COUT << "here 1" << endl;
+
         int value = 0;
         bgr = uvc_allocate_frame(width*height*3);
         if (!bgr)
@@ -198,10 +205,18 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
             printf("unable to allocate bgr frame!");
             return -1;
         }
-        //  inputImage.data = (unsigned char*)bgr->data;
+
+        COUT << "here 2" << endl;
+
         res = uvc_start_streaming(devh, &ctrl, cb, (void*)(&value), 0);
+
+        COUT << "here 3" << endl;
+
         if (res < 0)
+        {
+            COUT << "error 1" << endl;
             uvc_perror(res, "start_streaming"); /* unable to start stream */
+        }
         else
             puts("Streaming...");
     }

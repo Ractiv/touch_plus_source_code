@@ -431,9 +431,9 @@ void compute()
 
     if (enable_imshow)
     {
-        // imshow("image_small0", image_small0);
+        imshow("image_small0", image_small0);
         // imshow("image_small1", image_small1);
-        // imshow("image_preprocessed0", image_preprocessed0);
+        imshow("image_preprocessed0", image_preprocessed0);
         // imshow("image_preprocessed1", image_preprocessed1);
     }
 
