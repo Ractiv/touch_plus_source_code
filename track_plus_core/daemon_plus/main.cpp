@@ -64,6 +64,9 @@ void guardian_thread_function()
 			string menu_path = executable_path + slash + "menu_plus" + slash + "menu_plus" + extension0;
 #elif __APPLE__
 			string menu_path = executable_path + slash + "menu_plus/menu_plus/Contents/MacOS" + slash + "menu_plus" + extension0;
+            
+            string command = "chmod +x " + menu_path;
+            system(command.c_str());
 #endif
 			create_process(menu_path, "menu_plus" + extension0, show_console, true);
 		}

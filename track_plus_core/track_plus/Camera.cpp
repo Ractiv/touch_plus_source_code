@@ -525,7 +525,7 @@ int Camera::setExposureTime(int whichSide, float expTime)
 
 #elif __APPLE__
     //convert to the time to integer
-    unsigned short mytime = (unsigned short)(expTime * 90.08);
+    unsigned short mytime = (unsigned short)(expTime * 20);
     
     unsigned char data[6];
     

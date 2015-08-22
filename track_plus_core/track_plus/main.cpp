@@ -777,7 +777,6 @@ void guardian_thread_function()
         if (wait_count >= (serial_verified ? 5 : 10))
         {
             COUT << "restarting" << endl;
-
             wait_for_device();
         }
 
@@ -801,8 +800,8 @@ void guardian_thread_function()
         if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
             create_process(child_module_path, child_module_name + extension0, true);
 
-        if (process_running("daemon_plus" + extension0) == 0)
-            ipc->send_message("everyone", "exit", "");
+        // if (process_running("daemon_plus" + extension0) == 0)
+            // ipc->send_message("everyone", "exit", "");
 
         Sleep(500);
     }
