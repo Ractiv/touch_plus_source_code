@@ -154,7 +154,6 @@ void wait_for_device()
     hide_cursors();
 
     ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
-    ipc->send_message("menu_plus", "show stage", "true");
 
     while (true)
     {
@@ -169,7 +168,10 @@ void wait_for_device()
         if (camera_count_new > camera_count_old)
         {
             ipc->clear();
-
+#ifdef __APPLE__
+            if (camera != NULL)
+                camera->stopVideoStream();
+#endif
             COUT << "exit 0" << endl;
 
             exit(0);
@@ -187,7 +189,10 @@ void wait_for_device()
             if (str == "Touch+ Camera")
             {
                 ipc->clear();
-
+#ifdef __APPLE__
+                if (camera != NULL)
+                    camera->stopVideoStream();
+#endif
                 COUT << "exit 0" << endl;
 
                 exit(0);
@@ -352,17 +357,20 @@ void compute()
     camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
     imu.compute(x_accel, y_accel, z_accel);
 
-    // if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
-    // {
-    //     if (child_module_name != "")
-    //         ipc->send_message(child_module_name, "exit", "");
+//     if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
+//     {
+//         if (child_module_name != "")
+//             ipc->send_message(child_module_name, "exit", "");
 
-    //     ipc->clear();
+//         ipc->clear();
+// #ifdef __APPLE__
+//         if (camera != NULL)
+//             camera->stopVideoStream();
+// #endif
+//         COUT << "exit 1" << endl;
 
-            // COUT << "exit 1" << endl;
-
-    //     exit(0);
-    // }
+//         exit(0);
+//     }
 
     if (image_current_frame.cols == 0)
         return;
@@ -421,9 +429,11 @@ void compute()
     }*/
 
 	static bool show_wiggle_sent = false;
-	if (!show_wiggle_sent && child_module_name != "")
+	if (!show_wiggle_sent)
 	{
-		ipc->open_udp_channel(child_module_name);
+        if (child_module_name != "")
+		  ipc->open_udp_channel(child_module_name);
+        
 		ipc->send_message("menu_plus", "show window", "");
 		ipc->send_message("menu_plus", "show wiggle", "");
 	}
@@ -447,9 +457,9 @@ void compute()
     if (normalized)
     {
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "0",          true);
+                                             construct_background, "0",          false);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "1",          true);
+                                             construct_background, "1",          false);
     }
 
     if (first_pass && motion_processor0.both_moving)
@@ -476,8 +486,8 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
-        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
 
@@ -640,8 +650,6 @@ void compute()
 
         if (calibration_step == 4)
         {
-            ipc->send_message("menu_plus", "show stage", "");
-
             pointer_mapper.compute_calibration_points();
             calibrating = false;
             increment_keypress_count = false;
@@ -829,7 +837,10 @@ int main()
             ipc->send_message(child_module_name, "exit", "");
 
         ipc->clear();
-
+#ifdef __APPLE__
+        if (camera != NULL)
+            camera->stopVideoStream();
+#endif
         COUT << "exit 2" << endl;
 
         exit(0);

@@ -2,7 +2,7 @@
 	"main": "gui/index.html",
 	"name": "Touch+ control panel",
 	"description": "Touch+ control panel",
-	"version": "0.5a",
+	// "version": "0.5a",
 	"keywords": [ "Touch+", "control panel" ],
 	"window": {
 		"title": "Touch+ control panel",

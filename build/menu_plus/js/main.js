@@ -98,12 +98,6 @@
     winShow = false;
   });
 
-  tray.on("click", function()
-  {
-    win.show();
-    winShow = true;
-  });
-
   //----------------------------------------------------------------------------------------------------
 
   ipc.MapFunction("menu_plus_ready", function(messageBody)
