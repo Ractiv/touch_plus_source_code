@@ -154,6 +154,7 @@ void wait_for_device()
     hide_cursors();
 
     ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
+    ipc->send_message("menu_plus", "show stage", "");
 
     while (true)
     {
@@ -635,16 +636,16 @@ void compute()
     {
         if (keypress_count == calibration_points_count)
         {
-            ipc->send_message("menu_plus", "show calibration next", "");
-
             COUT << "step " << calibration_step << " complete" << endl; 
 
+            ipc->send_message("menu_plus", "show calibration next", "");
             ++calibration_step;
         }
         else if (keypress_count < calibration_points_count)
         {
             float percentage = (keypress_count * 100.0 / calibration_points_count);
             COUT << percentage << endl;
+
             pointer_mapper.add_calibration_point(calibration_step);
         }
 
@@ -653,6 +654,7 @@ void compute()
             pointer_mapper.compute_calibration_points();
             calibrating = false;
             increment_keypress_count = false;
+            ipc->send_message("menu_plus", "show stage", "");
 
             COUT << "calibration finished" << endl;
         }
