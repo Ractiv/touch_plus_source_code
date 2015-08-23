@@ -93,7 +93,7 @@ int process_running(string name, bool partial)
     return result;
 }
 
-void create_process(string path, string name, bool show_window, bool partial)
+void create_process(string path, string name, bool show_window, bool is_app, bool partial)
 { 
 #ifdef _WIN32
     PROCESS_INFORMATION ProcessInfo;
@@ -111,7 +111,14 @@ void create_process(string path, string name, bool show_window, bool partial)
     CloseHandle(ProcessInfo.hProcess);
 
 #elif __APPLE__
-    string command = path + " &";
+    string command;
+    if (!is_app)
+        command = path + " &";
+    else
+        command = "open " + path;
+
+    COUT << command << endl;
+
     system(command.c_str());
 #endif
 

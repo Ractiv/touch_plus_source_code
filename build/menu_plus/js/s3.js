@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-require("nw.gui").Window.get().evalNWBin(null, ExecutablePath + "/menu_plus/js/aws-credentials.bin");
+// require("nw.gui").Window.get().evalNWBin(null, ExecutablePath + "/menu_plus/js/aws-credentials.bin");
 
-// var AwsAccessKeyID = "";
-// var AwsSecretAccessKey = "";
-// var AwsBucketName = "";
+var AwsAccessKeyID = "";
+var AwsSecretAccessKey = "";
+var AwsBucketName = "";
 
 var S3 = function()
 {

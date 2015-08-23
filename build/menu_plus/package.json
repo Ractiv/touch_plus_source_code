@@ -7,7 +7,7 @@
 	"window": {
 		"title": "Touch+ control panel",
 		"icon": "ractiv.png",
-		"toolbar": true,
+		"toolbar": false,
 		"frame": true,
 		"width": 640,
 		"height": 675,
@@ -18,7 +18,7 @@
 		"max_height": 675,
 		"resizable": false,
 	    "always-on-top": false,
-	    "show": false,
+	    // "show": false,
 	    "app-id": "com.ractiv.track_plus.menu_plus"
 	},
 	"webkit": {
