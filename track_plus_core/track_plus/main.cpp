@@ -152,6 +152,28 @@ void wait_for_device()
     COUT << "waiting for device " << endl;
 
     hide_cursors();
+    
+#ifdef __APPLE__
+    string command = "ioreg -p IOUSB -w0 | sed 's/[^o]*o //; s/@.*$//' | grep -v '^Root.*' > " + executable_path + "/devices.txt";
+    system(command.c_str());
+    
+    vector<string> lines = read_text_file(executable_path + "/devices.txt");
+    delete_file(executable_path + "/devices.txt");
+    
+    for (string& str : lines)
+        if (str == "Touch+ Camera")
+        {
+            ipc->send_message("menu_plus", "show notification", "Please wait:Attempting to communicate with Touch+");
+            ipc->send_message("menu_plus", "show stage", "");
+            
+            ipc->clear();
+            if (camera != NULL)
+                camera->stopVideoStream();
+            
+            COUT << "exit 0" << endl;
+            exit(0);
+        }
+#endif
 
     ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
     ipc->send_message("menu_plus", "show stage", "");
@@ -190,12 +212,10 @@ void wait_for_device()
             if (str == "Touch+ Camera")
             {
                 ipc->clear();
-#ifdef __APPLE__
                 if (camera != NULL)
                     camera->stopVideoStream();
-#endif
+                
                 COUT << "exit 0" << endl;
-
                 exit(0);
             }
 #endif
@@ -744,13 +764,8 @@ void udp_receive_thread_function()
     udp.set_port(32001);
     while (true)
     {
-        unsigned char *message = udp.receive_message();
-        if (message[1] == 10)
-            on_key_down(message[0]);
-        else if (message[0] ==11)
-            on_key_up(message[0]);
-        
-        printf("message: %u %u\n",message[0],message[1]);
+        unsigned char* message = udp.receive_message();
+//        COUT << message << endl;
     }
 }
 #endif
@@ -911,6 +926,6 @@ int main()
         else
             Sleep(50);
     }
-
+        
     return 0;
 }

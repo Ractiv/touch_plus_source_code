@@ -33,9 +33,7 @@ unsigned char* UDP::receive_message()
     unsigned char data[255];
     size_t size;
     size_t received;
-    sf::IpAddress remoteAddress;
-    unsigned short remotePort;
-    socket.receive(data, size, received, remoteAddress, remotePort);
+    socket.receive(data, size, received, address, port);
     //  printf("received %d\n",data[0]);
     return data;
 }
