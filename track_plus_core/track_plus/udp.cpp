@@ -27,3 +27,15 @@ void UDP::send_message(const string message)
 {
 	socket.send(message.c_str(), message.size(), address, port);
 }
+
+unsigned char* UDP::receive_message()
+{
+    unsigned char data[255];
+    size_t size;
+    size_t received;
+    sf::IpAddress remoteAddress;
+    unsigned short remotePort;
+    socket.receive(data, size, received, remoteAddress, remotePort);
+    //  printf("received %d\n",data[0]);
+    return data;
+}

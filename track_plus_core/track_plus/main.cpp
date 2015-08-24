@@ -738,7 +738,21 @@ void keyboard_hook_thread_function()
     UnhookWindowsHookEx(keyboard_hook_handle);
 }
 #elif __APPLE__
-//todo: port to OSX
+void udp_receive_thread_function()
+{
+    UDP udp;
+    udp.set_port(32001);
+    while (true)
+    {
+        unsigned char *message = udp.receive_message();
+        if (message[1] == 10)
+            on_key_down(message[0]);
+        else if (message[0] ==11)
+            on_key_up(message[0]);
+        
+        printf("message: %u %u\n",message[0],message[1]);
+    }
+}
 #endif
 
 void input_thread_function()
@@ -866,7 +880,7 @@ int main()
 #ifdef _WIN32
     thread keyboard_hook_thread(keyboard_hook_thread_function);
 #elif __APPLE__
-    //todo: port to OSX
+    thread udp_receive_thread(udp_receive_thread_function);
 #endif
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);

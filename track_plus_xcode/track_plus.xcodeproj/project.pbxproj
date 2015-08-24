@@ -58,12 +58,19 @@
 		2B0E480B1B8596B500CEAEAB /* udp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B0E48091B8596B500CEAEAB /* udp.cpp */; };
 		2B0E480E1B8596CC00CEAEAB /* string_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B0E480C1B8596CC00CEAEAB /* string_functions.cpp */; };
 		2B0E48111B8596E300CEAEAB /* processes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B0E480F1B8596E300CEAEAB /* processes.cpp */; };
-		2B45DA501B887E460090EE2B /* Rectifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA4E1B887E460090EE2B /* Rectifier.cpp */; };
-		2B45DA531B8881340090EE2B /* curve_fitting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA511B8881330090EE2B /* curve_fitting.cpp */; };
-		2B45DA551B8881500090EE2B /* exponential.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA541B8881500090EE2B /* exponential.cpp */; };
-		2B45DA5B1B8881610090EE2B /* lmcurve.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA561B8881610090EE2B /* lmcurve.c */; };
-		2B45DA5C1B8881610090EE2B /* lmmin.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA581B8881610090EE2B /* lmmin.c */; };
-		2B45DA5E1B88816C0090EE2B /* quadratic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B45DA5D1B88816C0090EE2B /* quadratic.cpp */; };
+		2B2DADB11B8A4B7500CBE402 /* Rectifier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADAF1B8A4B7500CBE402 /* Rectifier.cpp */; };
+		2B2DADB41B8A4B9500CBE402 /* curve_fitting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADB21B8A4B9500CBE402 /* curve_fitting.cpp */; };
+		2B2DADBA1B8A4BA000CBE402 /* lmcurve.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADB51B8A4BA000CBE402 /* lmcurve.c */; };
+		2B2DADBB1B8A4BA000CBE402 /* lmmin.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADB71B8A4BA000CBE402 /* lmmin.c */; };
+		2B2DADBD1B8A4BA900CBE402 /* quadratic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADBC1B8A4BA900CBE402 /* quadratic.cpp */; };
+		2B2DADBF1B8A4BAF00CBE402 /* exponential.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADBE1B8A4BAF00CBE402 /* exponential.cpp */; };
+		2B2DADE21B8A4DDC00CBE402 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADD71B8A4DDC00CBE402 /* AppDelegate.m */; };
+		2B2DADE31B8A4DDC00CBE402 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2B2DADD91B8A4DDC00CBE402 /* MainMenu.xib */; };
+		2B2DADE41B8A4DDC00CBE402 /* GCDAsyncUdpSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADDC1B8A4DDC00CBE402 /* GCDAsyncUdpSocket.m */; };
+		2B2DADE51B8A4DDC00CBE402 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B2DADDD1B8A4DDC00CBE402 /* Images.xcassets */; };
+		2B2DADE61B8A4DDC00CBE402 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B2DADDE1B8A4DDC00CBE402 /* Info.plist */; };
+		2B2DADE71B8A4DDC00CBE402 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADDF1B8A4DDC00CBE402 /* main.m */; };
+		2B2DADE81B8A4DDC00CBE402 /* UDPListener.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B2DADE11B8A4DDC00CBE402 /* UDPListener.m */; };
 		2B45DA5F1B8882AA0090EE2B /* libopencv_calib3d.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */; };
 		2B45DA601B8882AA0090EE2B /* libopencv_core.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */; };
 		2B45DA611B8882AA0090EE2B /* libopencv_highgui.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */; };
@@ -71,10 +78,6 @@
 		2B45DA641B8883EF0090EE2B /* libopencv_imgcodecs.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB633D1B74568300202DAA /* libopencv_imgcodecs.3.0.0.dylib */; };
 		2B45DA651B8883EF0090EE2B /* libopencv_video.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB633B1B74564400202DAA /* libopencv_video.3.0.0.dylib */; };
 		2B7FE4AC1B761DA90069CFD1 /* libsfml-network.2.3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB632F1B74554100202DAA /* libsfml-network.2.3.1.dylib */; };
-		2B80F4B31B79B18D006B0F84 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F4B21B79B18D006B0F84 /* AppDelegate.m */; };
-		2B80F4B51B79B18D006B0F84 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B80F4B41B79B18D006B0F84 /* main.m */; };
-		2B80F4B71B79B18D006B0F84 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B80F4B61B79B18D006B0F84 /* Images.xcassets */; };
-		2B80F4BA1B79B18D006B0F84 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2B80F4B81B79B18D006B0F84 /* MainMenu.xib */; };
 		2BAB62FF1B74551B00202DAA /* libopencv_calib3d.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */; };
 		2BAB63021B74551B00202DAA /* libopencv_core.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */; };
 		2BAB630B1B74551B00202DAA /* libopencv_highgui.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */; };
@@ -222,28 +225,32 @@
 		2B0E480D1B8596CC00CEAEAB /* string_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = string_functions.h; path = ../track_plus_core/track_plus/string_functions.h; sourceTree = "<group>"; };
 		2B0E480F1B8596E300CEAEAB /* processes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = processes.cpp; path = ../track_plus_core/track_plus/processes.cpp; sourceTree = "<group>"; };
 		2B0E48101B8596E300CEAEAB /* processes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = processes.h; path = ../track_plus_core/track_plus/processes.h; sourceTree = "<group>"; };
-		2B45DA401B887B930090EE2B /* track_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = track_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/track_plus; sourceTree = "<absolute>"; };
-		2B45DA411B887B930090EE2B /* daemon_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = daemon_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/daemon_plus; sourceTree = "<absolute>"; };
-		2B45DA421B887B930090EE2B /* osx_cursor_plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = osx_cursor_plus.app; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/osx_cursor_plus/osx_cursor_plus.app; sourceTree = "<absolute>"; };
-		2B45DA4E1B887E460090EE2B /* Rectifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rectifier.cpp; path = ../../track_plus_core/rectifier_plus/Rectifier.cpp; sourceTree = "<group>"; };
-		2B45DA4F1B887E460090EE2B /* Rectifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Rectifier.h; path = ../../track_plus_core/rectifier_plus/Rectifier.h; sourceTree = "<group>"; };
-		2B45DA511B8881330090EE2B /* curve_fitting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = curve_fitting.cpp; path = ../../track_plus_core/track_plus/curve_fitting.cpp; sourceTree = "<group>"; };
-		2B45DA521B8881340090EE2B /* curve_fitting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curve_fitting.h; path = ../../track_plus_core/track_plus/curve_fitting.h; sourceTree = "<group>"; };
-		2B45DA541B8881500090EE2B /* exponential.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = exponential.cpp; path = ../../track_plus_core/track_plus/exponential.cpp; sourceTree = "<group>"; };
-		2B45DA561B8881610090EE2B /* lmcurve.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmcurve.c; path = ../../track_plus_core/track_plus/lmcurve.c; sourceTree = "<group>"; };
-		2B45DA571B8881610090EE2B /* lmcurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmcurve.h; path = ../../track_plus_core/track_plus/lmcurve.h; sourceTree = "<group>"; };
-		2B45DA581B8881610090EE2B /* lmmin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmmin.c; path = ../../track_plus_core/track_plus/lmmin.c; sourceTree = "<group>"; };
-		2B45DA591B8881610090EE2B /* lmmin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmmin.h; path = ../../track_plus_core/track_plus/lmmin.h; sourceTree = "<group>"; };
-		2B45DA5A1B8881610090EE2B /* lmstruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmstruct.h; path = ../../track_plus_core/track_plus/lmstruct.h; sourceTree = "<group>"; };
-		2B45DA5D1B88816C0090EE2B /* quadratic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = quadratic.cpp; path = ../../track_plus_core/track_plus/quadratic.cpp; sourceTree = "<group>"; };
-		2B45DA661B8884D50090EE2B /* rectifier_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = rectifier_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/rectifier_plus; sourceTree = "<absolute>"; };
+		2B2DADAA1B8A399200CBE402 /* track_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = track_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/track_plus; sourceTree = "<absolute>"; };
+		2B2DADAB1B8A399200CBE402 /* daemon_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = daemon_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/daemon_plus; sourceTree = "<absolute>"; };
+		2B2DADAC1B8A399200CBE402 /* rectifier_plus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = rectifier_plus; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/rectifier_plus; sourceTree = "<absolute>"; };
+		2B2DADAD1B8A399200CBE402 /* osx_cursor_plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = osx_cursor_plus.app; path = /Users/Lai/Documents/touch_plus_source_code/track_plus_xcode/build/osx_cursor_plus/osx_cursor_plus.app; sourceTree = "<absolute>"; };
+		2B2DADAF1B8A4B7500CBE402 /* Rectifier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rectifier.cpp; path = ../track_plus_core/rectifier_plus/Rectifier.cpp; sourceTree = "<group>"; };
+		2B2DADB01B8A4B7500CBE402 /* Rectifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Rectifier.h; path = ../track_plus_core/rectifier_plus/Rectifier.h; sourceTree = "<group>"; };
+		2B2DADB21B8A4B9500CBE402 /* curve_fitting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = curve_fitting.cpp; path = ../track_plus_core/track_plus/curve_fitting.cpp; sourceTree = "<group>"; };
+		2B2DADB31B8A4B9500CBE402 /* curve_fitting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curve_fitting.h; path = ../track_plus_core/track_plus/curve_fitting.h; sourceTree = "<group>"; };
+		2B2DADB51B8A4BA000CBE402 /* lmcurve.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmcurve.c; path = ../track_plus_core/track_plus/lmcurve.c; sourceTree = "<group>"; };
+		2B2DADB61B8A4BA000CBE402 /* lmcurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmcurve.h; path = ../track_plus_core/track_plus/lmcurve.h; sourceTree = "<group>"; };
+		2B2DADB71B8A4BA000CBE402 /* lmmin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lmmin.c; path = ../track_plus_core/track_plus/lmmin.c; sourceTree = "<group>"; };
+		2B2DADB81B8A4BA000CBE402 /* lmmin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmmin.h; path = ../track_plus_core/track_plus/lmmin.h; sourceTree = "<group>"; };
+		2B2DADB91B8A4BA000CBE402 /* lmstruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lmstruct.h; path = ../track_plus_core/track_plus/lmstruct.h; sourceTree = "<group>"; };
+		2B2DADBC1B8A4BA900CBE402 /* quadratic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = quadratic.cpp; path = ../track_plus_core/track_plus/quadratic.cpp; sourceTree = "<group>"; };
+		2B2DADBE1B8A4BAF00CBE402 /* exponential.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = exponential.cpp; path = ../track_plus_core/track_plus/exponential.cpp; sourceTree = "<group>"; };
+		2B2DADD61B8A4DDC00CBE402 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = osx_cursor_plus/AppDelegate.h; sourceTree = "<group>"; };
+		2B2DADD71B8A4DDC00CBE402 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = osx_cursor_plus/AppDelegate.m; sourceTree = "<group>"; };
+		2B2DADDA1B8A4DDC00CBE402 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = MainMenu.xib; sourceTree = "<group>"; };
+		2B2DADDB1B8A4DDC00CBE402 /* GCDAsyncUdpSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GCDAsyncUdpSocket.h; path = osx_cursor_plus/GCDAsyncUdpSocket.h; sourceTree = "<group>"; };
+		2B2DADDC1B8A4DDC00CBE402 /* GCDAsyncUdpSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GCDAsyncUdpSocket.m; path = osx_cursor_plus/GCDAsyncUdpSocket.m; sourceTree = "<group>"; };
+		2B2DADDD1B8A4DDC00CBE402 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = osx_cursor_plus/Images.xcassets; sourceTree = "<group>"; };
+		2B2DADDE1B8A4DDC00CBE402 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = osx_cursor_plus/Info.plist; sourceTree = "<group>"; };
+		2B2DADDF1B8A4DDC00CBE402 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = osx_cursor_plus/main.m; sourceTree = "<group>"; };
+		2B2DADE01B8A4DDC00CBE402 /* UDPListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UDPListener.h; path = osx_cursor_plus/UDPListener.h; sourceTree = "<group>"; };
+		2B2DADE11B8A4DDC00CBE402 /* UDPListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UDPListener.m; path = osx_cursor_plus/UDPListener.m; sourceTree = "<group>"; };
 		2B7FE4AA1B761D880069CFD1 /* libsfml-network.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-network.dylib"; path = "../dependencies/OSX/SFML/lib/libsfml-network.dylib"; sourceTree = "<group>"; };
-		2B80F4B01B79B18D006B0F84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2B80F4B11B79B18D006B0F84 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		2B80F4B21B79B18D006B0F84 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		2B80F4B41B79B18D006B0F84 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		2B80F4B61B79B18D006B0F84 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		2B80F4B91B79B18D006B0F84 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		2BAB62CF1B74551A00202DAA /* libopencv_calib3d.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_calib3d.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_calib3d.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_core.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_core.3.0.0.dylib; sourceTree = "<group>"; };
 		2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_highgui.3.0.0.dylib; path = ../dependencies/OSX/OpenCV/lib/libopencv_highgui.3.0.0.dylib; sourceTree = "<group>"; };
@@ -421,22 +428,48 @@
 			name = daemon_plus;
 			sourceTree = "<group>";
 		};
-		2B45DA481B887CC80090EE2B /* rectifier_plus */ = {
+		2B2DADAE1B8A4B3E00CBE402 /* rectifier_plus */ = {
 			isa = PBXGroup;
 			children = (
-				2B45DA5D1B88816C0090EE2B /* quadratic.cpp */,
-				2B45DA561B8881610090EE2B /* lmcurve.c */,
-				2B45DA571B8881610090EE2B /* lmcurve.h */,
-				2B45DA581B8881610090EE2B /* lmmin.c */,
-				2B45DA591B8881610090EE2B /* lmmin.h */,
-				2B45DA5A1B8881610090EE2B /* lmstruct.h */,
-				2B45DA541B8881500090EE2B /* exponential.cpp */,
-				2B45DA511B8881330090EE2B /* curve_fitting.cpp */,
-				2B45DA521B8881340090EE2B /* curve_fitting.h */,
-				2B45DA4E1B887E460090EE2B /* Rectifier.cpp */,
-				2B45DA4F1B887E460090EE2B /* Rectifier.h */,
+				2B2DADBE1B8A4BAF00CBE402 /* exponential.cpp */,
+				2B2DADBC1B8A4BA900CBE402 /* quadratic.cpp */,
+				2B2DADB51B8A4BA000CBE402 /* lmcurve.c */,
+				2B2DADB61B8A4BA000CBE402 /* lmcurve.h */,
+				2B2DADB71B8A4BA000CBE402 /* lmmin.c */,
+				2B2DADB81B8A4BA000CBE402 /* lmmin.h */,
+				2B2DADB91B8A4BA000CBE402 /* lmstruct.h */,
+				2B2DADB21B8A4B9500CBE402 /* curve_fitting.cpp */,
+				2B2DADB31B8A4B9500CBE402 /* curve_fitting.h */,
+				2B2DADAF1B8A4B7500CBE402 /* Rectifier.cpp */,
+				2B2DADB01B8A4B7500CBE402 /* Rectifier.h */,
 			);
-			path = rectifier_plus;
+			name = rectifier_plus;
+			sourceTree = "<group>";
+		};
+		2B2DADD51B8A4D9800CBE402 /* osx_cursor_plus */ = {
+			isa = PBXGroup;
+			children = (
+				2B2DADD61B8A4DDC00CBE402 /* AppDelegate.h */,
+				2B2DADD71B8A4DDC00CBE402 /* AppDelegate.m */,
+				2B2DADD81B8A4DDC00CBE402 /* Base.lproj */,
+				2B2DADDB1B8A4DDC00CBE402 /* GCDAsyncUdpSocket.h */,
+				2B2DADDC1B8A4DDC00CBE402 /* GCDAsyncUdpSocket.m */,
+				2B2DADDD1B8A4DDC00CBE402 /* Images.xcassets */,
+				2B2DADDE1B8A4DDC00CBE402 /* Info.plist */,
+				2B2DADDF1B8A4DDC00CBE402 /* main.m */,
+				2B2DADE01B8A4DDC00CBE402 /* UDPListener.h */,
+				2B2DADE11B8A4DDC00CBE402 /* UDPListener.m */,
+			);
+			name = osx_cursor_plus;
+			sourceTree = "<group>";
+		};
+		2B2DADD81B8A4DDC00CBE402 /* Base.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				2B2DADD91B8A4DDC00CBE402 /* MainMenu.xib */,
+			);
+			name = Base.lproj;
+			path = osx_cursor_plus/Base.lproj;
 			sourceTree = "<group>";
 		};
 		2B6B396C1B73BE8B004FF61D = {
@@ -452,32 +485,11 @@
 				2BAB62D21B74551A00202DAA /* libopencv_core.3.0.0.dylib */,
 				2BAB62DB1B74551A00202DAA /* libopencv_highgui.3.0.0.dylib */,
 				2BAB62E11B74551A00202DAA /* libopencv_imgproc.3.0.0.dylib */,
+				2B2DADD51B8A4D9800CBE402 /* osx_cursor_plus */,
+				2B2DADAE1B8A4B3E00CBE402 /* rectifier_plus */,
 				2B0E47FC1B85952200CEAEAB /* daemon_plus */,
 				2B0E47661B8594C100CEAEAB /* track_plus */,
-				2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */,
-				2B45DA481B887CC80090EE2B /* rectifier_plus */,
 			);
-			sourceTree = "<group>";
-		};
-		2B80F4AE1B79B18D006B0F84 /* osx_cursor_plus */ = {
-			isa = PBXGroup;
-			children = (
-				2B80F4B11B79B18D006B0F84 /* AppDelegate.h */,
-				2B80F4B21B79B18D006B0F84 /* AppDelegate.m */,
-				2B80F4B61B79B18D006B0F84 /* Images.xcassets */,
-				2B80F4B81B79B18D006B0F84 /* MainMenu.xib */,
-				2B80F4AF1B79B18D006B0F84 /* Supporting Files */,
-			);
-			path = osx_cursor_plus;
-			sourceTree = "<group>";
-		};
-		2B80F4AF1B79B18D006B0F84 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				2B80F4B01B79B18D006B0F84 /* Info.plist */,
-				2B80F4B41B79B18D006B0F84 /* main.m */,
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -497,7 +509,7 @@
 			);
 			name = rectifier_plus;
 			productName = rectifier_plus;
-			productReference = 2B45DA661B8884D50090EE2B /* rectifier_plus */;
+			productReference = 2B2DADAC1B8A399200CBE402 /* rectifier_plus */;
 			productType = "com.apple.product-type.tool";
 		};
 		2B6B39741B73BE8C004FF61D /* track_plus */ = {
@@ -514,7 +526,7 @@
 			);
 			name = track_plus;
 			productName = track_plus;
-			productReference = 2B45DA401B887B930090EE2B /* track_plus */;
+			productReference = 2B2DADAA1B8A399200CBE402 /* track_plus */;
 			productType = "com.apple.product-type.tool";
 		};
 		2B6B39821B73BEBF004FF61D /* daemon_plus */ = {
@@ -531,7 +543,7 @@
 			);
 			name = daemon_plus;
 			productName = daemon_plus;
-			productReference = 2B45DA411B887B930090EE2B /* daemon_plus */;
+			productReference = 2B2DADAB1B8A399200CBE402 /* daemon_plus */;
 			productType = "com.apple.product-type.tool";
 		};
 		2B80F4AC1B79B18D006B0F84 /* osx_cursor_plus */ = {
@@ -548,7 +560,7 @@
 			);
 			name = osx_cursor_plus;
 			productName = osx_cursor_plus;
-			productReference = 2B45DA421B887B930090EE2B /* osx_cursor_plus.app */;
+			productReference = 2B2DADAD1B8A399200CBE402 /* osx_cursor_plus.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -600,8 +612,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B80F4B71B79B18D006B0F84 /* Images.xcassets in Resources */,
-				2B80F4BA1B79B18D006B0F84 /* MainMenu.xib in Resources */,
+				2B2DADE31B8A4DDC00CBE402 /* MainMenu.xib in Resources */,
+				2B2DADE51B8A4DDC00CBE402 /* Images.xcassets in Resources */,
+				2B2DADE61B8A4DDC00CBE402 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -612,12 +625,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B45DA5C1B8881610090EE2B /* lmmin.c in Sources */,
-				2B45DA5B1B8881610090EE2B /* lmcurve.c in Sources */,
-				2B45DA5E1B88816C0090EE2B /* quadratic.cpp in Sources */,
-				2B45DA501B887E460090EE2B /* Rectifier.cpp in Sources */,
-				2B45DA531B8881340090EE2B /* curve_fitting.cpp in Sources */,
-				2B45DA551B8881500090EE2B /* exponential.cpp in Sources */,
+				2B2DADB11B8A4B7500CBE402 /* Rectifier.cpp in Sources */,
+				2B2DADBB1B8A4BA000CBE402 /* lmmin.c in Sources */,
+				2B2DADBA1B8A4BA000CBE402 /* lmcurve.c in Sources */,
+				2B2DADBD1B8A4BA900CBE402 /* quadratic.cpp in Sources */,
+				2B2DADB41B8A4B9500CBE402 /* curve_fitting.cpp in Sources */,
+				2B2DADBF1B8A4BAF00CBE402 /* exponential.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -690,18 +703,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B80F4B51B79B18D006B0F84 /* main.m in Sources */,
-				2B80F4B31B79B18D006B0F84 /* AppDelegate.m in Sources */,
+				2B2DADE41B8A4DDC00CBE402 /* GCDAsyncUdpSocket.m in Sources */,
+				2B2DADE71B8A4DDC00CBE402 /* main.m in Sources */,
+				2B2DADE21B8A4DDC00CBE402 /* AppDelegate.m in Sources */,
+				2B2DADE81B8A4DDC00CBE402 /* UDPListener.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		2B80F4B81B79B18D006B0F84 /* MainMenu.xib */ = {
+		2B2DADD91B8A4DDC00CBE402 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				2B80F4B91B79B18D006B0F84 /* Base */,
+				2B2DADDA1B8A4DDC00CBE402 /* Base */,
 			);
 			name = MainMenu.xib;
 			sourceTree = "<group>";
@@ -964,6 +979,7 @@
 				2B45DA4D1B887CC80090EE2B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2B6B39701B73BE8B004FF61D /* Build configuration list for PBXProject "track_plus" */ = {
 			isa = XCConfigurationList;
