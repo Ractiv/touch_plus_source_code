@@ -760,12 +760,20 @@ void keyboard_hook_thread_function()
 #elif __APPLE__
 void udp_receive_thread_function()
 {
-    UDP udp;
-    udp.set_port(32001);
+    sf::UdpSocket local_socket;
+    local_socket.bind(3333);
+
     while (true)
     {
-        unsigned char* message = udp.receive_message();
-//        COUT << message << endl;
+        sf::IpAddress sender;
+        unsigned short sender_port;
+        unsigned char data[255];
+        size_t size;
+        size_t received;
+        local_socket.receive(data, size, received, sender, sender_port);
+
+        string message = string((char*)data);
+        COUT << message << endl;
     }
 }
 #endif
@@ -891,6 +899,7 @@ int main()
     }
 
     ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
+    ipc->open_udp_channel("menu_plus");
 
 #ifdef _WIN32
     thread keyboard_hook_thread(keyboard_hook_thread_function);
