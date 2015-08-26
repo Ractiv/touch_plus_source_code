@@ -761,7 +761,9 @@ void keyboard_hook_thread_function()
 void udp_receive_thread_function()
 {
     sf::UdpSocket local_socket;
-    local_socket.bind(3333);
+    local_socket.bind(32001);
+
+    COUT << "successifvely bound to port 32001" << endl;
 
     while (true)
     {
@@ -773,7 +775,8 @@ void udp_receive_thread_function()
         local_socket.receive(data, size, received, sender, sender_port);
 
         string message = string((char*)data);
-        COUT << message << endl;
+        if (message != "")
+            COUT << message << endl;
     }
 }
 #endif
