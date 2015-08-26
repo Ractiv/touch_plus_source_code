@@ -28,13 +28,11 @@ var IPC = function(selfNameIn)
 		{
 			var port = self.udp.Assign();
 			self.SendMessage("track_plus", "open udp channel", port.toString());
-			//console.log("bound to UDP port" + port);
 		}
 		else
 		{
 			var port = parseInt(messageBody);
 			self.udp.Assign(port);
-			//console.log("bound to UDP port " + port);
 		}
 
 	});

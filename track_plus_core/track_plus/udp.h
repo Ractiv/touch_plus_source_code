@@ -19,6 +19,7 @@
 #pragma once
 
 #include <SFML/Network.hpp>
+#include "globals.h"
 
 using namespace std;
 
@@ -33,5 +34,4 @@ public:
 
 	void set_port(const int port_in);
 	void send_message(const string message);
-    unsigned char* receive_message();
 };

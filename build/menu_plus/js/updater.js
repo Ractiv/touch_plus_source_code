@@ -46,7 +46,8 @@ Updater.prototype.CheckForUpdate = function(manual)
 		self.manualInvoke = true;
 		self.NotificationHead = "Checking for updates";
 		self.NotificationBody = "Please wait";
-		var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+		var notification = new Notification(self.NotificationHead,
+			{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 	}
 
 	if (!self.Enabled && !manual)
@@ -79,7 +80,8 @@ Updater.prototype.CheckForUpdate = function(manual)
 						{
 							self.NotificationHead = "A new version of Touch+ software is available";
 							self.NotificationBody = "Click here to update";
-							var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+							var notification = new Notification(self.NotificationHead,
+								{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 
 							notification.onclick = function()
 							{
@@ -91,7 +93,8 @@ Updater.prototype.CheckForUpdate = function(manual)
 					{
 						self.NotificationHead = "Touch+ software is up to date";
 						self.NotificationBody = "Current vesion: " + currentVersion;
-						var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+						var notification = new Notification(self.NotificationHead,
+							{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 
 						self.manualInvoke = false;
 					}
@@ -103,7 +106,8 @@ Updater.prototype.CheckForUpdate = function(manual)
 					{
 						self.NotificationHead = "Update failed";
 						self.NotificationBody = "please check your internet connection";
-						var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+						var notification = new Notification(self.NotificationHead,
+							{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 					}
 
 					self.checkingForUpdate = false;
@@ -123,7 +127,8 @@ Updater.prototype.CheckForUpdate = function(manual)
 		{
 			self.NotificationHead = "Update failed";
 			self.NotificationBody = "please check your internet connection";
-			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+			var notification = new Notification(self.NotificationHead,
+				{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 		}
 
 		self.checkingForUpdate = false;
@@ -142,13 +147,15 @@ Updater.prototype.patch = function(targetVersion)
 
 	self.NotificationHead = "Downloading update";
 	self.NotificationBody = "Please wait";
-	var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+	var notification = new Notification(self.NotificationHead,
+		{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 
 	self.s3.DownloadKey("software_update/patch.zip", ExecutablePath, function(path)
 	{
 		self.NotificationHead = "Installing update";
 		self.NotificationBody = "Please wait";
-		var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+		var notification = new Notification(self.NotificationHead,
+			{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 
 		BlockExit = true;
 		self.ipc.SendMessage("daemon_plus", "exit", "");
@@ -161,7 +168,8 @@ Updater.prototype.patch = function(targetVersion)
 
 			self.NotificationHead = "Update finished";
 			self.NotificationBody = "Current version: " + targetVersion;
-			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+			var notification = new Notification(self.NotificationHead,
+				{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 
 			BlockExit = false;
 			
@@ -178,7 +186,8 @@ Updater.prototype.patch = function(targetVersion)
 		{
 			self.NotificationHead = "Update failed";
 			self.NotificationBody = "please check your internet connection";
-			var notification = new Notification(self.NotificationHead, { body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
+			var notification = new Notification(self.NotificationHead,
+				{ body: self.NotificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 
 			self.manualInvoke = false;
 		}
