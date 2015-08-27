@@ -30,6 +30,7 @@ const string cmd_quote = "\"";
 const string slash = "\\";
 const string extension0 = ".exe";
 const string extension1 = ".exe";
+
 #elif __APPLE__
 const string slash = "/";
 const string extension0 = "";

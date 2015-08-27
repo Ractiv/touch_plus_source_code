@@ -27,6 +27,7 @@ bool directory_exists(const string path)
 
 	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
 		return true;
+
 #elif __APPLE__
 	struct stat info;
 
@@ -35,6 +36,7 @@ bool directory_exists(const string path)
 	else if (info.st_mode & S_IFDIR)
 		return true;
 #endif
+
 	return false;
 }
 
@@ -74,6 +76,7 @@ void create_directory(const string path)
 {
 #ifdef _WIN32
 	CreateDirectory(path.c_str(), NULL);
+
 #elif __APPLE__
 	mkdir(path.c_str(), 0775);
 #endif
@@ -178,6 +181,7 @@ int create_shortcut(string src_path, string dst_path, string working_directory)
 		COUT << "Error 1" << endl;
 		return 1;
 	}
+	
 #elif __APPLE__
 	//todo: port to OSX
 #endif

@@ -24,6 +24,7 @@ const string cmd_quote = "\"";
 const string slash = "\\";
 const string extension0 = ".exe";
 const string extension1 = ".exe";
+
 #elif __APPLE__
 const string slash = "/";
 const string extension0 = "";
@@ -42,7 +43,6 @@ string pose_name = "";
 string target_pose_name = "";
 string child_module_name = "";
 string child_module_path = "";
-string mode = "";
 
 bool play = true;
 bool enable_imshow = true;

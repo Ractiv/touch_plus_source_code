@@ -232,7 +232,7 @@ bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 			}
 	}
 
-	if (normalize && do_normalize && mode == "surface")
+	if (normalize && do_normalize)
 		for (int i = 0; i < image_width_const; ++i)
 			for (int j = 0; j < image_height_const; ++j)
 			{

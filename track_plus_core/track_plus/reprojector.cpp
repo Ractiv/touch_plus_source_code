@@ -142,11 +142,13 @@ void Reprojector::load(IPC& ipc, bool flipped)
 								{
 #ifdef _WIN32
 									string command = "cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier_plus" + extension0;
+
 #elif __APPLE__
 									string command  = "cd " + data_path_current_module;
 										   command += " && chmod +x ./rectifier_plus" + extension0;
 										   command += " && ./rectifier_plus" + extension0;
 #endif
+										   
 									system(command.c_str());
 
 									if (directory_exists(data_path_current_module))

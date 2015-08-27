@@ -20,28 +20,13 @@
 
 bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
-	Mat image_foreground;
-
-	if (mode == "tool")
-	{
-		threshold(image_in, image_foreground, max(motion_processor.gray_threshold_left,
-												  motion_processor.gray_threshold_right), 254, THRESH_BINARY);
-		
-		blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
-
-		if (visualize && enable_imshow)
-			imshow("image_foreground" + name, image_foreground);
-
-		return true;
-	}
-
 	const int x_separator_middle = motion_processor.x_separator_middle;
 	const uchar gray_threshold_left = motion_processor.gray_threshold_left;
 	const uchar gray_threshold_right = motion_processor.gray_threshold_right;
 	const uchar diff_threshold = motion_processor.diff_threshold;
 	const Mat image_background_static = motion_processor.image_background_static;
 
-	image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	Mat image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	for (int i = 0; i < WIDTH_SMALL; ++i)
 		for (int j = 0; j < HEIGHT_SMALL; ++j)
 		{

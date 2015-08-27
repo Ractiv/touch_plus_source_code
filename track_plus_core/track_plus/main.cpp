@@ -36,12 +36,10 @@
 #include "reprojector.h"
 #include "hand_resolver.h"
 #include "pointer_mapper.h"
-#include "tool_mono_processor.h"
-#include "tool_stereo_processor.h"
-#include "tool_pointer_mapper.h"
 
 #ifdef _WIN32
 #include <VersionHelpers.h>
+
 #elif __APPLE__
 #include <mach-o/dyld.h>
 #endif
@@ -99,13 +97,6 @@ Reprojector reprojector;
 PointerMapper pointer_mapper;
 
 LowPassFilter low_pass_filter;
-
-ToolMonoProcessor tool_mono_processor0;
-ToolMonoProcessor tool_mono_processor1;
-
-ToolStereoProcessor tool_stereo_processor;
-
-ToolPointerMapper tool_pointer_mapper;
 
 const int points_pool_count_max = 1000;
 vector<Point> points_pool[points_pool_count_max];
@@ -238,14 +229,15 @@ void init_paths()
     GetModuleFileName(NULL, buffer, MAX_PATH);
     string::size_type pos = string(buffer).find_last_of("\\/");
     executable_path = string(buffer).substr(0, pos);
+
 #elif __APPLE__
     char path_buffer[1024];
     uint32_t path_size = sizeof(path_buffer);
     _NSGetExecutablePath(path_buffer, &path_size);
     string path_str(path_buffer);
     executable_path = path_str.substr(0, path_str.find_last_of("/"));
-    
 #endif
+
     data_path = executable_path + slash + "userdata";
     settings_file_path = data_path + slash + "settings.nrocinunerrad";
     ipc_path = executable_path + slash + "ipc";
@@ -304,33 +296,21 @@ void on_first_frame()
     
     Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
 
-    // if (heading.y > 60)
-        // mode = "tool";
-    // else
-        mode = "surface";
-
     reprojector.load(*ipc, true);
     CameraInitializerNew::init(camera);
     pose_estimator.init();
 
-    if (mode == "surface")
-    {
 #ifdef _WIN32
-        child_module_name = "win_cursor_plus";
-        
-        if (IsWindows8OrGreater())
-            child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus" + extension0;
-        else
-            child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus" + extension0;
-#elif __APPLE__
-        //todo: port to OSX
-#endif
-    }
+    child_module_name = "win_cursor_plus";
+    
+    if (IsWindows8OrGreater())
+        child_module_path = executable_path + slash + "win_cursor_plus" + slash + "win_cursor_plus" + extension0;
     else
-    {
-        ipc->open_udp_channel("unity_plus", 3333);
-        ipc->send_message("menu_plus", "hide window", "");
-    }
+        child_module_path = executable_path + slash + "win_cursor_plus_fallback" + slash + "win_cursor_plus" + extension0;
+
+#elif __APPLE__
+    //todo: port to OSX
+#endif
 
     ipc->map_function("toggle imshow", [](const string message_body)
     {
@@ -378,21 +358,6 @@ void compute()
     camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
     imu.compute(x_accel, y_accel, z_accel);
 
-//     if ((mode == "surface" && imu.pitch > 60) || (mode == "tool" && imu.pitch < 60))
-//     {
-//         if (child_module_name != "")
-//             ipc->send_message(child_module_name, "exit", "");
-
-//         ipc->clear();
-// #ifdef __APPLE__
-//         if (camera != NULL)
-//             camera->stopVideoStream();
-// #endif
-//         COUT << "exit 1" << endl;
-
-//         exit(0);
-//     }
-
     if (image_current_frame.cols == 0)
         return;
 
@@ -424,7 +389,8 @@ void compute()
 
     exposure_adjusted = true;
 
-    /*{
+#ifdef false
+    {
         Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
         Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);
 
@@ -447,7 +413,8 @@ void compute()
 		imshow("image_remapped0", image_remapped0);
 		imshow("image_remapped1", image_remapped1);
 		imshow("image_disparity_8u", image_disparity_8u);
-    }*/
+    }
+#endif
 
 	static bool show_wiggle_sent = false;
 	if (!show_wiggle_sent)
@@ -519,7 +486,7 @@ void compute()
         proceed = proceed0 && proceed1;
     }
 
-    if (mode == "surface" && proceed)
+    if (proceed)
     {
         proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
@@ -527,7 +494,7 @@ void compute()
 
         if (proceed)
         {
-            // stereo_processor.compute(mono_processor0, mono_processor1, motion_processor0, motion_processor1);
+            stereo_processor.compute(mono_processor0, mono_processor1);
 
             points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
             points_ptr = &(points_pool[points_pool_count]);
@@ -604,50 +571,6 @@ void compute()
         }
 
         ipc->send_udp_message(child_module_name, "update!" + to_string(frame_num));
-    }
-    else if (mode == "tool" && proceed)
-    {
-        enable_imshow = true;
-
-        Mat image_active_light0;
-        Mat image_active_light1;
-        compute_active_light_image(image_small0, image_preprocessed0, image_active_light0);
-        compute_active_light_image(image_small1, image_preprocessed1, image_active_light1);
-
-        proceed0 = tool_mono_processor0.compute(image_active_light0, image_preprocessed0, "0");
-        proceed1 = tool_mono_processor1.compute(image_active_light1, image_preprocessed1, "1");
-        proceed = proceed0 && proceed1;
-
-        if (proceed)
-        {
-            proceed0 = tool_stereo_processor.compute(tool_mono_processor0, tool_mono_processor1);
-            proceed1 = tool_stereo_processor.matches.size() >= 4;
-            proceed = proceed0 && proceed1;
-
-            if (proceed)
-            {
-                tool_pointer_mapper.compute(reprojector, tool_stereo_processor, image0, image1);
-
-                string data = "";
-                data += to_string(tool_pointer_mapper.pt0.x) + "!" +
-                        to_string(tool_pointer_mapper.pt0.y) + "!" +
-                        to_string(tool_pointer_mapper.pt0.z) + "!";
-                data += to_string(tool_pointer_mapper.pt1.x) + "!" +
-                        to_string(tool_pointer_mapper.pt1.y) + "!" +
-                        to_string(tool_pointer_mapper.pt1.z) + "!";
-                data += to_string(tool_pointer_mapper.pt2.x) + "!" +
-                        to_string(tool_pointer_mapper.pt2.y) + "!" +
-                        to_string(tool_pointer_mapper.pt2.z) + "!";
-                data += to_string(tool_pointer_mapper.pt3.x) + "!" +
-                        to_string(tool_pointer_mapper.pt3.y) + "!" +
-                        to_string(tool_pointer_mapper.pt3.z) + "!";
-                data += to_string(tool_pointer_mapper.pt_center.x) + "!" +
-                        to_string(tool_pointer_mapper.pt_center.y) + "!" +
-                        to_string(tool_pointer_mapper.pt_center.z);
-
-                ipc->send_udp_message("unity_plus", data);
-            }
-        }
     }
 
     ++frame_num;
@@ -757,6 +680,7 @@ void keyboard_hook_thread_function()
 
     UnhookWindowsHookEx(keyboard_hook_handle);
 }
+
 #elif __APPLE__
 void udp_receive_thread_function()
 {
@@ -879,12 +803,13 @@ int main()
             ipc->send_message(child_module_name, "exit", "");
 
         ipc->clear();
+        
 #ifdef __APPLE__
         if (camera != NULL)
             camera->stopVideoStream();
 #endif
-        COUT << "exit 2" << endl;
 
+        COUT << "exit 2" << endl;
         exit(0);
     });
 
@@ -906,9 +831,11 @@ int main()
 
 #ifdef _WIN32
     thread keyboard_hook_thread(keyboard_hook_thread_function);
+
 #elif __APPLE__
     thread udp_receive_thread(udp_receive_thread_function);
 #endif
+
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);

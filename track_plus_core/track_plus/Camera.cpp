@@ -240,9 +240,11 @@ string Camera::getSerialNumber()
     unsigned char serialNumber[10];
 #ifdef _WIN32
     eSPAEAWB_ReadFlash(serialNumber, 10);
+
 #elif __APPLE__
     readFlash(serialNumber, 10);
 #endif
+
     for (int i = 0; i < 10; i++)
     {
         int digit = serialNumber[i];
@@ -298,6 +300,7 @@ int Camera::isCameraPresent()
         return 0;
     }
 #endif
+    
     return 1;
 }
 
@@ -307,6 +310,7 @@ int Camera::do_software_unlock()
     int present = isCameraPresent();
     int retVal = eSPAEAWB_SWUnlock(0x0107);
     return present;
+
 #elif __APPLE__
     //libusb_device** devs; //pointer to pointer of device, used to retrieve a list of devices
     libusb_device_handle* dev_handle; //a device handle
@@ -320,7 +324,6 @@ int Camera::do_software_unlock()
     if(r < 0)
     {
         COUT << "Init Error " << r << endl; //there was an error
-        
         return 1;
     }
     
@@ -348,7 +351,6 @@ int Camera::do_software_unlock()
     if (r < 0)
     {
         COUT << "Cannot Claim Interface" << endl;
-        
         return 0;
     }
     
@@ -470,7 +472,6 @@ int Camera::doSetup(const int & format)
     bool retV = ds_camera_->OpenCamera(touchCameraId, format, 1280, 480, 60, frameCallback);
 
     COUT << "camera opened = " << retV << endl;
-
     return retV;
 
 #elif __APPLE__
@@ -823,6 +824,7 @@ float Camera::getExposureTime(int whichSide)
     float eTime = -1.0;
     eSPAEAWB_GetExposureTime(whichSide, &eTime);
     return eTime;
+
 #elif __APPLE__
     unsigned char data[6];
     
@@ -954,6 +956,7 @@ int Camera::setGlobalGain(int whichSide, float gain)
 {
 #ifdef _WIN32
     return eSPAEAWB_SetGlobalGain(whichSide, gain);
+
 #elif __APPLE__
     read_ADDR_85(dev_handle,0x0200);
     unsigned char data[6];
@@ -980,6 +983,7 @@ float Camera::getGlobalGain(int whichSide)
     float globalGain = -1.0;
     eSPAEAWB_GetGlobalGain(whichSide, &globalGain);
     return globalGain;
+
 #elif __APPLE__
     read_ADDR_85(dev_handle,0x0200);
     unsigned char data[6];
@@ -1006,6 +1010,7 @@ int Camera::turnLEDsOn()
     gpio_code |= 0x08;
     retCode = eSPAEAWB_SetGPIOValue(1, gpio_code);
     return retCode;
+
 #elif __APPLE__
     //libusb_transfer transfer ={0};
     
@@ -1042,6 +1047,7 @@ int Camera::turnLEDsOff()
     gpio_code &= 0xf7;
     retCode = eSPAEAWB_SetGPIOValue(1, gpio_code);
     return retCode;
+
 #elif __APPLE__
     unsigned char data[5];
     
@@ -1072,6 +1078,7 @@ int Camera::getAccelerometerValues(int *x, int *y, int *z)
 {
 #ifdef _WIN32
     return eSPAEAWB_GetAccMeterValue(x, y, z);
+
 #elif __APPLE__
     read_ADDR_85(dev_handle);
     unsigned char data[4];
@@ -1151,6 +1158,7 @@ int	Camera::setColorGains(int whichSide, float red, float green, float blue)
 {
 #ifdef _WIN32
     return eSPAEAWB_SetColorGain(whichSide, red, green, blue);
+
 #elif __APPLE__
     unsigned char data[4];
     read_ADDR_85(dev_handle);
@@ -1258,6 +1266,7 @@ int	Camera::getColorGains(int whichSide, float *red, float *green, float * blue)
 {
 #ifdef _WIN32
     return eSPAEAWB_GetColorGain(whichSide, red, green, blue);
+
 #elif __APPLE__
     unsigned char data[4];
     read_ADDR_85(dev_handle);
@@ -1307,6 +1316,7 @@ int Camera::enableAutoExposure(int whichSide)
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_EnableAE();
+
 #elif __APPLE__
     int r;
     //libusb_transfer transfer ={0};
@@ -1412,6 +1422,7 @@ int Camera::disableAutoExposure(int whichSide)
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_DisableAE();
+
 #elif __APPLE__
     //unsigned char endpoint = 0x83;
     unsigned char bmRequestType_set = 0x21;
@@ -1515,6 +1526,7 @@ int Camera::enableAutoWhiteBalance(int whichSide)
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_EnableAWB();
+
 #elif __APPLE__
     //unsigned char endpoint = 0x83;
     unsigned char bmRequestType_set = 0x21;
@@ -1618,6 +1630,7 @@ int Camera::disableAutoWhiteBalance(int whichSide)
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_DisableAWB();
+
 #elif __APPLE__
     //unsigned char endpoint = 0x83;
     unsigned char bmRequestType_set = 0x21;

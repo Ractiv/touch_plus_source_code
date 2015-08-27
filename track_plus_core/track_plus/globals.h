@@ -62,7 +62,6 @@ extern string pose_name;
 extern string target_pose_name;
 extern string child_module_name;
 extern string child_module_path;
-extern string mode;
 
 extern bool play;
 extern bool enable_imshow;

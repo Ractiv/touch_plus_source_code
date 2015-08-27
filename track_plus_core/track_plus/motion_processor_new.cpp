@@ -3,9 +3,6 @@
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
-	if (mode == "tool")
-		return false;
-
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	if (compute_background_static == false && construct_background == true)
