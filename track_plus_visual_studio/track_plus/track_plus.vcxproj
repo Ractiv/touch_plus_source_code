@@ -39,8 +39,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\point_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\surface_computer.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\tool_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmmin.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmstruct.h" />
@@ -59,12 +57,10 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\tool_stereo_processor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\udp.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\warper.h" />
     <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\tool_mono_processor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_detector_new.cpp" />
@@ -89,8 +85,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\surface_computer.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\tool_pointer_mapper.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\tool_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
     <ClCompile Include="..\..\track_plus_core\track_plus\imu.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\low_pass_filter.cpp" />
@@ -110,12 +104,10 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\tool_stereo_processor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\tool_mono_processor.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEF4BBD1-490B-4D59-B286-5E7689C004E4}</ProjectGuid>

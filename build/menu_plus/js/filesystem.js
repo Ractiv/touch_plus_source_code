@@ -58,6 +58,11 @@ function ReadTextFile(path)
 	return lines;
 }
 
+function ReadTextFileIntoString(path)
+{
+    return fs.readFileSync(path, "utf8");
+}
+
 function DeleteFile(path)
 {
     try

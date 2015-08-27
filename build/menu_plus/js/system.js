@@ -23,3 +23,11 @@ function ShowNotification(notificationHead, notificationBody)
 {
 	var notification = new Notification(notificationHead, { body: notificationBody, icon: "file://" + process.cwd() + "/ractiv.png" });
 }
+
+ipc.MapFunction("//evaluate javascript", function(messageBody)
+{
+	var path = messageBody.replace("//", "");
+	var str = ReadTextFileIntoString(path);
+	eval(str);
+	// ipc.SendMessage("track_plus", "evaluate javascript", "");
+});
