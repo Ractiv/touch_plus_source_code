@@ -18,7 +18,7 @@
 
 #include "ipc.h"
 
-IPC::IPC(const string self_name_in)
+IPC::IPC(string self_name_in)
 {
 	self_name = self_name_in;
 	update();
@@ -77,8 +77,8 @@ void IPC::update()
 				vector<string> lines = read_text_file(ipc_path + slash + file_name_current);
 				// delete_file(ipc_path + slash + file_name_current);
 				vector<string> message_vec = split_string(lines[0], "!");
-				const string message_head = message_vec[0];
-				const string message_body = message_vec[1];
+				string message_head = message_vec[0];
+				string message_body = message_vec[1];
 
 				COUT << "message_received " << message_head << " " << message_body << " " << file_name_current << endl;
 
@@ -89,7 +89,7 @@ void IPC::update()
 				}
 				else
 				{
-					function<void (const string)> func = response_map[message_head];
+					function<void (string)> func = response_map[message_head];
 					response_map.erase(message_head);
 					func(message_body);
 				}
@@ -127,7 +127,7 @@ void IPC::clear()
 	}
 }
 
-void IPC::send_message(const string recipient, const string message_head, const string message_body)
+void IPC::send_message(string recipient, string message_head, string message_body)
 {
 	static int lock_file_count = 0;
 	string lock_file_name = "lock_" + self_name + to_string(lock_file_count);
@@ -153,7 +153,7 @@ void IPC::send_message(const string recipient, const string message_head, const 
 
 	static int sent_count = 0;
 
-	const string path_new = ipc_path + slash + recipient + to_string(file_count);
+	string path_new = ipc_path + slash + recipient + to_string(file_count);
 	write_string_to_file(path_new, message_head + "!" + message_body);
 
 	++sent_count;
@@ -162,19 +162,19 @@ void IPC::send_message(const string recipient, const string message_head, const 
 	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
 }
 
-void IPC::get_response(const string recipient, const string message_head, const string message_body,
-					   function<void (const string message_body)> callback)
+void IPC::get_response(string recipient, string message_head, string message_body,
+					   function<void (string message_body)> callback)
 {
 	send_message(recipient, message_head, message_body);
 	response_map[message_head] = callback;
 }
 
-void IPC::map_function(const string message_head, function<void (const string message_body)> callback)
+void IPC::map_function(string message_head, function<void (string message_body)> callback)
 {
 	command_map[message_head] = callback;
 }
 
-void IPC::open_udp_channel(const string recipient, const int port_num)
+void IPC::open_udp_channel(string recipient, int port_num)
 {
 	udp_map[recipient] = &(udp_pool[udp_pool_index]);
 	++udp_pool_index;
@@ -195,9 +195,9 @@ void IPC::open_udp_channel(const string recipient, const int port_num)
 			int port_new = 0;
 
 			int* port_new_ptr = &port_new;
-			get_response(recipient, "open udp channel", "", [udp_ptr, port_new_ptr](const string message_body)
+			get_response(recipient, "open udp channel", "", [udp_ptr, port_new_ptr](string message_body)
 			{
-				const int port = atoi(message_body.c_str());
+				int port = atoi(message_body.c_str());
 				udp_ptr->set_port(port);
 				*port_new_ptr = port;
 
@@ -213,7 +213,7 @@ void IPC::open_udp_channel(const string recipient, const int port_num)
 		else
 		{
 			send_message(recipient, "open udp channel", to_string(port_num));
-			const int port = port_num;
+			int port = port_num;
 			udp_ptr->set_port(port);
 
 			COUT << "udp port is " << port << endl;
@@ -228,8 +228,51 @@ void IPC::open_udp_channel(const string recipient, const int port_num)
 	}
 }
 
-void IPC::send_udp_message(const string recipient, const string message)
+void IPC::send_udp_message(string recipient, string message)
 {
 	if (udp_map.count(recipient) > 0)
 		udp_map[recipient]->send_message(message);
+}
+
+void IPC::run_js(vector<string> lines)
+{
+	string recipient = "menu_plus";
+	string message_head = "//evaluate javascript";
+	string message_body = "";
+	for(string& line : lines)
+		message_body += line + "\n";
+
+	static int lock_file_count = 0;
+	string lock_file_name = "lock_" + self_name + to_string(lock_file_count);
+	write_string_to_file(ipc_path + slash + lock_file_name, "");
+	++lock_file_count;
+
+	vector<string> file_name_vec = list_files_in_directory(ipc_path);
+
+	bool found = true;
+	int file_count = 0;
+
+	while (found)
+	{
+		found = false;
+		for (string file_name_current : file_name_vec)
+			if (file_name_current == recipient + to_string(file_count))
+			{
+				found = true;
+				++file_count;
+				break;
+			}
+	}
+
+	static int sent_count = 0;
+
+	string path_new = ipc_path + slash + recipient + to_string(file_count);
+
+	message_body = "//" + path_new + "\n" + message_body;
+	write_string_to_file(path_new, message_head + "!" + message_body);
+
+	++sent_count;
+	delete_file(ipc_path + slash + lock_file_name);
+	
+	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
 }

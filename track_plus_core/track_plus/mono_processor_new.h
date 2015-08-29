@@ -50,9 +50,10 @@ public:
 	float angle_final = 0;
 	float palm_radius = 1;
 
-	vector<Point> points_unwrapped_result;
+	vector<Point> pose_estimation_points;
+	vector<Point> stereo_matching_points;
 
-	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize, bool secondary = false);
+	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize);
 	void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);
 	void compute_extension_line(Point pt_start, Point pt_end, const uchar length, vector<Point>& line_points, const bool reverse);
 	BlobNew* find_parent_blob_before_rotation(BlobNew* blob);

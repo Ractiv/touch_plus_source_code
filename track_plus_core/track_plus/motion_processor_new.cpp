@@ -279,13 +279,15 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				if (entropy_right / entropy_right_biased == 0)
 					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							image_background.ptr<uchar>(j, i)[0] += (image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
+							image_background.ptr<uchar>(j, i)[0] +=
+								(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
 			if (entropy_left > entropy_threshold && entropy_left < 2000 && (both_moving || entropy_left > entropy_right))
 				if (entropy_left / entropy_left_biased == 0)
 					for (int i = 0; i < x_separator_middle; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							image_background.ptr<uchar>(j, i)[0] += (image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
+							image_background.ptr<uchar>(j, i)[0] +=
+								(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
 			value_store.set_mat("image_background", image_background);
 
@@ -544,7 +546,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						alpha = 0.5;
 						value_store.set_bool("result", true);
 
-						//------------------------------------------------------------------------------------------------------------------------
+						//------------------------------------------------------------------------------------------------------
 
 						float width_bottom = x_separator_right - x_separator_left;
 						float width_top = width_bottom - power(pitch, 0.006834535, 2.199475);

@@ -141,7 +141,8 @@ void Reprojector::load(IPC& ipc, bool flipped)
 								while (!has_complete_calib_data)
 								{
 #ifdef _WIN32
-									string command = "cd " + cmd_quote + data_path_current_module + cmd_quote + " && rectifier_plus" + extension0;
+									string command = "cd " + cmd_quote + data_path_current_module + cmd_quote;
+										   command += " && rectifier_plus" + extension0;
 
 #elif __APPLE__
 									string command  = "cd " + data_path_current_module;

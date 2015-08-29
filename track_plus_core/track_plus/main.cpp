@@ -370,8 +370,9 @@ void compute()
 
     Mat image_preprocessed0;
     Mat image_preprocessed1;
+
     bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
-                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", true);
+                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", false);
 
     GaussianBlur(image_preprocessed0, image_preprocessed0, Size(3, 9), 0, 0);
     GaussianBlur(image_preprocessed1, image_preprocessed1, Size(3, 9), 0, 0);
@@ -429,10 +430,10 @@ void compute()
 
     if (enable_imshow)
     {
-        imshow("image_small0", image_small0);
+        // imshow("image_small0", image_small0);
         // imshow("image_small1", image_small1);
         imshow("image_preprocessed0", image_preprocessed0);
-        // imshow("image_preprocessed1", image_preprocessed1);
+        imshow("image_preprocessed1", image_preprocessed1);
     }
 
     static bool motion_processor_proceed = false;
@@ -445,9 +446,9 @@ void compute()
     if (normalized)
     {
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "0",          false);
+                                             construct_background, "0",          true);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "1",          false);
+                                             construct_background, "1",          true);
     }
 
     if (first_pass && motion_processor0.both_moving)
@@ -474,8 +475,8 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
-        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
         proceed = proceed0 && proceed1;
     }
 
@@ -494,9 +495,9 @@ void compute()
 
         if (proceed)
         {
-            stereo_processor.compute(mono_processor0, mono_processor1);
+            stereo_processor.compute(mono_processor0, mono_processor1, reprojector, pointer_mapper);
 
-            points_pool[points_pool_count] = mono_processor0.points_unwrapped_result;
+            points_pool[points_pool_count] = mono_processor0.pose_estimation_points;
             points_ptr = &(points_pool[points_pool_count]);
 
             ++points_pool_count;
@@ -838,7 +839,7 @@ int main()
 
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
-    thread pose_estimator_thread(pose_estimator_thread_function);
+    // thread pose_estimator_thread(pose_estimator_thread_function);
 
     camera = new Camera(true, 1280, 480, update);
     

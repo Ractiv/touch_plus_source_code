@@ -35,6 +35,7 @@ using namespace std;
 #define HEIGHT_SMALL_HALF  60
 #define WIDTH_MIN          80
 #define HEIGHT_MIN         60
+#define SIZE_MULTIPLIER    4
 
 #define COUT cout
 // #define COUT ostream(0).flush()

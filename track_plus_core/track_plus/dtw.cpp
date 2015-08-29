@@ -18,21 +18,95 @@
 
 #include "dtw.h"
 
+
 Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
 {
-	Mat cost_mat = Mat(vec1.size(), vec0.size(), CV_32FC1);
+	Point pivot0 = vec0[vec0.size() - 1];
+	Point pivot1 = vec1[vec1.size() - 1];
 
-	const int vec0_size = vec0.size();
-	const int vec1_size = vec1.size();
+	int x_min0 = 9999;
+	int x_max0 = -1;
+	int y_min0 = 9999;
+	int y_max0 = -1;
+	for (Point& pt : vec0)
+	{
+		if (pt.x < x_min0)
+			x_min0 = pt.x;
+		if (pt.x > x_max0)
+			x_max0 = pt.x;
+		if (pt.y < y_min0)
+			y_min0 = pt.y;
+		if (pt.y > y_max0)
+			y_max0 = pt.y;
+	}
+
+	int x_min1 = 9999;
+	int x_max1 = -1;
+	int y_min1 = 9999;
+	int y_max1 = -1;
+	for (Point& pt : vec1)
+	{
+		if (pt.x < x_min1)
+			x_min1 = pt.x;
+		if (pt.x > x_max1)
+			x_max1 = pt.x;
+		if (pt.y < y_min1)
+			y_min1 = pt.y;
+		if (pt.y > y_max1)
+			y_max1 = pt.y;
+	}
+
+	int index0 = 0;
+
+	vector<Point> vec0_adjusted;
+	for (Point& pt : vec0)
+	{
+		if (index0 == vec0.size())
+			break;
+
+		int x = map_val(pt.x, x_min0, x_max0, 0, 160);
+		int y = map_val(pt.y, y_min0, y_max0, 0, 120);
+		vec0_adjusted.push_back(Point(x, y));
+
+		++index0;
+	}
+
+	int index1 = 0;
+
+	vector<Point> vec1_adjusted;
+	for (Point& pt : vec1)
+	{
+		if (index1 == vec1.size())
+			break;
+
+		int x = map_val(pt.x, x_min1, x_max1, 0, 160);
+		int y = map_val(pt.y, y_min1, y_max1, 0, 120);
+		vec1_adjusted.push_back(Point(x, y));
+
+		++index1;
+	}
+
+	const int vec0_size = vec0_adjusted.size() - 1;
+	const int vec1_size = vec1_adjusted.size() - 1;
+
+	Mat cost_mat = Mat(vec1_size, vec0_size, CV_32FC1);
+
 	for (int i = 0; i < vec0_size; ++i)
 		for (int j = 0; j < vec1_size; ++j)
-			cost_mat.ptr<float>(j, i)[0] = get_distance(vec0[i], vec1[j]);
+		{
+			Point pt0 = vec0_adjusted[i];
+			Point pt1 = vec1_adjusted[j];
+			cost_mat.ptr<float>(j, i)[0] = abs(pt1.x - pt0.x) + (abs(pt1.y - pt0.y) * 10);
+		}
 
 	return cost_mat;
 }
 
 float compute_dtw(Mat& cost_mat)
 {
+	if (cost_mat.cols == 0 || cost_mat.rows == 0)
+		return FLT_MAX;
+
 	const int i_max = cost_mat.cols;
 	const int j_max = cost_mat.rows;
 	
@@ -70,6 +144,10 @@ float compute_dtw(Mat& cost_mat)
 
 vector<Point> compute_dtw_indexes(Mat& cost_mat)
 {
+	vector<Point> seed_vec;
+	if (cost_mat.cols == 0 || cost_mat.rows == 0)
+		return seed_vec;
+
 	const int i_max = cost_mat.cols;
 	const int j_max = cost_mat.rows;
 	
@@ -102,7 +180,6 @@ vector<Point> compute_dtw_indexes(Mat& cost_mat)
 			cost_mat.ptr<float>(j, i)[0] += val_min;
 		}
 
-	vector<Point> seed_vec;
 	Point seed = Point(i_max - 1, j_max - 1);
 	seed_vec.push_back(seed);
 

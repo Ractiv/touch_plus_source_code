@@ -18,7 +18,7 @@
 
 #include "mono_processor_new.h"
 
-bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize, bool secondary)
+bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
 	pt_index = Point(-1, -1);
 	pt_thumb = Point(-1, -1);
@@ -211,16 +211,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	vector<Point> contour_approximated;
 	sort_contour(contour_approximated_unsorted, contour_approximated, pivot);
 
-	if (name == "0")
 	{
-		const int palm_x_offset = pt_palm.x - WIDTH_SMALL_HALF;
-		const int palm_y_offset = pt_palm.y - HEIGHT_SMALL_HALF;
+		pose_estimation_points = contour_approximated;
+		pose_estimation_points.push_back(pivot);
 
-		vector<Point> contour_approximated_centered;
-		for (Point& pt : contour_approximated)
-			contour_approximated_centered.push_back(Point(pt.x - palm_x_offset, pt.y - palm_y_offset));
-
-		points_unwrapped_result = contour_approximated_centered;
+		stereo_matching_points = contour_sorted;
+		stereo_matching_points.push_back(pivot);
 	}
 
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);
@@ -410,9 +406,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	blob_detector_image_hand.sort_blobs_by_angle(pivot);
-
-	if (secondary)
-		return true;
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 

@@ -101,8 +101,8 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		sort(vec_leds_on.begin(), vec_leds_on.end());
 		sort(vec_leds_off.begin(), vec_leds_off.end());
 
-		const int i_min = 0;
-		const int i_max = vec_leds_on.size() - 1;
+		const int i_min = vec_leds_on.size() * 0.25;
+		const int i_max = vec_leds_on.size() * 0.75;
 
 		float gray_mean_on = 0;
 		float gray_mean_off = 0;
@@ -118,7 +118,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		gray_mean_on /= gray_mean_count;
 		gray_mean_off /= gray_mean_count;
 
-		float gray_diff = gray_mean_on - gray_mean_off;
+		float gray_diff = gray_mean_on - gray_mean_off - 10;
 		COUT << "gray_diff is " << gray_diff << endl;
 
 		if (gray_diff > 50)

@@ -19,10 +19,13 @@
 #pragma once
 
 #include "mono_processor_new.h"
+#include "reprojector.h"
+#include "pointer_mapper.h"
 #include "dtw.h"
 
 class StereoProcessor
 {
 public:
-	bool compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_procesosr1);
+	bool compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_procesosr1,
+				 Reprojector& reprojector,          PointerMapper& pointer_mapper);
 };
