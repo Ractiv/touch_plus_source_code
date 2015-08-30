@@ -86,17 +86,23 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
 		++index1;
 	}
 
-	const int vec0_size = vec0_adjusted.size() - 1;
-	const int vec1_size = vec1_adjusted.size() - 1;
+	vector<Point> vec0_unwrapped;
+	compute_unwrap2(vec0_adjusted, pivot0, vec0_unwrapped);
+
+	vector<Point> vec1_unwrapped;
+	compute_unwrap2(vec1_adjusted, pivot1, vec1_unwrapped);
+
+	const int vec0_size = vec0_unwrapped.size() - 1;
+	const int vec1_size = vec1_unwrapped.size() - 1;
 
 	Mat cost_mat = Mat(vec1_size, vec0_size, CV_32FC1);
 
 	for (int i = 0; i < vec0_size; ++i)
 		for (int j = 0; j < vec1_size; ++j)
 		{
-			Point pt0 = vec0_adjusted[i];
-			Point pt1 = vec1_adjusted[j];
-			cost_mat.ptr<float>(j, i)[0] = abs(pt1.x - pt0.x) + (abs(pt1.y - pt0.y) * 10);
+			Point pt0 = vec0_unwrapped[i];
+			Point pt1 = vec1_unwrapped[j];
+			cost_mat.ptr<float>(j, i)[0] = abs(pt1.y - pt0.y) * 10 + abs(pt1.x - pt0.x);
 		}
 
 	return cost_mat;

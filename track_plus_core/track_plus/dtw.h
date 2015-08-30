@@ -19,6 +19,7 @@
 #pragma once
 
 #include "math_plus.h"
+#include "contour_functions.h"
 #include "opencv2/opencv.hpp"
 
 using namespace cv;
