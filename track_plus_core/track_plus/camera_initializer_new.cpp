@@ -118,7 +118,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		gray_mean_on /= gray_mean_count;
 		gray_mean_off /= gray_mean_count;
 
-		float gray_diff = gray_mean_on - gray_mean_off - 10;
+		float gray_diff = gray_mean_on - gray_mean_off;
 		COUT << "gray_diff is " << gray_diff << endl;
 
 		if (gray_diff > 50)
@@ -126,13 +126,13 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		if (gray_diff < 5)
 			gray_diff = 5;
 
-		float r_val = exponential(gray_diff, 0.9967884, 0.001570977, -0.1430162);
+		float r_val = exponential(gray_diff - 10 < 0 ? 0 : gray_diff - 10, 0.9967884, 0.001570977, -0.1430162);
 		COUT << "r_val is " << r_val << endl;
 
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 
-		exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
+		exposure_val = linear(gray_diff - 10 < 0 ? 0 : gray_diff - 10, 0.31111111, -0.55555556);
 		COUT << "exposure_val is " << exposure_val << endl;
 
 		camera->setExposureTime(Camera::both, exposure_val);

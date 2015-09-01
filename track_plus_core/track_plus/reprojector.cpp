@@ -18,9 +18,6 @@
 
 #include "reprojector.h"
 
-#define FOV_WIDTH 23.7
-#define FOV_DEPTH 17.9
-
 float Reprojector::compute_depth(float disparity_in)
 {
 	return ((a_out - d_out) / (1 + pow(disparity_in / c_out, b_out))) + d_out;
@@ -28,9 +25,9 @@ float Reprojector::compute_depth(float disparity_in)
 
 Point2f Reprojector::compute_plane_size(float depth)
 {
-    float width = FOV_WIDTH * FOV_DEPTH / depth;
-    float height = width * 3 / 4;
-	return Point2f(width, height);
+	float x_cm = linear(depth, 1.86, 0.75);
+	float y_cm = x_cm * 4 / 6;
+	return Point2f(x_cm, y_cm);
 }
 
 Point3f Reprojector::reproject_to_3d(float pt0_x, float pt0_y, float pt1_x, float pt1_y)
@@ -39,14 +36,18 @@ Point3f Reprojector::reproject_to_3d(float pt0_x, float pt0_y, float pt1_x, floa
 	float depth = compute_depth(disparity_val);
 
 	Point2f plane_size = compute_plane_size(depth);
+	float plane_x_min = -plane_size.x / 2;
+	float plane_x_max = plane_size.x / 2;
+	float plane_y_min = -plane_size.y / 2;
+	float plane_y_max = plane_size.y / 2;
 
-	float x_half = WIDTH_LARGE / plane_size.x * FOV_WIDTH / 2;
-	float y_half = x_half * 3 / 4;
+	float pt_x = (pt0_x + pt1_x) / 2;
+	float pt_y = pt0_y;
 
-	float real_x = map_val(pt0_x, 0, WIDTH_LARGE, -x_half, x_half);
-	float real_y = map_val(pt0_y, 0, HEIGHT_LARGE, -y_half, y_half);
+	float x_displacement = map_val(pt_x, 0, WIDTH_LARGE, plane_x_min, plane_x_max);
+	float y_displacement = map_val(pt_y, 0, HEIGHT_LARGE, plane_y_min, plane_y_max);
 
-	return Point3f(real_x * 6.5, real_y / 1.5, depth * 10);
+	return Point3f(x_displacement * 10, y_displacement * 10, depth * 10);
 }
 
 void Reprojector::load(IPC& ipc, bool flipped)

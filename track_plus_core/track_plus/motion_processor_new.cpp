@@ -7,8 +7,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	if (compute_background_static == false && construct_background == true)
 	{
-		value_store.set_bool("image_background_set", false);
-		value_store.set_bool("result", false);
+		value_store = ValueStore();
+		low_pass_filter->reset();
 
 		gray_threshold_left = 9999;
 		gray_threshold_right = 9999;
@@ -17,8 +17,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 		left_moving = false;
 		right_moving = false;
 		both_moving = false;
-
-		low_pass_filter->reset();
 	}
 
 	compute_background_static = construct_background;
@@ -190,7 +188,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			float total_width = x_max - x_min;
 			float gap_ratio = gap_width / subject_width_max;
 
-			both_moving = (total_width > 80 && gap_ratio > 0.3);
+			int entropy_min = min(entropy_left, entropy_right) + 1;
+			int entropy_max = max(entropy_left, entropy_right) + 1;
+
+			if (entropy_max / entropy_min == 1)
+				both_moving = (total_width > 80 && gap_ratio > 0.3);
 		}
 
 		static bool both_moving_0_set = false;
@@ -299,13 +301,13 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			{
 				if (both_moving)
 				{
-					x_separator_left = blob_detector_image_subtraction->x_min_result;
-					x_separator_right = blob_detector_image_subtraction->x_max_result;
+					x_separator_left = blob_detector_image_subtraction->x_min_result - 10;
+					x_separator_right = blob_detector_image_subtraction->x_max_result + 10;
 				}
 				else if (left_moving)
-					x_separator_left = blob_detector_image_subtraction->x_min_result;
+					x_separator_left = blob_detector_image_subtraction->x_min_result - 10;
 				else if (right_moving)
-					x_separator_right = blob_detector_image_subtraction->x_max_result;
+					x_separator_right = blob_detector_image_subtraction->x_max_result + 10;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -496,7 +498,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
 							floodFill(image_in_thresholded, pt, Scalar(254));
 
-				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 3);
+				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 5);
 
 				//------------------------------------------------------------------------------------------------------------------------
 
@@ -528,6 +530,56 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 				if (both_moving && entropy_left + entropy_right > 1000)
 				{
+					float width_diff = power(pitch, 0.006834535, 2.199475);
+
+					float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
+					Point pt_left_up = Point(x_separator_left - width_diff_left, y_separator_up);
+					Point pt_left_down = Point(x_separator_left, y_separator_down);
+
+					float width_diff_right = map_val(x_separator_right, WIDTH_SMALL_MINUS / 2, WIDTH_SMALL_MINUS, 0, width_diff);
+					Point pt_right_up = Point(x_separator_right - width_diff_right, y_separator_up);
+					Point pt_right_down = Point(x_separator_right, y_separator_down);
+
+					Point pt_intersection_up_left;
+					bool b0 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
+													pt_left_down.x, pt_left_down.y, 0, 
+													pt_intersection_up_left);
+
+					Point pt_intersection_down_left;
+					bool b1 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
+													pt_left_down.x, pt_left_down.y, HEIGHT_SMALL_MINUS, 
+													pt_intersection_down_left);
+
+					Point pt_intersection_up_right;
+					bool b2 = get_intersection_at_y(pt_right_up.x, pt_right_up.y, 
+													pt_right_down.x, pt_right_down.y, 0, 
+													pt_intersection_up_right);
+
+					Point pt_intersection_down_right;
+					bool b3 = get_intersection_at_y(pt_right_up.x, pt_right_up.y, 
+													pt_right_down.x, pt_right_down.y, HEIGHT_SMALL_MINUS, 
+													pt_intersection_down_right);
+
+					if (b0 && b1 && b2 && b3)
+					{
+						Mat image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+						line(image_borders, pt_intersection_up_left, pt_intersection_down_left, Scalar(254), 1);
+						line(image_borders,	pt_intersection_up_right, pt_intersection_down_right, Scalar(254), 1);
+
+						if (pt_intersection_up_left.x > 0)
+							floodFill(image_borders, Point(0, 0), Scalar(254));
+
+						if (pt_intersection_up_right.x < WIDTH_SMALL_MINUS)
+							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
+
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								if (image_borders.ptr<uchar>(j, i)[0] > 0)
+									fill_image_background_static(i, j, image_in);
+					}
+
+					//------------------------------------------------------------------------------------------------------------------------
+
 					float hole_count_left = 0;
 					float hole_count_right = 0;
 
@@ -545,74 +597,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					{
 						alpha = 0.5;
 						value_store.set_bool("result", true);
-
-						//------------------------------------------------------------------------------------------------------
-
-						float width_bottom = x_separator_right - x_separator_left;
-						float width_top = width_bottom - power(pitch, 0.006834535, 2.199475);
-
-						int x_middle_bottom = x_separator_middle;
-						int x_middle_top = (x_separator_middle - (WIDTH_SMALL_HALF)) * 0.1 + (WIDTH_SMALL_HALF);
-
-						int x_top_left = x_middle_top - (width_top / 2);
-						int x_top_right = x_middle_top + (width_top / 2);
-						int x_bottom_left = x_middle_bottom - (width_bottom / 2);
-						int x_bottom_right = x_middle_bottom + (width_bottom / 2);
-
-						Point pt_top_left = Point(x_top_left, y_separator_up);
-						Point pt_top_right = Point(x_top_right, y_separator_up);
-						Point pt_bottom_left = Point(x_bottom_left, y_separator_down);
-						Point pt_bottom_right = Point(x_bottom_right, y_separator_down);
-
-						if (x_separator_middle < (WIDTH_SMALL_HALF) && pt_top_right.x > pt_bottom_right.x)
-							pt_bottom_right.x = pt_top_right.x;
-						if (x_separator_middle > (WIDTH_SMALL_HALF) && pt_top_left.x < pt_bottom_left.x)
-							pt_bottom_left.x = pt_top_left.x;
-
-						Point pt_intersection0 = Point(-1, 0);
-						Point pt_intersection1 = Point(-1, 0);
-						Point pt_intersection2 = Point(WIDTH_SMALL, 0);
-						Point pt_intersection3 = Point(WIDTH_SMALL, 0);
-						get_intersection_at_y(pt_top_left, pt_bottom_left, 0, pt_intersection0);
-						get_intersection_at_y(pt_top_left, pt_bottom_left, HEIGHT_SMALL_MINUS, pt_intersection1);
-						get_intersection_at_y(pt_top_right, pt_bottom_right, 0, pt_intersection2);
-						get_intersection_at_y(pt_top_right, pt_bottom_right, HEIGHT_SMALL_MINUS, pt_intersection3);
-
-						Mat image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
-						line(image_borders, pt_intersection0, pt_intersection1, Scalar(254), 1);
-						line(image_borders, pt_intersection2, pt_intersection3, Scalar(254), 1);
-						line(image_borders,	Point(x_middle_top, y_separator_up), Point(x_middle_bottom, y_separator_down), Scalar(254), 1);
-
-						bool proceed0 = false;
-						if (pt_intersection0.x > 0)
-						{
-							floodFill(image_borders, Point(0, 0), Scalar(254));
-							proceed0 = true;
-						}
-						else if (pt_intersection1.x > 0)
-						{
-							floodFill(image_borders, Point(0, HEIGHT_SMALL_MINUS), Scalar(254));
-							proceed0 = true;
-						}
-
-						bool proceed1 = false;
-						if (pt_intersection2.x < WIDTH_SMALL_MINUS)
-						{
-							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
-							proceed1 = true;
-						}
-						else if (pt_intersection3.x < WIDTH_SMALL_MINUS)
-						{
-							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, HEIGHT_SMALL_MINUS), Scalar(254));
-							proceed1 = true;
-						}
-
-						if (proceed0 || proceed1)
-							for (int i = 0; i < WIDTH_SMALL; ++i)
-								for (int j = 0; j < HEIGHT_SMALL; ++j)
-									if (image_borders.ptr<uchar>(j, i)[0] > 0 /*&& image_in_thresholded.ptr<uchar>(j, i)[0] < 200*/)
-										fill_image_background_static(i, j, image_in);
 					}
 				}
 			}
@@ -628,8 +612,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				line(image_visualization, Point(0, y_separator_down), Point(999, y_separator_down), Scalar(254), 1);
 				line(image_visualization, Point(0, y_separator_up), Point(999, y_separator_up), Scalar(254), 1);
 
-				imshow("image_visualization" + name, image_visualization);
-				// imshow("image_subtraction" + name, image_subtraction);
+				imshow("image_visualizationadfasdfdff" + name, image_visualization);
 			}
 		}
 	}

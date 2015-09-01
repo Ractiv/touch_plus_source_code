@@ -35,7 +35,6 @@ public:
 	bool thumb_down = false;
 	bool index_down = false;
 
-	Point3f pt_palm;
 	Point3f pt_index;
 	Point3f pt_thumb;
 

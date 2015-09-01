@@ -35,12 +35,36 @@ vector<vector<Point>> legacyFindContours(Mat& Segmented)
 	for (; contours != 0; contours = contours->h_next)
 	{
 		vector<Point> contour_current;
-		for (int i = 0; i<contours->total; ++i)
+
+		Point pt_old = Point(-1, -1);
+		for (int i = 0; i < contours->total; ++i)
 		{
 			CvPoint* point = (CvPoint*)CV_GET_SEQ_ELEM(CvPoint, contours, i);
-			contour_current.push_back(Point(point->x, point->y));
+			Point pt = Point(point->x, point->y);
+
+			if (pt_old.x != -1)
+			{
+				vector<Point> line_points;
+				bresenham_line(pt_old.x, pt_old.y, pt.x, pt.y, line_points, 1000);
+
+				int index = 0;
+				for (Point& pt : line_points)
+				{
+					if (index > 0)
+						contour_current.push_back(pt);
+
+					++index;
+				}
+			}
+
+			pt_old = pt;
 		}
-		result.push_back(contour_current);
+
+		vector<Point> contour_current_reduced;
+		for (int i = 0; i < contour_current.size(); i +=10)
+			contour_current_reduced.push_back(contour_current[i]);
+
+		result.push_back(contour_current_reduced);
 	}
 
 	cvReleaseMemStorage(&storage);
@@ -343,7 +367,7 @@ void midpoint_circle_push_pixel(int x, int y, int x_c, int y_c, vector<PointInde
 		result_out.push_back(pt_index31);
 }
 
-void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_in)
+void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_threshold)
 {
     int delta_x(x2_in - x1_in);
     signed char const ix((delta_x > 0) - (delta_x < 0));
@@ -371,7 +395,7 @@ void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vect
             x1_in += ix;
  			
  			result_out.push_back(Point(x1_in, y1_in));
-    		if (result_out.size() == count_in || x1_in == 0 || y1_in == 0 || x1_in == WIDTH_SMALL_MINUS || y1_in == HEIGHT_SMALL_MINUS)
+    		if (result_out.size() == count_threshold || x1_in == 0 || y1_in == 0 || x1_in == WIDTH_SMALL_MINUS || y1_in == HEIGHT_SMALL_MINUS)
     			return;
         }
     }
@@ -390,7 +414,7 @@ void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vect
             y1_in += iy;
  
  			result_out.push_back(Point(x1_in, y1_in));
-    		if (result_out.size() == count_in || x1_in == 0 || y1_in == 0 || x1_in == WIDTH_SMALL_MINUS || y1_in == HEIGHT_SMALL_MINUS)
+    		if (result_out.size() == count_threshold || x1_in == 0 || y1_in == 0 || x1_in == WIDTH_SMALL_MINUS || y1_in == HEIGHT_SMALL_MINUS)
     			return;
         }
     }

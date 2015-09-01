@@ -22,25 +22,6 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 {
 	active = false;
 
-	if (calibrated)
-	{
-		float dist_max = value_store.get_float("dist_max", 0);
-		float dist = get_distance(pt_palm, pt_index);
-		float ratio = dist / dist_max;
-	}
-	else
-	{
-		float dist_max = value_store.get_float("dist_max", 0);
-		float dist = get_distance(pt_palm, pt_index);
-		if (dist > dist_max)
-			dist_max = dist;
-		
-		value_store.set_float("dist_max", dist_max);
-	}
-
-	pt_palm = reprojector.reproject_to_3d(hand_resolver.pt_precise_palm0.x, hand_resolver.pt_precise_palm0.y,
-										  hand_resolver.pt_precise_palm1.x, hand_resolver.pt_precise_palm1.y);
-
 	compute_cursor_point(index_down, hand_resolver.pt_precise_index0, hand_resolver.pt_precise_index1,
 						 pt_index, reprojector, pt_cursor_index, dist_cursor_index_plane, actuate_dist, "compute_index");
 
@@ -185,6 +166,8 @@ void PointerMapper::compute_calibration_points()
     	plane = Plane(pt_calib0, pt_calib1, pt_calib2);
 	    direction_plane = plane.normal;
 
+	    COUT << direction_plane << endl;
+
 	    bool b0 = project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
 		bool b1 = project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
 		bool b2 = project_to_plane(pt_calib2, pt_calib2_projected, dist_calib2_plane);
@@ -275,6 +258,9 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 						value_store.set_bool("actuated" + name, false);
 					}
 				}
+
+				dist_cursor_target_plane = dist_target_plane;
+				low_pass_filter->compute(dist_cursor_target_plane, 0.5, "dist_cursor_target_plane" + name);
 		    }
 		}
 	}

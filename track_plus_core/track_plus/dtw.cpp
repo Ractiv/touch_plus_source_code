@@ -71,6 +71,9 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
 		++index0;
 	}
 
+	pivot0.x = map_val(pivot0.x, x_min0, x_max0, 0, 160);
+	pivot0.y = map_val(pivot0.y, y_min0, y_max0, 0, 120);
+
 	int index1 = 0;
 
 	vector<Point> vec1_adjusted;
@@ -85,6 +88,9 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
 
 		++index1;
 	}
+
+	pivot1.x = map_val(pivot1.x, x_min1, x_max1, 0, 160);
+	pivot1.y = map_val(pivot1.y, y_min1, y_max1, 0, 120);
 
 	vector<Point> vec0_unwrapped;
 	compute_unwrap2(vec0_adjusted, pivot0, vec0_unwrapped);

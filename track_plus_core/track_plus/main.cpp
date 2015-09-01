@@ -428,13 +428,11 @@ void compute()
 	}
 	show_wiggle_sent = true;
 
-    if (enable_imshow)
-    {
-        // imshow("image_small0", image_small0);
-        // imshow("image_small1", image_small1);
-        imshow("image_preprocessed0", image_preprocessed0);
-        imshow("image_preprocessed1", image_preprocessed1);
-    }
+    // if (enable_imshow)
+    // {
+    //     imshow("image_small1", image_small1);
+    //     imshow("image_preprocessed1", image_preprocessed1);
+    // }
 
     static bool motion_processor_proceed = false;
     static bool construct_background = false;
@@ -553,8 +551,8 @@ void compute()
             {
                 ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_cursor_index.x) + "!" +
                                                          to_string(pointer_mapper.pt_cursor_index.y) + "!" +
-                                                         "20!" +
-                                                         // to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
+                                                         // "20!" +
+                                                         to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
                                                          to_string(pointer_mapper.index_down) + "!index");
             }
             else
@@ -625,11 +623,8 @@ void on_key_down(int code)
 {
     if (target_pose_name != "")
     {
-        if (code == 220)
-        {
-            COUT << "hello world" << endl;
+        if (code == 223)
             record_pose = true;
-        }
         else if (code == 49)
             record_pose = false;
     }
@@ -839,7 +834,7 @@ int main()
 
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
-    // thread pose_estimator_thread(pose_estimator_thread_function);
+    thread pose_estimator_thread(pose_estimator_thread_function);
 
     camera = new Camera(true, 1280, 480, update);
     
