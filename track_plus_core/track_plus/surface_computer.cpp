@@ -2,27 +2,27 @@
 
 void SurfaceComputer::init(Mat& image0)
 {
-	// Mat image_bright = image0;
-	Mat image_bright = Mat::zeros(image0.size(), CV_8UC3);
+	Mat image_bright = image0;
+	// Mat image_bright = Mat::zeros(image0.size(), CV_8UC3);
 
-	for (int i = 0; i < WIDTH_LARGE; ++i)
-		for (int j = 0; j < HEIGHT_LARGE; ++j)
-		{
-			int b = image0.ptr<uchar>(j, i)[0] + 100;
-			int g = image0.ptr<uchar>(j, i)[1] + 100;
-			int r = image0.ptr<uchar>(j, i)[2] + 100;
+	// for (int i = 0; i < WIDTH_LARGE; ++i)
+	// 	for (int j = 0; j < HEIGHT_LARGE; ++j)
+	// 	{
+	// 		int b = image0.ptr<uchar>(j, i)[0] + 100;
+	// 		int g = image0.ptr<uchar>(j, i)[1] + 100;
+	// 		int r = image0.ptr<uchar>(j, i)[2] + 100;
 
-			if (b > 255)
-				b = 255;
-			if (g > 255)
-				g = 255;
-			if (r > 255)
-				r = 255;
+	// 		if (b > 255)
+	// 			b = 255;
+	// 		if (g > 255)
+	// 			g = 255;
+	// 		if (r > 255)
+	// 			r = 255;
 
-			image_bright.ptr<uchar>(j, i)[0] = b;
-			image_bright.ptr<uchar>(j, i)[1] = g;
-			image_bright.ptr<uchar>(j, i)[2] = r;
-		}
+	// 		image_bright.ptr<uchar>(j, i)[0] = b;
+	// 		image_bright.ptr<uchar>(j, i)[1] = g;
+	// 		image_bright.ptr<uchar>(j, i)[2] = r;
+	// 	}
 
     Mat image_canny;
     Canny(image_bright, image_canny, 20, 60, 3);
@@ -97,7 +97,7 @@ void SurfaceComputer::init(Mat& image0)
         {
             int x_diff_before = before_x_max - concave_pt_index.x;
             int x_diff_after = after_x_max - concave_pt_index.x;
-            int x_diff_sum = (x_diff_before * x_diff_after) + (concave_pt_index.z * 2);
+            int x_diff_sum = (x_diff_before * x_diff_after) + (concave_pt_index.z * 4);
 
             if (x_diff_sum > x_diff_sum_max)
             {

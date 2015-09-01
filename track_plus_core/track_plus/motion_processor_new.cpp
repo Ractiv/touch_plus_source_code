@@ -611,6 +611,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				line(image_visualization, Point(x_separator_middle, 0), Point(x_separator_middle, 999), Scalar(254), 1);
 				line(image_visualization, Point(0, y_separator_down), Point(999, y_separator_down), Scalar(254), 1);
 				line(image_visualization, Point(0, y_separator_up), Point(999, y_separator_up), Scalar(254), 1);
+				line(image_visualization, Point(0, y_ref), Point(999, y_ref), Scalar(254), 1);
 
 				imshow("image_visualizationadfasdfdff" + name, image_visualization);
 			}

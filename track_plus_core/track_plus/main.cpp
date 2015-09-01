@@ -428,11 +428,11 @@ void compute()
 	}
 	show_wiggle_sent = true;
 
-    // if (enable_imshow)
-    // {
-    //     imshow("image_small1", image_small1);
-    //     imshow("image_preprocessed1", image_preprocessed1);
-    // }
+    if (enable_imshow)
+    {
+        imshow("image_small1", image_small1);
+        imshow("image_preprocessed1", image_preprocessed1);
+    }
 
     static bool motion_processor_proceed = false;
     static bool construct_background = false;

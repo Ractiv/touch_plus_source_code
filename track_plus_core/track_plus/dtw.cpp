@@ -18,98 +18,65 @@
 
 #include "dtw.h"
 
-
-Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1)
+vector<Point> preprocess_points(vector<Point>& vec)
 {
-	Point pivot0 = vec0[vec0.size() - 1];
-	Point pivot1 = vec1[vec1.size() - 1];
+	Point pivot = vec[vec.size() - 1];
+	Point pt_y_max = get_y_max_point(vec);
 
-	int x_min0 = 9999;
-	int x_max0 = -1;
-	int y_min0 = 9999;
-	int y_max0 = -1;
-	for (Point& pt : vec0)
+	int x_diff = WIDTH_SMALL / 2 - pivot.x;
+	int y_diff = HEIGHT_SMALL / 2 - pt_y_max.y;
+
+	vector<Point> vec_adjusted;
+	for (Point& pt : vec)
+		vec_adjusted.push_back(Point(pt.x + x_diff, pt.y + y_diff));
+
+	return vec_adjusted;
+}
+
+Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool stereo)
+{
+	const int vec0_size_minus = vec0.size() - 1;
+	const int vec1_size_minus = vec1.size() - 1;
+	Mat cost_mat = Mat(vec1_size_minus, vec0_size_minus, CV_32FC1);
+
+	if (stereo)
 	{
-		if (pt.x < x_min0)
-			x_min0 = pt.x;
-		if (pt.x > x_max0)
-			x_max0 = pt.x;
-		if (pt.y < y_min0)
-			y_min0 = pt.y;
-		if (pt.y > y_max0)
-			y_max0 = pt.y;
-	}
+		vector<Point> vec0_adjusted = preprocess_points(vec0);
+		vector<Point> vec1_adjusted = preprocess_points(vec1);
 
-	int x_min1 = 9999;
-	int x_max1 = -1;
-	int y_min1 = 9999;
-	int y_max1 = -1;
-	for (Point& pt : vec1)
+		for (int i = 0; i < vec0_size_minus; ++i)
+		{
+			Point pt0_raw = vec0_adjusted[i];
+			for (int j = 0; j < vec1_size_minus; ++j)
+			{
+				Point pt1_raw = vec1_adjusted[j];
+				float dist = abs(pt1_raw.y - pt0_raw.y) * 10 + abs(pt1_raw.x - pt0_raw.x);
+				cost_mat.ptr<float>(j, i)[0] = dist;
+			}
+		}
+	}
+	else
 	{
-		if (pt.x < x_min1)
-			x_min1 = pt.x;
-		if (pt.x > x_max1)
-			x_max1 = pt.x;
-		if (pt.y < y_min1)
-			y_min1 = pt.y;
-		if (pt.y > y_max1)
-			y_max1 = pt.y;
-	}
+		Point pivot0 = vec0[vec0.size() - 1];
+		Point pivot1 = vec1[vec1.size() - 1];
 
-	int index0 = 0;
+		vector<Point> vec0_unwrapped;
+		compute_unwrap2(vec0, pivot0, vec0_unwrapped);
 
-	vector<Point> vec0_adjusted;
-	for (Point& pt : vec0)
-	{
-		if (index0 == vec0.size())
-			break;
+		vector<Point> vec1_unwrapped;
+		compute_unwrap2(vec1, pivot1, vec1_unwrapped);
 
-		int x = map_val(pt.x, x_min0, x_max0, 0, 160);
-		int y = map_val(pt.y, y_min0, y_max0, 0, 120);
-		vec0_adjusted.push_back(Point(x, y));
-
-		++index0;
-	}
-
-	pivot0.x = map_val(pivot0.x, x_min0, x_max0, 0, 160);
-	pivot0.y = map_val(pivot0.y, y_min0, y_max0, 0, 120);
-
-	int index1 = 0;
-
-	vector<Point> vec1_adjusted;
-	for (Point& pt : vec1)
-	{
-		if (index1 == vec1.size())
-			break;
-
-		int x = map_val(pt.x, x_min1, x_max1, 0, 160);
-		int y = map_val(pt.y, y_min1, y_max1, 0, 120);
-		vec1_adjusted.push_back(Point(x, y));
-
-		++index1;
-	}
-
-	pivot1.x = map_val(pivot1.x, x_min1, x_max1, 0, 160);
-	pivot1.y = map_val(pivot1.y, y_min1, y_max1, 0, 120);
-
-	vector<Point> vec0_unwrapped;
-	compute_unwrap2(vec0_adjusted, pivot0, vec0_unwrapped);
-
-	vector<Point> vec1_unwrapped;
-	compute_unwrap2(vec1_adjusted, pivot1, vec1_unwrapped);
-
-	const int vec0_size = vec0_unwrapped.size() - 1;
-	const int vec1_size = vec1_unwrapped.size() - 1;
-
-	Mat cost_mat = Mat(vec1_size, vec0_size, CV_32FC1);
-
-	for (int i = 0; i < vec0_size; ++i)
-		for (int j = 0; j < vec1_size; ++j)
+		for (int i = 0; i < vec0_size_minus; ++i)
 		{
 			Point pt0 = vec0_unwrapped[i];
-			Point pt1 = vec1_unwrapped[j];
-			cost_mat.ptr<float>(j, i)[0] = abs(pt1.y - pt0.y) * 10 + abs(pt1.x - pt0.x);
+			for (int j = 0; j < vec1_size_minus; ++j)
+			{
+				Point pt1 = vec1_unwrapped[j];
+				float dist = abs(pt1.y - pt0.y) + abs(pt1.x - pt0.x);
+				cost_mat.ptr<float>(j, i)[0] = dist;
+			}
 		}
+	}
 
 	return cost_mat;
 }

@@ -23,7 +23,7 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 {
 	vector<Point>* vec0 = &mono_processor0.stereo_matching_points;
 	vector<Point>* vec1 = &mono_processor1.stereo_matching_points;
-	Mat cost_mat = compute_cost_mat(*vec0, *vec1);
+	Mat cost_mat = compute_cost_mat(*vec0, *vec1, true);
 	vector<Point> indexes = compute_dtw_indexes(cost_mat);
 
 	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);

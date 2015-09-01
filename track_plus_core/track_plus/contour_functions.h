@@ -41,3 +41,7 @@ void midpoint_circle_push_pixel(int x, int y, int x_c, int y_c, vector<PointInde
 								int& c00, int& c01, int& c10, int& c11, int& c20, int& c21, int& c30, int& c31);
 
 void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_threshold);
+
+Point get_y_min_point(vector<Point>& pt_vec);
+
+Point get_y_max_point(vector<Point>& pt_vec);

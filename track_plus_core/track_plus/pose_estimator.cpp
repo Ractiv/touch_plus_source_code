@@ -40,8 +40,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	for (vector<Point>& points : points_collection)
 	{
 		// float dist = matchShapes(points_current, points, CV_CONTOURS_MATCH_I1, 0);
-
-		Mat cost_mat = compute_cost_mat(points_current, points);
+		Mat cost_mat = compute_cost_mat(points_current, points, false);
 		float dist = compute_dtw(cost_mat);
 
 		if (dist < dist_min)

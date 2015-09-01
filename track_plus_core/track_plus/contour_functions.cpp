@@ -419,3 +419,23 @@ void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vect
         }
     }
 }
+
+Point get_y_min_point(vector<Point>& pt_vec)
+{
+	Point pt_y_min = Point(0, 9999);
+	for (Point& pt : pt_vec)
+		if (pt.y < pt_y_min.y)
+			pt_y_min = pt;
+
+	return pt_y_min;
+}
+
+Point get_y_max_point(vector<Point>& pt_vec)
+{
+	Point pt_y_max = Point(0, -1);
+	for (Point& pt : pt_vec)
+		if (pt.y > pt_y_max.y)
+			pt_y_max = pt;
+
+	return pt_y_max;
+}
