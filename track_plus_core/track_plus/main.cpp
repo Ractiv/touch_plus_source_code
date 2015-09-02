@@ -487,7 +487,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
 

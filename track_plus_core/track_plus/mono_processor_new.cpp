@@ -370,6 +370,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	while (true)
 	{
 		Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
@@ -382,8 +383,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			pt_old = pt;
 		}
 
-		vector<Point3f> points_concave_indexed;
-		vector<Point3f> points_convex_indexed;
+		vector<Point3f> concave_points_indexed_raw;
+		vector<Point3f> convex_points_indexed_raw;
 		for (int skip_count = 1; skip_count < contour_approximated.size() / 2; ++skip_count)
 		{
 			const int i_max = contour_approximated.size() - skip_count;
@@ -395,13 +396,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				Point pt2 = contour_approximated[i - skip_count];
 
 				bool found = false;
-				for (Point3f& pt_indexed : points_concave_indexed)
+				for (Point3f& pt_indexed : concave_points_indexed_raw)
 					if (pt_indexed.z == i || (pt_indexed.x == pt0.x && pt_indexed.y == pt0.y))
 					{
 						found = true;
 						break;
 					}
-				for (Point3f& pt_indexed : points_convex_indexed)
+				for (Point3f& pt_indexed : convex_points_indexed_raw)
 					if (pt_indexed.z == i || (pt_indexed.x == pt0.x && pt_indexed.y == pt0.y))
 					{
 						found = true;
@@ -410,50 +411,89 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 				if (!found)
 				{
-					float dist0 = get_distance(pt0, pivot);
-					float dist1 = get_distance(pt1, pivot);
-					float dist2 = get_distance(pt2, pivot);
+					float dist0 = get_distance(pt0, pt_hand_anchor);
+					float dist1 = get_distance(pt1, pt_hand_anchor);
+					float dist2 = get_distance(pt2, pt_hand_anchor);
 
 					if (dist0 <= dist1 && dist0 <= dist2)
-						points_concave_indexed.push_back(Point3f(pt0.x, pt0.y, i));
+						concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
 					else if (dist0 >= dist1 && dist0 >= dist2)
-						points_convex_indexed.push_back(Point3f(pt0.x, pt0.y, i));
+						convex_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
 				}
 			}
 		}
-		sort(points_concave_indexed.begin(), points_concave_indexed.end(), compare_point_z());
-		sort(points_convex_indexed.begin(), points_convex_indexed.end(), compare_point_z());
+		sort(concave_points_indexed_raw.begin(), concave_points_indexed_raw.end(), compare_point_z());
+		sort(convex_points_indexed_raw.begin(), convex_points_indexed_raw.end(), compare_point_z());
 
-		const int i_max = points_convex_indexed.size();
-		for (int i = 1; i < i_max; ++i)
+		vector<Point3f> concave_points_indexed;
+		bool concave_checker[1000] { 0 };
+
+		const int convex_points_indexed_raw_size = convex_points_indexed_raw.size();
+		for (int i = 1; i < convex_points_indexed_raw_size; ++i)
 		{
-			Point3f pt_convex_indexed0 = points_convex_indexed[i - 1];
-			Point3f pt_convex_indexed1 = points_convex_indexed[i];
+			Point3f pt_convex_indexed0 = convex_points_indexed_raw[i - 1];
+			Point3f pt_convex_indexed1 = convex_points_indexed_raw[i];
 
 			const int index_begin = pt_convex_indexed0.z;
 			const int index_end = pt_convex_indexed1.z;
 
-			Point pt_dist_min;
+			if (index_end - index_begin == 1)
+				continue;
+
+			Point3f pt_dist_min;
 			float dist_min = 9999;
-			for (Point3f& pt_concave_indexed : points_concave_indexed)
+			for (Point3f& pt_concave_indexed : concave_points_indexed_raw)
 				if (pt_concave_indexed.z >= index_begin && pt_concave_indexed.z <= index_end)
 				{
-					Point pt_concave = Point(pt_concave_indexed.x, pt_concave_indexed.y);
-					float dist = get_distance(pt_concave, pivot);
+					concave_checker[(int)pt_concave_indexed.z] = true;
+
+					float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), pt_hand_anchor);
 					if (dist < dist_min)
 					{
 						dist_min = dist;
-						pt_dist_min = pt_concave;
+						pt_dist_min = pt_concave_indexed;
 					}
 				}
 
-			circle(image_visualization, pt_dist_min, 3, Scalar(127), -1);
+			concave_points_indexed.push_back(pt_dist_min);
 		}
 
-		imshow("image_visualizationasdfasdf" + name, image_visualization);
-	}
+		if (concave_points_indexed.size() == 0)
+			break;
 
-	return false;
+		float dist_min0 = 9999;
+		float dist_min1 = 9999;
+		Point3f pt_dist_min0;
+		Point3f pt_dist_min1;
+		for (Point3f& pt : concave_points_indexed_raw)
+			if (concave_checker[(int)pt.z] != true)
+			{
+				float dist = get_distance(Point(pt.x, pt.y), pt_hand_anchor);
+				if (pt.z < concave_points_indexed[0].z && dist < dist_min0)
+				{
+					dist_min0 = dist;
+					pt_dist_min0 = pt;
+				}
+				else if (pt.z > concave_points_indexed[concave_points_indexed.size() - 1].z && dist < dist_min1)
+				{
+					dist_min1 = dist;
+					pt_dist_min1 = pt;
+				}
+			}
+
+		if (dist_min0 < 9999)
+			concave_points_indexed.insert(concave_points_indexed.begin(), pt_dist_min0);
+		if (dist_min1 < 9999)
+			concave_points_indexed.push_back(pt_dist_min1);
+
+		sort(concave_points_indexed.begin(), concave_points_indexed.end(), compare_point_z());
+
+		for (Point3f& pt : concave_points_indexed)
+			line(image_visualization, Point(pt.x, pt.y), pivot, Scalar(127), 1);
+
+		imshow("image_visualizationasdfasdf" + name, image_visualization);
+		break;
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 

@@ -283,8 +283,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					image_subtraction.ptr<uchar>(j, i)[0] = diff;
 				}
 			threshold(image_subtraction, image_subtraction, diff_max * 0.1, 254, THRESH_BINARY);
-			GaussianBlur(image_subtraction, image_subtraction, Size(9, 9), 0, 0);
-			threshold(image_subtraction, image_subtraction, 100, 254, THRESH_BINARY);
 
 			//------------------------------------------------------------------------------------------------------------------------
 
