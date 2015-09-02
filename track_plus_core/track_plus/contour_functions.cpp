@@ -61,7 +61,7 @@ vector<vector<Point>> legacyFindContours(Mat& Segmented)
 		}
 
 		vector<Point> contour_current_reduced;
-		for (int i = 0; i < contour_current.size(); i +=10)
+		for (int i = 0; i < contour_current.size(); i += 1)
 			contour_current_reduced.push_back(contour_current[i]);
 
 		result.push_back(contour_current_reduced);

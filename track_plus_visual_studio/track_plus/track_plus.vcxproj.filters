@@ -149,9 +149,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\compare_structs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\point_resolver.h">
       <Filter>Header Files</Filter>
     </ClInclude>

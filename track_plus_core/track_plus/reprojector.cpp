@@ -18,6 +18,14 @@
 
 #include "reprojector.h"
 
+struct compare_point_x
+{
+	inline bool operator() (const Point pt0_in, const Point pt1_in)
+	{
+		return pt0_in.x < pt1_in.x;
+	}
+};
+
 float Reprojector::compute_depth(float disparity_in)
 {
 	return ((a_out - d_out) / (1 + pow(disparity_in / c_out, b_out))) + d_out;

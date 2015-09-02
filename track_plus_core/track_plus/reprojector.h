@@ -63,13 +63,4 @@ public:
 	Point remap_point(Point& pt_in, const uchar side, const uchar scale);
 	void compute_y_bounds();
 	void y_align(Mat& image0, Mat& image1, bool interpolate);
-
-private:
-	struct compare_point_x
-	{
-		inline bool operator() (const Point pt0_in, const Point pt1_in)
-		{
-			return pt0_in.x < pt1_in.x;
-		}
-	};
 };

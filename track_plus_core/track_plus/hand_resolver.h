@@ -31,9 +31,6 @@ public:
 	const int window_width_half = window_width / 2;
 	const int window_height_half = window_height / 2;
 
-	Point2f pt_precise_palm0 = Point(-1, -1);
-	Point2f pt_precise_palm1 = Point(-1, -1);
-
 	Point2f pt_precise_index0 = Point(-1, -1);
 	Point2f pt_precise_index1 = Point(-1, -1);
 

@@ -18,6 +18,150 @@
 
 #include "mono_processor_new.h"
 
+struct compare_blob_y_max
+{
+	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
+	{
+		return (blob0.y_max > blob1.y_max);
+	}
+};
+
+struct compare_point_angle
+{
+	Point anchor;
+
+	compare_point_angle(Point& anchor_in)
+	{
+		anchor = anchor_in;
+	}
+
+	bool operator() (const Point& point0, const Point& point1)
+	{
+		float theta0 = get_angle(point0.x, point0.y, anchor.x, anchor.y);
+		float theta1 = get_angle(point1.x, point1.y, anchor.x, anchor.y);
+
+		return theta0 > theta1;
+	}
+};
+
+struct compare_point_dist
+{
+	Point anchor;
+
+	compare_point_dist(Point& anchor_in)
+	{
+		anchor = anchor_in;
+	}
+
+	bool operator() (Point& point0, Point& point1)
+	{
+		float dist0 = get_distance(point0, anchor);
+		float dist1 = get_distance(point1, anchor);
+
+		return dist0 < dist1;
+	}
+};
+
+struct compare_id_point_y
+{
+	bool operator() (const IDPoint& pt0, const IDPoint& pt1)
+	{
+		return (pt0.y > pt1.y);
+	}
+};
+
+struct compare_point_x
+{
+	bool operator() (const Point& pt0, const Point& pt1)
+	{
+		return (pt0.x < pt1.x);
+	}
+};
+
+struct compare_point_y
+{
+	bool operator() (const Point& pt0, const Point& pt1)
+	{
+		return (pt0.y < pt1.y);
+	}
+};
+
+struct compare_point_z
+{
+	bool operator() (const Point3f& pt0, const Point3f& pt1)
+	{
+		return (pt0.z < pt1.z);
+	}
+};
+
+struct compare_extension_dist_to_point
+{
+	Point pt;
+
+	compare_extension_dist_to_point(Point& pt_in)
+	{
+		pt = pt_in;
+	}
+
+	bool operator() (vector<Point>& extension0, vector<Point>& extension1)
+	{
+		float dist0 = get_distance(extension0[0], pt);
+		float dist1 = get_distance(extension1[0], pt);
+
+		return dist0 < dist1;
+	}
+};
+
+struct compare_extension_angle
+{
+	bool operator() (vector<Point>& extension0, vector<Point>& extension1)
+	{
+		float angle0 = get_angle(extension0[0], extension0[extension0.size() - 1], Point(0, extension0[0].y));
+		if (extension0[0].y > extension0[extension0.size() - 1].y)
+			angle0 = 360 - angle0;
+
+		float angle1 = get_angle(extension1[0], extension1[extension1.size() - 1], Point(0, extension1[0].y));
+		if (extension1[0].y > extension1[extension1.size() - 1].y)
+			angle1 = 360 - angle1;
+
+		return angle0 < angle1;
+	}
+};
+
+struct compare_extension_y
+{
+	bool operator() (vector<Point>& extension0, vector<Point>& extension1)
+	{
+		return extension0[0].y > extension1[0].y;
+	}
+};
+
+struct compare_extension_y_rotated
+{
+	float angle;
+	Point anchor;
+
+	Point _rotate(Point pt)
+	{
+		pt = rotate_point(angle, pt, anchor);
+		return pt;
+	}
+
+	compare_extension_y_rotated(float angle_in, Point& anchor_in)
+	{
+		angle = angle_in;
+		anchor = anchor_in;	
+	}
+
+	bool operator() (vector<Point>& extension0, vector<Point>& extension1)
+	{
+		Point pt_rotated0 = _rotate(extension0[0]);
+		Point pt_rotated1 = _rotate(extension1[0]);
+
+		return pt_rotated0.y > pt_rotated1.y;
+	}
+};
+
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
 	pt_index = Point(-1, -1);
@@ -36,7 +180,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-	pt_palm = Point2f(0, 0);
+	Point2f pt_palm = Point2f(0, 0);
 	int pt_palm_count = 0;
 	const int y_threshold = pt_hand_anchor.y - palm_radius;
 
@@ -205,6 +349,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		return false;
 	}
 
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	vector<Point> contour_approximated_unsorted;
 	approxPolyDP(Mat(contour_sorted), contour_approximated_unsorted, 1, true);
 
@@ -221,6 +367,53 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);
 	contour_approximated.push_back(contour_sorted[contour_sorted.size() - 1]);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+		Point pt_old = Point(-1, -1);
+		for (Point& pt : contour_approximated)
+		{
+			if (pt_old.x != -1)
+				line(image_visualization, pt, pt_old, Scalar(254), 1);
+
+			pt_old = pt;
+		}
+
+		vector<Point3f> points_indexed;
+		for (int skip_count = 1; skip_count < contour_approximated.size() / 2; ++skip_count)
+		{
+			const int i_max = contour_approximated.size() - skip_count;
+
+			for (int i = skip_count; i < i_max; ++i)
+			{
+				Point pt0 = contour_approximated[i];
+				Point pt1 = contour_approximated[i + skip_count];
+				Point pt2 = contour_approximated[i - skip_count];
+
+				float angle = get_angle(pt0, pt1, pt2);
+				if (angle < 90)
+				{
+					for (Point3f& pt_indexed : points_indexed)
+						if (pt_indexed.z == i)
+							continue;
+
+					points_indexed.push_back(Point3f(pt0.x, pt0.y, i));
+				}
+			}
+		}
+
+		sort(points_indexed.begin(), points_indexed.end(), compare_point_z());
+
+		for (Point3f& pt : points_indexed)
+			circle(image_visualization, Point(pt.x, pt.y), 2, Scalar(127), -1);
+
+		imshow("image_visualizationasdfasdf" + name, image_visualization);
+	}
+
+	return false;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -677,7 +870,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	{
 		circle(image_hand_rotated, pt_hand_anchor_rotated, palm_radius, Scalar(127), 2);
 		circle(image_hand, pt_hand_anchor, palm_radius, Scalar(64), 2);
-		circle(image_hand, pt_palm, 10, Scalar(127), 1);
+		// circle(image_hand, pt_palm, 10, Scalar(127), 1);
 
 		imshow("image_hand" + name, image_hand);
 		imshow("image_hand_rotated" + name, image_hand_rotated);

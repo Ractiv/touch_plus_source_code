@@ -19,7 +19,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\Camera.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\CameraDS.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\camera_initializer_new.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\compare_structs.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\contour_functions.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\curve_fitting.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h" />

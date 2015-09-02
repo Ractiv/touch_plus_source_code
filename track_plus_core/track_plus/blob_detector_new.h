@@ -21,7 +21,6 @@
 #include "blob_new.h"
 #include "globals.h"
 #include "math_plus.h"
-#include "compare_structs.h"
 
 class BlobDetectorNew
 {
