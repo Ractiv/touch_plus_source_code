@@ -393,23 +393,32 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				Point pt1 = contour_approximated[i + skip_count];
 				Point pt2 = contour_approximated[i - skip_count];
 
-				float angle = get_angle(pt0, pt1, pt2);
-				if (angle < 90)
+				bool found = false;
+				for (Point3f& pt_indexed : points_indexed)
+					if (pt_indexed.z == i || (pt_indexed.x == pt0.x && pt_indexed.y == pt0.y))
+					{
+						found = true;
+						break;
+					}
+				if (!found)
 				{
-					for (Point3f& pt_indexed : points_indexed)
-						if (pt_indexed.z == i)
-							continue;
+					float dist0 = get_distance(pt0, pivot);
+					float dist1 = get_distance(pt1, pivot);
+					float dist2 = get_distance(pt2, pivot);
 
-					points_indexed.push_back(Point3f(pt0.x, pt0.y, i));
+					if (dist0 <= dist1 && dist0 <= dist2)
+					{
+						points_indexed.push_back(Point3f(pt0.x, pt0.y, i));
+						circle(image_visualization, pt0, 3, Scalar(127), -1);
+					}
+					else if (dist0 >= dist1 && dist0 >= dist2)
+					{
+						points_indexed.push_back(Point3f(pt0.x, pt0.y, i));
+						circle(image_visualization, pt0, 3, Scalar(127), 1);
+					}
 				}
 			}
 		}
-
-		sort(points_indexed.begin(), points_indexed.end(), compare_point_z());
-
-		for (Point3f& pt : points_indexed)
-			circle(image_visualization, Point(pt.x, pt.y), 2, Scalar(127), -1);
-
 		imshow("image_visualizationasdfasdf" + name, image_visualization);
 	}
 

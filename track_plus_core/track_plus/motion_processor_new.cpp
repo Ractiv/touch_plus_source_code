@@ -193,6 +193,15 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			if (entropy_max / entropy_min == 1)
 				both_moving = (total_width > 80 && gap_ratio > 0.3);
+
+			if (both_moving)
+			{
+				float entropy_max = max(entropy_left, entropy_right);
+				float entropy_min = min(entropy_left, entropy_right);
+
+				if (entropy_max / entropy_min > 2)
+					both_moving = false;
+			}
 		}
 
 		static bool both_moving_0_set = false;
@@ -274,6 +283,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					image_subtraction.ptr<uchar>(j, i)[0] = diff;
 				}
 			threshold(image_subtraction, image_subtraction, diff_max * 0.1, 254, THRESH_BINARY);
+			GaussianBlur(image_subtraction, image_subtraction, Size(9, 9), 0, 0);
+			threshold(image_subtraction, image_subtraction, 100, 254, THRESH_BINARY);
 
 			//------------------------------------------------------------------------------------------------------------------------
 
@@ -528,7 +539,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 				//------------------------------------------------------------------------------------------------------------------------
 
-				if (both_moving && entropy_left + entropy_right > 1000)
+				if (both_moving)
 				{
 					float width_diff = power(pitch, 0.006834535, 2.199475);
 
@@ -593,7 +604,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 									++hole_count_right;
 							}
 
-					if (hole_count_right / (entropy_right + 0.1) < 1 && hole_count_left / (entropy_left + 0.1) < 1)
+					float ratio0 = hole_count_right / (entropy_right + 0.1);
+					float ratio1 = hole_count_left / (entropy_left + 0.1);
+					float ratio_max = max(ratio0, ratio1);
+
+					if (ratio_max < 1)
 					{
 						alpha = 0.5;
 						value_store.set_bool("result", true);

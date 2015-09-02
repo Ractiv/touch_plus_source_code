@@ -444,9 +444,9 @@ void compute()
     if (normalized)
     {
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "0",          false);
+                                             construct_background, "0",          true);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "1",          false);
+                                             construct_background, "1",          true);
     }
 
     if (first_pass && motion_processor0.both_moving)
