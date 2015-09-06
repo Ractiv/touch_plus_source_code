@@ -312,13 +312,13 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			{
 				if (both_moving)
 				{
-					x_separator_left = blob_detector_image_subtraction->x_min_result - 10;
-					x_separator_right = blob_detector_image_subtraction->x_max_result + 10;
+					x_separator_left = blob_detector_image_subtraction->x_min_result - 5;
+					x_separator_right = blob_detector_image_subtraction->x_max_result + 5;
 				}
 				else if (left_moving)
-					x_separator_left = blob_detector_image_subtraction->x_min_result - 10;
+					x_separator_left = blob_detector_image_subtraction->x_min_result - 5;
 				else if (right_moving)
-					x_separator_right = blob_detector_image_subtraction->x_max_result + 10;
+					x_separator_right = blob_detector_image_subtraction->x_max_result + 5;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
