@@ -175,6 +175,18 @@ Point3f normalize(Point3f value)
     return result;
 }
 
+uchar get_quadrant(int x, int y, int pivot_x, int pivot_y)
+{
+	if (x > pivot_x && y < pivot_y)
+		return 1;
+	else if (x < pivot_x && y < pivot_y)
+		return 2;
+	else if (x < pivot_x && y > pivot_y)
+		return 3;
+	else
+		return 4;
+}
+
 float linear(float x, float m, float c)
 {
 	return (m * x) + c;

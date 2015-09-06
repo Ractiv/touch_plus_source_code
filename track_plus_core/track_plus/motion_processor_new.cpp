@@ -441,7 +441,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						sort(gray_vec_left.begin(), gray_vec_left.end());
 						float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
 
-						gray_threshold_left = gray_median_left - 10;
+						gray_threshold_left = gray_median_left - 20;
 						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
 						gray_threshold_left_stereo = gray_threshold_left;
 					}
@@ -451,7 +451,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						sort(gray_vec_right.begin(), gray_vec_right.end());
 						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
 
-						gray_threshold_right = gray_median_right - 10;
+						gray_threshold_right = gray_median_right - 20;
 						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
 						gray_threshold_right_stereo = gray_threshold_right;
 					}

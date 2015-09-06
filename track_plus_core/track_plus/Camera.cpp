@@ -236,6 +236,8 @@ static void frameCallback(BYTE * pBuffer, long lBufferSize)
 
 string Camera::getSerialNumber()
 {
+    Sleep(10);
+
     string result = "";
     unsigned char serialNumber[10];
 #ifdef _WIN32
@@ -255,6 +257,8 @@ string Camera::getSerialNumber()
 
 int Camera::isCameraPresent()
 {
+    Sleep(10);
+
 #ifdef _WIN32
     int devCount;
     int didInit = EtronDI_Init(&pHandle);
@@ -306,6 +310,8 @@ int Camera::isCameraPresent()
 
 int Camera::do_software_unlock()
 {
+    Sleep(10);
+
 #ifdef _WIN32
     int present = isCameraPresent();
     int retVal = eSPAEAWB_SWUnlock(0x0107);
@@ -511,6 +517,8 @@ int Camera::doSetup(const int & format)
 
 int Camera::setExposureTime(int whichSide, float expTime)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     int retCode= eSPAEAWB_SetExposureTime(whichSide, expTime);
     return retCode;
@@ -820,6 +828,8 @@ int Camera::setExposureTime(int whichSide, float expTime)
 
 float Camera::getExposureTime(int whichSide)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     float eTime = -1.0;
     eSPAEAWB_GetExposureTime(whichSide, &eTime);
@@ -954,6 +964,8 @@ float Camera::getExposureTime(int whichSide)
 
 int Camera::setGlobalGain(int whichSide, float gain)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     return eSPAEAWB_SetGlobalGain(whichSide, gain);
 
@@ -979,6 +991,8 @@ int Camera::setGlobalGain(int whichSide, float gain)
 
 float Camera::getGlobalGain(int whichSide)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     float globalGain = -1.0;
     eSPAEAWB_GetGlobalGain(whichSide, &globalGain);
@@ -1004,6 +1018,8 @@ float Camera::getGlobalGain(int whichSide)
 
 int Camera::turnLEDsOn()
 {
+    Sleep(10);
+
 #ifdef _WIN32
     BYTE gpio_code;
     int retCode = eSPAEAWB_GetGPIOValue(1, &gpio_code);
@@ -1041,6 +1057,8 @@ int Camera::turnLEDsOn()
 
 int Camera::turnLEDsOff()
 {
+    Sleep(10);
+
 #ifdef _WIN32
     BYTE gpio_code;
     int retCode = eSPAEAWB_GetGPIOValue(1, &gpio_code);
@@ -1156,6 +1174,8 @@ int Camera::getAccelerometerValues(int *x, int *y, int *z)
 
 int	Camera::setColorGains(int whichSide, float red, float green, float blue)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     return eSPAEAWB_SetColorGain(whichSide, red, green, blue);
 
@@ -1264,6 +1284,8 @@ int	Camera::setColorGains(int whichSide, float red, float green, float blue)
 
 int	Camera::getColorGains(int whichSide, float *red, float *green, float * blue)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     return eSPAEAWB_GetColorGain(whichSide, red, green, blue);
 
@@ -1313,6 +1335,8 @@ int	Camera::getColorGains(int whichSide, float *red, float *green, float * blue)
 
 int Camera::enableAutoExposure(int whichSide)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_EnableAE();
@@ -1419,6 +1443,8 @@ int Camera::enableAutoExposure(int whichSide)
 
 int Camera::disableAutoExposure(int whichSide)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_DisableAE();
@@ -1523,6 +1549,8 @@ int Camera::disableAutoExposure(int whichSide)
 
 int Camera::enableAutoWhiteBalance(int whichSide)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_EnableAWB();
@@ -1627,6 +1655,8 @@ int Camera::enableAutoWhiteBalance(int whichSide)
 
 int Camera::disableAutoWhiteBalance(int whichSide)
 {
+    Sleep(10);
+
 #ifdef _WIN32
     eSPAEAWB_SelectDevice(whichSide);
     return eSPAEAWB_DisableAWB();

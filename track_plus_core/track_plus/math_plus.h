@@ -39,6 +39,7 @@ Point rotate_point(float theta, Point pt, Point origin);
 Point3f cross_product(Point3f u, Point3f v);
 float dot_product(Point3f u, Point3f v);
 Point3f normalize(Point3f value);
+uchar get_quadrant(int x, int y, int pivot_x, int pivot_y);
 
 float linear(float x, float m, float c);
 float exponential(float x, float a, float b, float c);
