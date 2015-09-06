@@ -96,30 +96,30 @@ void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_
 					*pix_ptr = 255;
 				}
 
-				pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
-				if (*pix_ptr == gray_in)
-				{
-					blob->add(pt_x0, pt_y0);
-					*pix_ptr = 255;
-				}
-				pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
-				if (*pix_ptr == gray_in)
-				{
-					blob->add(pt_x1, pt_y1);
-					*pix_ptr = 255;
-				}
-				pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
-				if (*pix_ptr == gray_in)
-				{
-					blob->add(pt_x1, pt_y0);
-					*pix_ptr = 255;
-				}
-				pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
-				if (*pix_ptr == gray_in)
-				{
-					blob->add(pt_x0, pt_y1);
-					*pix_ptr = 255;
-				}
+				// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
+				// if (*pix_ptr == gray_in)
+				// {
+				// 	blob->add(pt_x0, pt_y0);
+				// 	*pix_ptr = 255;
+				// }
+				// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
+				// if (*pix_ptr == gray_in)
+				// {
+				// 	blob->add(pt_x1, pt_y1);
+				// 	*pix_ptr = 255;
+				// }
+				// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
+				// if (*pix_ptr == gray_in)
+				// {
+				// 	blob->add(pt_x1, pt_y0);
+				// 	*pix_ptr = 255;
+				// }
+				// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
+				// if (*pix_ptr == gray_in)
+				// {
+				// 	blob->add(pt_x0, pt_y1);
+				// 	*pix_ptr = 255;
+				// }
 			}
 
 			blob->compute();
@@ -220,30 +220,30 @@ void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const
 			*pix_ptr = 255;
 		}
 
-		pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
-		if (*pix_ptr == gray_in)
-		{
-			blob->add(pt_x0, pt_y0);
-			*pix_ptr = 255;
-		}
-		pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
-		if (*pix_ptr == gray_in)
-		{
-			blob->add(pt_x1, pt_y1);
-			*pix_ptr = 255;
-		}
-		pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
-		if (*pix_ptr == gray_in)
-		{
-			blob->add(pt_x1, pt_y0);
-			*pix_ptr = 255;
-		}
-		pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
-		if (*pix_ptr == gray_in)
-		{
-			blob->add(pt_x0, pt_y1);
-			*pix_ptr = 255;
-		}
+		// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
+		// if (*pix_ptr == gray_in)
+		// {
+		// 	blob->add(pt_x0, pt_y0);
+		// 	*pix_ptr = 255;
+		// }
+		// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
+		// if (*pix_ptr == gray_in)
+		// {
+		// 	blob->add(pt_x1, pt_y1);
+		// 	*pix_ptr = 255;
+		// }
+		// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
+		// if (*pix_ptr == gray_in)
+		// {
+		// 	blob->add(pt_x1, pt_y0);
+		// 	*pix_ptr = 255;
+		// }
+		// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
+		// if (*pix_ptr == gray_in)
+		// {
+		// 	blob->add(pt_x0, pt_y1);
+		// 	*pix_ptr = 255;
+		// }
 	}
 
 	blob->compute();
