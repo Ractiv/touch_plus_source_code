@@ -39,4 +39,5 @@ public:
 
 	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize);
 	void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);
+	BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>& blob_vec);
 };
