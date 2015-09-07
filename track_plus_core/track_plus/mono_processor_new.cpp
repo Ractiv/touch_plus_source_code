@@ -918,6 +918,41 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
+		index = 0;
+		for (BlobNew& blob : *blob_vec_new)
+		{
+			int score_board[10] { 0 };
+			for (Point4f& pt_new : points_new)
+				if (pt_new.w == index)
+				{
+					Point4f pt_old = points_old[pt_new.z];
+					++score_board[(int)pt_old.w];
+				}
+			int max_score = -1;
+			int max_score_index;
+			for (int a = 0; a < 10; ++a)
+				if (score_board[a] > max_score)
+				{
+					max_score = score_board[a];
+					max_score_index = a;
+				}
+
+			if (max_score != -1)
+			{
+				BlobNew* blob_new = &blob;
+				BlobNew* blob_old = &(*blob_vec_old)[max_score_index];
+
+				if (blob_new->name == "?")
+					blob_new->name = blob_old->name;
+
+				put_text(blob_new->name, image_palm_segmented, blob_new->pt_y_max.x, blob_new->pt_y_max.y);
+			}
+
+			++index;
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
 		*contour_old = *contour_new;
 		*blob_vec_old = *blob_vec_new;
 
