@@ -63,22 +63,20 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	Mat image_skeleton_segmented = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_palm_segmented = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	float palm_radius = value_store.get_float("palm_radius", 1);
-	Point pt_hand_anchor = value_store.get_point("pt_hand_anchor");
+	Point palm_point = value_store.get_point("palm_point");
 
 	Point2f pt_palm = Point2f(0, 0);
 	int pt_palm_count = 0;
-	const int y_threshold = pt_hand_anchor.y - palm_radius;
+	const int y_threshold = palm_point.y - palm_radius;
 
 	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
 	{
 		blob.fill(image_find_contours, 254);
 		blob.fill(image_active_hand, 254);
-		blob.fill(image_skeleton_segmented, 254);
 		blob.fill(image_palm_segmented, 254);
 
 		for (Point& pt : blob.data)
@@ -180,7 +178,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		Point max_loc;
 		minMaxLoc(image_distance_transform, &min, &max, &min_loc, &max_loc);
 
-		pt_hand_anchor = max_loc * 4;
+		palm_point = max_loc * 4;
 		palm_radius = max * 4;
 	}
 
@@ -209,20 +207,21 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		Point max_loc;
 		minMaxLoc(image_distance_transform, &min, &max, &min_loc, &max_loc);
 
-		Point pt_hand_anchor_new = max_loc * 4;
-		pt_hand_anchor.y = pt_hand_anchor_new.y;
-		pt_hand_anchor.x = pt_hand_anchor_new.x;
-		pt_hand_anchor.x = pt_palm.x;
-
 		palm_radius = max * 4;
 		float multiplier = palm_radius > 10 ? 10 : palm_radius;
 		multiplier = map_val(multiplier, 0, 10, 2, 1);
-		palm_radius *= multiplier;
+		palm_radius *= multiplier * 1.5;
+
+		Point palm_point_new = max_loc * 4;
+		palm_point.y = palm_point_new.y;
+		palm_point.x = pt_palm.x + (palm_radius / 2);
 	}
 
 	low_pass_filter->compute(palm_radius, 0.1, "palm_radius");
+	low_pass_filter->compute(palm_point, 0.5, "palm_point");
+
 	value_store.set_float("palm_radius", palm_radius);
-	value_store.set_point("pt_hand_anchor", pt_hand_anchor);
+	value_store.set_point("palm_point", palm_point);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -265,9 +264,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 					if (!found)
 					{
-						float dist0 = get_distance(pt0, pt_hand_anchor);
-						float dist1 = get_distance(pt1, pt_hand_anchor);
-						float dist2 = get_distance(pt2, pt_hand_anchor);
+						float dist0 = get_distance(pt0, palm_point);
+						float dist1 = get_distance(pt1, palm_point);
+						float dist2 = get_distance(pt2, palm_point);
 
 						if (dist0 <= dist1 && dist0 <= dist2)
 							concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
@@ -310,7 +309,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_convex_indexed.z >= index_begin && pt_convex_indexed.z <= index_end) ||
 						(pt_convex_indexed.z <= index_begin && pt_convex_indexed.z >= index_end))
 					{
-						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), pt_hand_anchor);
+						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), palm_point);
 						if (dist > dist_min)
 						{
 							dist_min = dist;
@@ -340,8 +339,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			{
 				Point anchor0 = Point(anchor_points0[i].x, anchor_points0[i].y);
 				Point anchor1 = Point(anchor_points1[i].x, anchor_points1[i].y);
-				float dist0 = get_distance(anchor0, pt_hand_anchor);
-				float dist1 = get_distance(anchor1, pt_hand_anchor);
+				float dist0 = get_distance(anchor0, palm_point);
+				float dist1 = get_distance(anchor1, palm_point);
 
 				Point anchor;
 				if (dist0 < dist1)
@@ -363,10 +362,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			Point pt_intersection_hand_direction;
 			if (get_intersection_at_y(tip_min_dist, anchor_min_dist, HEIGHT_SMALL, pt_intersection_hand_direction))
 			{
-				// pt_intersection_hand_direction.x += pt_intersection_hand_direction.x - pt_hand_anchor.x;
-				pt_intersection_hand_direction_stereo.x += (pt_intersection_hand_direction.x - pt_intersection_hand_direction_stereo.x) * 0.1;
+				// pt_intersection_hand_direction.x += pt_intersection_hand_direction.x - palm_point.x;
+				pt_intersection_hand_direction_stereo.x += (pt_intersection_hand_direction.x - pt_intersection_hand_direction_stereo.x) * 0.5;
 				pt_intersection_hand_direction_stereo.y = HEIGHT_SMALL;
-				get_intersection_at_y(pt_intersection_hand_direction_stereo, pt_hand_anchor, pt_hand_anchor.y - (palm_radius * 2), pivot);
+				get_intersection_at_y(pt_intersection_hand_direction_stereo, palm_point, palm_point.y - (palm_radius * 2), pivot);
 			}
 
 			break;
@@ -439,9 +438,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 				if (!found)
 				{
-					float dist0 = get_distance(pt0, pt_hand_anchor);
-					float dist1 = get_distance(pt1, pt_hand_anchor);
-					float dist2 = get_distance(pt2, pt_hand_anchor);
+					float dist0 = get_distance(pt0, palm_point);
+					float dist1 = get_distance(pt1, palm_point);
+					float dist2 = get_distance(pt2, palm_point);
 
 					if (dist0 <= dist1 && dist0 <= dist2)
 						concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
@@ -483,7 +482,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_concave_indexed.z > index_begin && pt_concave_indexed.z < index_end) ||
 						(pt_concave_indexed.z < index_begin && pt_concave_indexed.z > index_end))
 					{
-						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), pt_hand_anchor);
+						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), palm_point);
 						if (dist < dist_min)
 						{
 							dist_min = dist;
@@ -523,7 +522,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_convex_indexed.z > index_begin && pt_convex_indexed.z < index_end) ||
 						(pt_convex_indexed.z < index_begin && pt_convex_indexed.z > index_end))
 					{
-						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), pt_hand_anchor);
+						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), palm_point);
 						if (dist > dist_max)
 						{
 							dist_max = dist;
@@ -549,8 +548,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		int x_max_palm_lines_index = 0;
 		for (Point3f& pt : concave_points_indexed)
 		{
-			line(image_skeleton_segmented, Point(pt.x, pt.y), pivot, Scalar(0), 1);
-
 			if (pt.x > x_max_palm_lines)
 			{
 				x_max_palm_lines = pt.x;
@@ -597,9 +594,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	float hand_angle = get_angle(pt_hand_anchor, pt_intersection_hand_direction_stereo, Point(0, pt_hand_anchor.y)) - 90;
+	float hand_angle = get_angle(palm_point, pt_intersection_hand_direction_stereo, Point(0, palm_point.y)) - 90;
 
-	RotatedRect r_rect0 = RotatedRect(pt_hand_anchor, Size2f(500, 500), -hand_angle);
+	RotatedRect r_rect0 = RotatedRect(palm_point, Size2f(500, 500), -hand_angle);
 	Point2f vertices0[4];
 	r_rect0.points(vertices0);
 
@@ -611,7 +608,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	line(image_palm, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(254), 1);
 	line(image_palm_segmented, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(0), 1);
 
-	RotatedRect r_rect1 = RotatedRect(pt_hand_anchor, Size2f(palm_radius * 2, 500), -hand_angle);
+	RotatedRect r_rect1 = RotatedRect(palm_point, Size2f(palm_radius * 2, 500), -hand_angle);
 	Point2f vertices1[4];
 	r_rect1.points(vertices1);
 
@@ -632,15 +629,15 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	circle(image_palm, pt_hand_anchor, palm_radius, Scalar(254), 1);
-	circle(image_palm_segmented, pt_hand_anchor, palm_radius, Scalar(0), 1);
+	circle(image_palm, palm_point, palm_radius, Scalar(254), 1);
+	circle(image_palm_segmented, palm_point, palm_radius, Scalar(0), 1);
 
 	vector<Point> circle_vec;
-	midpoint_circle(pt_hand_anchor.x, pt_hand_anchor.y, palm_radius, circle_vec);
+	midpoint_circle(palm_point.x, palm_point.y, palm_radius, circle_vec);
 
 	if (circle_vec.size() > 0)
 	{
-		sort(circle_vec.begin(), circle_vec.end(), compare_point_angle(pt_hand_anchor));
+		sort(circle_vec.begin(), circle_vec.end(), compare_point_angle(palm_point));
 
 		Point pt_dist_contour_circle_min_old = Point(9999, 0);
 		Point pt_dist_contour_circle_min_first;
@@ -713,7 +710,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			blob.active = false;
 	}
 
-	vector<Point> convex_points_filtered;
+	vector<Point> fingertip_points;
+	vector<BlobNew*> fingertip_blobs;
 	for (Point3f& pt : convex_points_indexed)
 	{
 		BlobNew* blob_min_dist = NULL;
@@ -727,41 +725,149 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				blob_min_dist = &blob;
 			}
 		}
-		if (blob_min_dist != NULL && blob_min_dist->active)
+		if (blob_min_dist != NULL && blob_min_dist->active && blob_min_dist->count >= 10)
 		{
 			blob_min_dist->fill(image_palm_segmented, 127);
-			convex_points_filtered.push_back(Point(pt.x, pt.y));
+
+			bool found = false;
+			for (Point& pt_fingertip : fingertip_points)
+				if (pt_fingertip == blob_min_dist->pt_y_max)
+				{
+					found = true;
+					break;
+				}
+			if (!found)
+			{
+				fingertip_blobs.push_back(blob_min_dist);
+				fingertip_points.push_back(blob_min_dist->pt_y_max);
+			}
 		}
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	/*BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
-	blob_detector_image_skeleton_segmented->compute(image_skeleton_segmented, 254,
-													hand_splitter.x_min_result, hand_splitter.x_max_result,
-									                hand_splitter.y_min_result, hand_splitter.y_max_result, true);
+	Mat image_palm_segmented_rotated = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-	for (Point& pt : convex_points_filtered)
+	while (true)
 	{
-		BlobNew* blob_min_dist = NULL;
-		float min_dist = 9999;
-		for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
+		if (fingertip_blobs.size() == 0)
+			break;
+
+		Point palm_point_rotated = Point(WIDTH_SMALL / 2, HEIGHT_SMALL / 2);
+		vector<BlobNew> fingertip_blobs_rotated;
+
+		int fingertip_blobs_rotated_x_min = 9999;
+		int fingertip_blobs_rotated_x_max = -1;
+		int fingertip_blobs_rotated_y_min = 9999;
+		int fingertip_blobs_rotated_y_max = -1;
+
+		const int x_diff = WIDTH_SMALL / 2 - palm_point.x;
+		const int y_diff = HEIGHT_SMALL / 2 - palm_point.y;
+
+		Mat image_atlas_rotated = Mat::zeros(fingertip_blobs[0]->image_atlas.size(), CV_16UC1);
+
+		int index = 0;
+		for (BlobNew* blob : fingertip_blobs)
 		{
-			float dist = blob.compute_min_dist(pt);
-			if (dist < min_dist)
+			fingertip_blobs_rotated.push_back(BlobNew(image_atlas_rotated, blob->atlas_id));
+			BlobNew* blob_rotated = &(fingertip_blobs_rotated[fingertip_blobs_rotated.size() - 1]);
+			blob_rotated->name = "?";
+			blob_rotated->index = index;
+
+			for (Point& pt : blob->data)
 			{
-				min_dist = dist;
-				blob_min_dist = &blob;
+				Point pt_rotated = rotate_point(-hand_angle, pt, palm_point);
+				pt_rotated.x += x_diff;
+				pt_rotated.y += y_diff;
+
+				blob_rotated->add(pt_rotated.x, pt_rotated.y);
+
+				if (pt_rotated.x < fingertip_blobs_rotated_x_min)
+					fingertip_blobs_rotated_x_min = pt_rotated.x;
+				if (pt_rotated.x > fingertip_blobs_rotated_x_max)
+					fingertip_blobs_rotated_x_max = pt_rotated.x;
+				if (pt_rotated.y < fingertip_blobs_rotated_y_min)
+					fingertip_blobs_rotated_y_min = pt_rotated.y;
+				if (pt_rotated.y > fingertip_blobs_rotated_y_max)
+					fingertip_blobs_rotated_y_max = pt_rotated.y;
 			}
+			blob_rotated->compute();
+
+			++index;
 		}
-		if (blob_min_dist != NULL)
-			blob_min_dist->fill(image_skeleton_segmented, 127);
-	}*/
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		if (fingertip_blobs_rotated.size() == 5)
+		{
+			for (BlobNew& blob : fingertip_blobs_rotated)
+				blob.name = to_string(blob.index);
+		}
+		else
+		{
+			for (BlobNew& blob : fingertip_blobs_rotated)
+				if (blob.x_min == fingertip_blobs_rotated_x_min)
+				{
+					Point blob_anchor = Point(blob.x_max, blob.y_min);
+					float blob_angle = get_angle(palm_point_rotated, blob_anchor, Point(palm_point_rotated.x, 0));
+					if (blob_anchor.x > palm_point_rotated.x)
+						blob_angle = 360 - blob_angle;
+
+					if (blob_angle < 90)
+						blob.name = "0";
+				}
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		for (BlobNew& blob : fingertip_blobs_rotated)
+		{
+			for (Point& pt : blob.data)
+				if (pt.x >= 0 && pt.x < WIDTH_SMALL && pt.y >= 0 && pt.y < HEIGHT_SMALL)
+					image_palm_segmented_rotated.ptr<uchar>(pt.y, pt.x)[0] = 254;
+
+			put_text(blob.name, image_palm_segmented_rotated, blob.pt_y_max.x, blob.pt_y_max.y);
+		}
+		circle(image_palm_segmented_rotated, palm_point_rotated, palm_radius, Scalar(127), 1);
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		vector<Point>* contour_new = &contours[0];
+		vector<Point>* contour_old = value_store.get_point_vec("contour_old");
+
+		if (contour_new->size() == 0 || contour_old->size() == 0)
+		{
+			*contour_old = *contour_new;
+			break;
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		vector<Point>* vec0 = contour_new;
+		vector<Point>* vec1 = contour_old;
+		Mat cost_mat = compute_cost_mat(*vec0, *vec1, true);
+		vector<Point> indexes = compute_dtw_indexes(cost_mat);
+
+		for (Point& pt : indexes)
+		{
+			Point pt0 = (*vec0)[pt.x];
+			Point pt1 = (*vec1)[pt.y];
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		*contour_old = *contour_new;
+		
+		break;
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	imshow("image_palm_segmented" + name, image_palm_segmented);
-	// imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
+	// for (Point& pt : fingertip_points)
+		// circle(image_palm_segmented, pt, 3, Scalar(64), -1);
+
+	// imshow("image_palm_segmented" + name, image_palm_segmented);
+	// imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
 
 	value_store.set_bool("reset", false);
 	return false;

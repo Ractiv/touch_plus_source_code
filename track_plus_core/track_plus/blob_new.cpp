@@ -148,8 +148,20 @@ Point BlobNew::compute_median_point()
 	return Point(x_vec[x_vec.size() / 2], y_vec[y_vec.size() / 2]);
 }
 
-void BlobNew::fill(Mat& image_in, const uchar gray_in)
+void BlobNew::fill(Mat& image_in, const uchar gray_in, bool check_bounds)
 {
-	for (Point pt : data)
-		image_in.ptr<uchar>(pt.y, pt.x)[0] = gray_in;
+	if (!check_bounds)
+	{
+		for (Point pt : data)
+			image_in.ptr<uchar>(pt.y, pt.x)[0] = gray_in;
+	}
+	else
+	{
+		const int image_width = image_in.cols;
+		const int image_height = image_in.rows;
+
+		for (Point pt : data)
+			if (pt.x >= 0 && pt.y >= 0 && pt.x < image_width && pt.y < image_height)
+				image_in.ptr<uchar>(pt.y, pt.x)[0] = gray_in;
+	}
 }

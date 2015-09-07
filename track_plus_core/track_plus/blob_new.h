@@ -33,15 +33,6 @@ public:
 	ushort atlas_id;
 
 	vector<Point> data;
-	vector<Point> tips;
-
-	vector<int> index_vec;
-
-	vector<vector<Point>> extension_vecs;
-
-	vector<Point> convex_points;
-
-	vector<string> names;
 
 	int x_min = 9999;
 	int x_max = 0;
@@ -54,22 +45,13 @@ public:
 	int x;
 	int y;
 	int index;
-	int id = -1;
-
-	float dist = 0;
-
-	int* id_ptr = NULL;
 
 	bool active = true;
-	bool merge = false;
-	bool selected = false;
 
 	Point pt_y_min = Point(0, 9999);
 	Point pt_y_max = Point(0, 0);
 	Point pt_x_min = Point(9999, 0);
 	Point pt_x_max = Point(0, 0);
-
-	BlobNew* matching_blob = NULL;
 
 	string name = "";
 
@@ -82,5 +64,5 @@ public:
 	int compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_diff_in, const int dilate_num);
 	float compute_min_dist(Point pt_in);
 	Point compute_median_point();
-	void fill(Mat& image_in, const uchar gray_in);
+	void fill(Mat& image_in, const uchar gray_in, bool check_bounds = false);
 };

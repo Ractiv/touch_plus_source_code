@@ -24,6 +24,7 @@
 #include "permutation.h"
 #include "id_point.h"
 #include "value_store.h"
+#include "dtw.h"
 
 class MonoProcessorNew
 {

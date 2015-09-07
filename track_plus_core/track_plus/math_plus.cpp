@@ -141,7 +141,7 @@ float get_mean(std::vector<uchar> value_vec)
 
 Point rotate_point(float theta, Point pt, Point origin)
 {
-	theta = theta * CV_PI / 180;
+	theta = -theta * CV_PI / 180;
 
 	Point result;
 	result.x = cos(theta) * (pt.x - origin.x) - sin(theta) * (pt.y - origin.y) + origin.x;

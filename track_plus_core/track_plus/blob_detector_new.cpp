@@ -323,14 +323,6 @@ struct compare_blob_angle
 	}
 };
 
-struct compare_blob_dist
-{
-	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
-	{
-		return blob0.dist < blob1.dist;
-	}
-};
-
 struct compare_blob_x
 {
 	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
@@ -355,24 +347,6 @@ struct compare_blob_x_min
 	}
 };
 
-struct compare_blob_convex_points_y
-{
-	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
-	{
-		int y_max0 = 0;
-		for (Point pt : (blob0.convex_points))
-			if (pt.y > y_max0)
-				y_max0 = pt.y;
-
-		int y_max1 = 0;
-		for (Point pt : (blob1.convex_points))
-			if (pt.y > y_max1)
-				y_max1 = pt.y;
-
-		return (y_max0 > y_max1);
-	}
-};
-
 void BlobDetectorNew::sort_blobs_by_count()
 {
 	sort(blobs->begin(), blobs->end(), compare_blob_count());
@@ -381,11 +355,6 @@ void BlobDetectorNew::sort_blobs_by_count()
 void BlobDetectorNew::sort_blobs_by_angle(Point& pivot)
 {
 	sort(blobs->begin(), blobs->end(), compare_blob_angle(pivot));
-}
-
-void BlobDetectorNew::sort_blobs_by_dist()
-{
-	sort(blobs->begin(), blobs->end(), compare_blob_dist());
 }
 
 void BlobDetectorNew::sort_blobs_by_x()
@@ -401,9 +370,4 @@ void BlobDetectorNew::sort_blobs_by_y_max()
 void BlobDetectorNew::sort_blobs_by_x_min()
 {
 	sort(blobs->begin(), blobs->end(), compare_blob_x_min());
-}
-
-void BlobDetectorNew::sort_blobs_by_convex_points_y()
-{
-	sort(blobs->begin(), blobs->end(), compare_blob_convex_points_y());
 }

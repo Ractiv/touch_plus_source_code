@@ -43,9 +43,7 @@ public:
 	void compute_all(Mat& image_in);
 	void sort_blobs_by_count();
 	void sort_blobs_by_angle(Point& pivot);
-	void sort_blobs_by_dist();
 	void sort_blobs_by_x();
 	void sort_blobs_by_y_max();
 	void sort_blobs_by_x_min();
-	void sort_blobs_by_convex_points_y();
 };

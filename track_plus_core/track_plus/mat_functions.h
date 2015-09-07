@@ -38,3 +38,4 @@ void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat
 void compute_color_segmented_image(Mat& image_in, Mat& image_out);
 void compute_motion_structure_image(Mat& image_in, Mat& image_out, string name);
 void print_mat_type(Mat& image_in);
+void put_text(string text, Mat& img, int x, int y);

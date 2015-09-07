@@ -79,8 +79,8 @@ Mat translate_image(Mat& image_in, const int x_diff, const int y_diff)
 		for (int j = 0; j < height_const; ++j)
 			if (image_in.ptr<uchar>(j, i)[0] > 0)
 			{
-				const int i_new = i - x_diff;
-				const int j_new = j - y_diff;
+				const int i_new = i + x_diff;
+				const int j_new = j + y_diff;
 
 				if (i_new < 0 || i_new > width_const_minus || j_new < 0 || j_new > height_const_minus)
 					continue;
@@ -371,4 +371,13 @@ void print_mat_type(Mat& image_in)
 	r += (chans + '0');
 
 	COUT << r << endl;
+}
+
+void put_text(string text, Mat& img, int x, int y)
+{
+	int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
+	double fontScale = 0.5;
+	cv::Point textOrg(x, y);
+	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(0), 3, 8);
+	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(255), 1, 8);
 }
