@@ -22,7 +22,6 @@
 #include "mat_functions.h"
 #include "contour_functions.h"
 #include "permutation.h"
-#include "id_point.h"
 #include "value_store.h"
 #include "dtw.h"
 
@@ -39,5 +38,5 @@ public:
 
 	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize);
 	void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);
-	BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>& blob_vec);
+	BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec);
 };

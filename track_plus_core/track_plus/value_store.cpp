@@ -84,23 +84,6 @@ vector<Point>* ValueStore::push_point(string name, Point value)
 	return vec_ptr;
 }
 
-vector<IDPoint>* ValueStore::push_id_point(string name, IDPoint value)
-{
-	if (id_point_vec_map.count(name) == 0)
-	{
-		id_point_vec_map[name] = &id_point_vec_pool[id_point_vec_pool_index];
-		++id_point_vec_pool_index;
-
-		if (id_point_vec_pool_index == 10)
-			COUT << "overflow id_point_vec_pool_index" << endl;
-	}
-
-	vector<IDPoint>* vec_ptr = id_point_vec_map[name];
-	vec_ptr->push_back(value);
-
-	return vec_ptr;
-}
-
 vector<BlobNew>* ValueStore::push_blob(string name, BlobNew value)
 {
 	if (blob_vec_map.count(name) == 0)
@@ -220,20 +203,6 @@ vector<Point>* ValueStore::get_point_vec(string name)
 	}
 
 	return point_vec_map[name];
-}
-
-vector<IDPoint>* ValueStore::get_id_point_vec(string name)
-{
-	if (id_point_vec_map.count(name) == 0)
-	{
-		id_point_vec_map[name] = &id_point_vec_pool[id_point_vec_pool_index];
-		++id_point_vec_pool_index;
-
-		if (id_point_vec_pool_index == 10)
-			COUT << "overflow id_point_vec_pool_index" << endl;
-	}
-
-	return id_point_vec_map[name];
 }
 
 vector<BlobNew>* ValueStore::get_blob_vec(string name)

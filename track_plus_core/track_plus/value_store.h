@@ -24,7 +24,6 @@
 #include "blob_detector_new.h"
 #include "histogram_builder.h"
 #include "low_pass_filter.h"
-#include "id_point.h"
 
 using namespace std;
 using namespace cv;
@@ -37,7 +36,6 @@ public:
 	unordered_map<string, bool> bool_map;
 	unordered_map<string, vector<int>*> int_vec_map;
 	unordered_map<string, vector<Point>*> point_vec_map;
-	unordered_map<string, vector<IDPoint>*> id_point_vec_map;
 	unordered_map<string, vector<BlobNew>*> blob_vec_map;
 	unordered_map<string, vector<Mat>*> mat_vec_map;
 	unordered_map<string, Mat> mat_map;
@@ -47,7 +45,6 @@ public:
 
 	vector<int>* int_vec_pool = new vector<int>[10];
 	vector<Point>* point_vec_pool = new vector<Point>[10];
-	vector<IDPoint>* id_point_vec_pool = new vector<IDPoint>[10];
 	vector<BlobNew>* blob_vec_pool = new vector<BlobNew>[10];
 	vector<Mat>* mat_vec_pool = new vector<Mat>[10];
 	BlobDetectorNew* blob_detector_pool = new BlobDetectorNew[10];
@@ -56,7 +53,6 @@ public:
 
 	int int_vec_pool_index = 0;
 	int point_vec_pool_index = 0;
-	int id_point_vec_pool_index = 0;
 	int blob_vec_pool_index = 0;
 	int mat_vec_pool_index = 0;
 	int blob_detector_pool_index = 0;
@@ -72,7 +68,6 @@ public:
 
 	vector<int>* push_int(string name, int value);
 	vector<Point>* push_point(string name, Point value);
-	vector<IDPoint>* push_id_point(string name, IDPoint value);
 	vector<BlobNew>* push_blob(string name, BlobNew value);
 	vector<Mat>* push_mat(string name, Mat value);
 
@@ -85,7 +80,6 @@ public:
 
 	vector<int>* get_int_vec(string name);
 	vector<Point>* get_point_vec(string name);
-	vector<IDPoint>* get_id_point_vec(string name);
 	vector<BlobNew>* get_blob_vec(string name);
 	vector<Mat>* get_mat_vec(string name);
 	BlobDetectorNew* get_blob_detector(string name);

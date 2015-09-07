@@ -83,9 +83,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\hungarian.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\id_point.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
