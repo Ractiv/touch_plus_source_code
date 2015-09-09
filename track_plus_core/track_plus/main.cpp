@@ -473,7 +473,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
         proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
@@ -487,7 +487,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
     }
@@ -596,6 +596,7 @@ void keyboard_hook_thread_function()
 
     UnhookWindowsHookEx(keyboard_hook_handle);
 }
+#endif
 
 void input_thread_function()
 {
@@ -683,7 +684,7 @@ void ipc_thread_function()
 }
 
 int main()
-{
+{    
     init_paths();
 
     ipc = new IPC("track_plus");

@@ -608,7 +608,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					float ratio1 = hole_count_left / (entropy_left + 0.1);
 					float ratio_max = max(ratio0, ratio1);
 
-					if (ratio_max < 1)
+					if (ratio_max < 2)
 					{
 						alpha = 0.5;
 						value_store.set_bool("result", true);
