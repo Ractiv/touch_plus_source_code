@@ -69,8 +69,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	float palm_radius = value_store.get_float("palm_radius", 1);
 	Point palm_point = value_store.get_point("palm_point");
 
-	Point2f pt_palm = Point2f(0, 0);
-	int pt_palm_count = 0;
+	Point2f palm_point_raw = Point2f(0, 0);
+	int palm_point_raw_count = 0;
 	const int y_threshold = palm_point.y - palm_radius;
 
 	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
@@ -82,14 +82,14 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		for (Point& pt : blob.data)
 			if (pt.y > y_threshold)
 			{
-				pt_palm.x += pt.x;
-				pt_palm.y += pt.y;
-				++pt_palm_count;
+				palm_point_raw.x += pt.x;
+				palm_point_raw.y += pt.y;
+				++palm_point_raw_count;
 			}
 	}
 
-	pt_palm.x /= pt_palm_count;
-	pt_palm.y /= pt_palm_count;
+	palm_point_raw.x /= palm_point_raw_count;
+	palm_point_raw.y /= palm_point_raw_count;
 
 	vector<vector<Point>> contours = legacyFindContours(image_find_contours);
 	const int contours_size = contours.size();
@@ -214,11 +214,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		Point palm_point_new = max_loc * 4;
 		palm_point.y = palm_point_new.y;
-		palm_point.x = pt_palm.x + (palm_radius / 2);
+		palm_point.x = palm_point_raw.x + (palm_radius / 2);
 	}
 
 	low_pass_filter->compute(palm_radius, 0.1, "palm_radius");
 	low_pass_filter->compute(palm_point, 0.5, "palm_point");
+
+	pt_palm = palm_point;
 
 	value_store.set_float("palm_radius", palm_radius);
 	value_store.set_point("palm_point", palm_point);

@@ -72,6 +72,8 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 	vector<Point4f> points1;
 
 	vector<float> angle_vec;
+	vector<int> y_diff_vec;
+	vector<int> x_diff_vec;
 
 	int index = 0;
 	for (Point& index_pair : indexes)
@@ -89,6 +91,8 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 				angle = 360 - angle;
 
 			angle_vec.push_back(angle);
+			y_diff_vec.push_back(pt0.y - pt1.y);
+			x_diff_vec.push_back(pt0.x - pt1.x);
 		}
 
 		++index;
@@ -98,6 +102,8 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		return false;
 
 	const float angle_median = angle_vec[angle_vec.size() / 2];
+	const int y_diff_median = y_diff_vec[y_diff_vec.size() / 2];
+	const int x_diff_median = x_diff_vec[x_diff_vec.size() / 2];
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -156,8 +162,9 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 				angle = 360 - angle;
 
 			float angle_diff = abs(angle - angle_median);
+			int overlap_count = blob0->compute_overlap(*blob1, -x_diff_median, -y_diff_median, 3);
 
-			if (angle_diff < 20)
+			if (angle_diff < 20 && overlap_count > 0)
 				blob_pair_vec.push_back(BlobPair(blob0, blob1, angle_diff));
 		}
 
