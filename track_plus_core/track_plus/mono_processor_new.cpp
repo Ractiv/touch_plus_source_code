@@ -44,22 +44,6 @@ struct compare_point_z
 	}
 };
 
-struct Point4f
-{
-	float x;
-	float y;
-	float z;
-	float w;
-
-	Point4f(float _x, float _y, float _z, float _w)
-	{
-		x = _x;
-		y = _y;
-		z = _z;
-		w = _w;
-	};
-};
-
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
 	pt_index = Point(-1, -1);
@@ -726,8 +710,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			blob.active = false;
 	}
 
-	vector<Point> fingertip_points;
-	vector<BlobNew> fingertip_blobs;
+	fingertip_points.clear();
+	fingertip_blobs.clear();
 	for (Point3f& pt : convex_points_indexed)
 	{
 		BlobNew* blob_min_dist = NULL;
@@ -842,6 +826,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
+		if (!visualize)
+			break;
+
 		for (BlobNew& blob : fingertip_blobs_rotated)
 		{
 			for (Point& pt : blob.data)
@@ -852,127 +839,24 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 		circle(image_palm_segmented_rotated, palm_point_rotated, palm_radius, Scalar(127), 1);
 
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		vector<Point>* contour_new = &contours[0];
-		vector<Point>* contour_old = value_store.get_point_vec("contour_old");
-
-		vector<BlobNew>* blob_vec_new = &fingertip_blobs;
-		vector<BlobNew>* blob_vec_old = value_store.get_blob_vec("blob_vec_old");
-
-		if (contour_new->size() == 0 || contour_old->size() == 0)
-		{
-			*contour_old = *contour_new;
-			*blob_vec_old = *blob_vec_new;
-
-			Mat image_atlas_new = (*blob_vec_new)[0].image_atlas.clone();
-			for (BlobNew& blob : *blob_vec_old)
-				blob.image_atlas = image_atlas_new;
-
-			break;
-		}
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		vector<Point>* vec0 = contour_new;
-		vector<Point>* vec1 = contour_old;
-		Mat cost_mat = compute_cost_mat(*vec0, *vec1, true);
-		vector<Point> indexes = compute_dtw_indexes(cost_mat);
-
-		vector<Point4f> points_new; //x and y are point positions, z is DTW matched index in points_old, w is index of touching blob
-		vector<Point4f> points_old;
-
-		index = 0;
-		for (Point& index_pair : indexes)
-		{
-			Point pt_new = (*vec0)[index_pair.x];
-			Point pt_old = (*vec1)[index_pair.y];
-
-			points_new.push_back(Point4f(pt_new.x, pt_new.y, index, -1));
-			points_old.push_back(Point4f(pt_old.x, pt_old.y, index, -1));
-
-			++index;
-		}
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		index = 0;
-		for (BlobNew& blob : *blob_vec_new)
-		{
-			for (Point4f& pt : points_new)
-				if (blob.image_atlas.ptr<ushort>(pt.y, pt.x)[0] == blob.atlas_id)
-					pt.w = index;
-
-			++index;
-		}
-
-		index = 0;
-		for (BlobNew& blob : *blob_vec_old)
-		{
-			for (Point4f& pt : points_old)
-				if (blob.image_atlas.ptr<ushort>(pt.y, pt.x)[0] == blob.atlas_id)
-					pt.w = index;
-
-			++index;
-		}
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		index = 0;
-		for (BlobNew& blob : *blob_vec_new)
-		{
-			int score_board[10] { 0 };
-			for (Point4f& pt_new : points_new)
-				if (pt_new.w == index)
-				{
-					Point4f pt_old = points_old[pt_new.z];
-					++score_board[(int)pt_old.w];
-				}
-			int max_score = -1;
-			int max_score_index;
-			for (int a = 0; a < 10; ++a)
-				if (score_board[a] > max_score)
-				{
-					max_score = score_board[a];
-					max_score_index = a;
-				}
-
-			if (max_score != -1)
-			{
-				BlobNew* blob_new = &blob;
-				BlobNew* blob_old = &(*blob_vec_old)[max_score_index];
-
-				if (blob_new->name == "?")
-					blob_new->name = blob_old->name;
-
-				put_text(blob_new->name, image_palm_segmented, blob_new->pt_y_max.x, blob_new->pt_y_max.y);
-			}
-
-			++index;
-		}
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		*contour_old = *contour_new;
-		*blob_vec_old = *blob_vec_new;
-
-		Mat image_atlas_new = (*blob_vec_new)[0].image_atlas.clone();
-		for (BlobNew& blob : *blob_vec_old)
-			blob.image_atlas = image_atlas_new;
-
 		break;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	for (Point& pt : fingertip_points)
-		circle(image_palm_segmented, pt, 3, Scalar(64), -1);
+	if (visualize)
+	{
+		for (Point& pt : fingertip_points)
+			circle(image_palm_segmented, pt, 3, Scalar(64), -1);
 
-	imshow("image_palm_segmented" + name, image_palm_segmented);
-	// imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
+		// imshow("image_palm_segmented" + name, image_palm_segmented);
+		imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
 
 	value_store.set_bool("reset", false);
-	return false;
+	return true;
 }
 
 void MonoProcessorNew::sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)

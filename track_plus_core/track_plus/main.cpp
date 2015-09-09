@@ -488,12 +488,12 @@ void compute()
     if (proceed)
     {
         proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        // proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
 
         if (proceed)
         {
-            // stereo_processor.compute(mono_processor0, mono_processor1, reprojector, pointer_mapper);
+            stereo_processor.compute(mono_processor0, mono_processor1, reprojector, pointer_mapper);
 
             points_pool[points_pool_count] = mono_processor0.pose_estimation_points;
             points_ptr = &(points_pool[points_pool_count]);

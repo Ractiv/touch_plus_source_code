@@ -33,6 +33,9 @@ public:
 	Point pt_index;
 	Point pt_thumb;
 
+	vector<Point> fingertip_points;
+	vector<BlobNew> fingertip_blobs;
+
 	vector<Point> pose_estimation_points;
 	vector<Point> stereo_matching_points;
 
