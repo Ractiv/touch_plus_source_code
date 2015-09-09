@@ -1,10 +1,6 @@
 #pragma once
 
 #include "reprojector.h"
+#include "motion_processor_new.h"
 
-class PointResolver
-{
-public:
-	Point2f compute(Point& pt_in, Mat& image_in, Mat& image_background_in, uchar diff_threshold, uchar gray_threshold,
-					Reprojector& reprojector);
-};
+Point2f resolve_point(Point pt, uchar side, Mat& image_color, MotionProcessorNew& motion_processor, Reprojector& reprojector);

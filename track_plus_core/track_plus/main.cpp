@@ -490,86 +490,6 @@ void compute()
         proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
-
-        if (proceed)
-        {
-            stereo_processor.compute(mono_processor0, mono_processor1, reprojector, pointer_mapper);
-
-            points_pool[points_pool_count] = mono_processor0.pose_estimation_points;
-            points_ptr = &(points_pool[points_pool_count]);
-
-            ++points_pool_count;
-            if (points_pool_count == points_pool_count_max)
-                points_pool_count = 0;
-
-            initialized = true;
-
-            if (!show_point_sent)
-            {
-                ipc->send_message("menu_plus", "show point", "");
-                show_point_sent = true;
-            }
-
-            if (pose_name == "point")
-            {
-                if (!show_calibration_sent)
-                {
-                    ipc->send_message("menu_plus", "show calibration", "");
-                    show_calibration_sent = true;
-                }
-
-                hand_resolver.compute(mono_processor0,   mono_processor1,
-                                      motion_processor0, motion_processor1,
-                                      image0,            image1,
-                                      reprojector,       false);
-
-                pointer_mapper.compute(hand_resolver, reprojector);
-
-                if (pointer_mapper.calibrated)
-                    show_cursor_index = true;
-
-                if (show_cursor_index && pointer_mapper.thumb_down && pointer_mapper.index_down)
-                    show_cursor_thumb = true;
-                else
-                    show_cursor_thumb = false;
-            }
-            else
-            {
-                pointer_mapper.reset();
-
-                if (pose_name != "point")
-                {
-                    show_cursor_index = false;
-                    show_cursor_thumb = false;
-                }
-            }
-        }
-
-        if (!pinch_to_zoom)
-        {
-            if (show_cursor_index)
-            {
-                ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_cursor_index.x) + "!" +
-                                                         to_string(pointer_mapper.pt_cursor_index.y) + "!" +
-                                                         // "20!" +
-                                                         to_string(pointer_mapper.dist_cursor_index_plane) + "!" +
-                                                         to_string(pointer_mapper.index_down) + "!index");
-            }
-            else
-                ipc->send_udp_message(child_module_name, "hide_cursor_index");
-
-            ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
-        }
-        else
-        {
-            ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_index.x) + "!" +
-                                                     to_string(pointer_mapper.pt_pinch_to_zoom_index.y) + "!0!1!index");
-
-            ipc->send_udp_message(child_module_name, to_string(pointer_mapper.pt_pinch_to_zoom_thumb.x) + "!" +
-                                                     to_string(pointer_mapper.pt_pinch_to_zoom_thumb.y) + "!0!1!thumb");
-        }
-
-        ipc->send_udp_message(child_module_name, "update!" + to_string(frame_num));
     }
 
     ++frame_num;
@@ -676,30 +596,6 @@ void keyboard_hook_thread_function()
 
     UnhookWindowsHookEx(keyboard_hook_handle);
 }
-
-#elif __APPLE__
-void udp_receive_thread_function()
-{
-    sf::UdpSocket local_socket;
-    local_socket.bind(32001);
-
-    COUT << "successifvely bound to port 32001" << endl;
-
-    while (true)
-    {
-        sf::IpAddress sender;
-        unsigned short sender_port;
-        unsigned char data[255];
-        size_t size;
-        size_t received;
-        local_socket.receive(data, size, received, sender, sender_port);
-
-        string message = string((char*)data);
-        if (message != "")
-            COUT << message << endl;
-    }
-}
-#endif
 
 void input_thread_function()
 {
@@ -827,9 +723,6 @@ int main()
 
 #ifdef _WIN32
     thread keyboard_hook_thread(keyboard_hook_thread_function);
-
-#elif __APPLE__
-    thread udp_receive_thread(udp_receive_thread_function);
 #endif
 
     thread guardian_thread(guardian_thread_function);

@@ -129,8 +129,6 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
-
 	vector<BlobPair> blob_pair_vec;
 
 	index = 0;
@@ -162,7 +160,7 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 				angle = 360 - angle;
 
 			float angle_diff = abs(angle - angle_median);
-			int overlap_count = blob0->compute_overlap(*blob1, -x_diff_median, -y_diff_median, 3);
+			int overlap_count = blob0->compute_overlap(*blob1, -x_diff_median, -y_diff_median, 4);
 
 			if (angle_diff < 20 && overlap_count > 0)
 				blob_pair_vec.push_back(BlobPair(blob0, blob1, angle_diff));
@@ -172,6 +170,8 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 	}
 
 	sort(blob_pair_vec.begin(), blob_pair_vec.end(), compare_blob_pair_angle_diff());
+
+	//------------------------------------------------------------------------------------------------------------------------------
 
 	unordered_map<string, uchar> checker0;
 	unordered_map<string, uchar> checker1;
@@ -193,17 +193,9 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 	{
 		BlobNew* blob0 = pair.blob0;
 		BlobNew* blob1 = pair.blob1;
-
-		blob0->fill(image_visualization, 254);
-		for (Point& pt : blob1->data)
-			image_visualization.ptr<uchar>(pt.y, pt.x + 100)[0] = 254;
-
-		line(image_visualization, blob0->pt_y_max, Point(blob1->pt_y_max.x + 100, blob1->pt_y_max.y), Scalar(127), 1);
 	}
-
-	imshow("image_visualizationlkdsfhkjdhf", image_visualization);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	return false;
+	return true;
 }

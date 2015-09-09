@@ -22,6 +22,7 @@
 #include "reprojector.h"
 #include "pointer_mapper.h"
 #include "dtw.h"
+#include "point_resolver.h"
 
 class StereoProcessor
 {
