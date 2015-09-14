@@ -211,9 +211,27 @@ function switch_toggle(toggle_name, is_on)
 
 function toggle_clicked(toggle_name, is_on)
 {
-	var state = is_on ? "1" : "0";
+	var state = is_on ? "0" : "1";
 	ipc.GetResponse("daemon_plus", "set toggle", toggle_name + state, function(messageBody)
     {
      	switch_toggle(toggle_name, !is_on);
     });
 }
+
+//----------------------------------------------------------------------------------------------------
+
+ipc.GetResponse("daemon_plus", "get toggles", "", function(messageBody)
+{
+	var launch_on_startup = messageBody.substring(0, 1) == "1";
+	var power_saving_mode = messageBody.substring(1, 2) == "1";
+	var check_for_updates = messageBody.substring(2, 3) == "1";
+	var touch_control = messageBody.substring(3, 4) == "1";
+	var scroll_bar_adjust_click_height_step = parseInt(messageBody.substring(6, 7));
+
+	switch_toggle("launch_on_startup", launch_on_startup);
+	switch_toggle("power_saving_mode", power_saving_mode);
+	switch_toggle("check_for_updates", check_for_updates);
+	switch_toggle("touch_control", touch_control);
+
+	// setScrollBar($scrollBar, 195, 431, 0, 9, scrollBarAdjustClickHeightStep, 6, "scrollBarAdjustClickHeightStep");
+});

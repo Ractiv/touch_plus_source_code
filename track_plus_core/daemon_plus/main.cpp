@@ -204,7 +204,10 @@ int main()
 		block_guardian = true;
 		ipc.send_message("everyone", "exit", "");
 		ipc.clear();
-		delete_file("C:\\touch_plus_software_log.txt");
+
+		if (file_exists("C:\\touch_plus_software_log.txt"))
+			delete_file("C:\\touch_plus_software_log.txt");
+
 		exit(0);
 	});
     
