@@ -3,16 +3,18 @@
 	import flash.display.*;
 	import flash.events.*;
 	import flash.geom.*;
+	import flash.external.*;
 
 	public class ScrollBar extends MovieClip
 	{
 		private var self = this;
 
-		private var levels:int = 10;
+		private var levels:int = 9;
 		private var level_max:int = levels / 2;
 		private var level_min:int = -(levels - level_max);
 
 		public var level_current:int = 0;
+		public var level_current_raw:int = 0;
 		private var mouse_down:Boolean = false;
 
 		public function ScrollBar():void
@@ -34,6 +36,7 @@
 				mouse_down = false;
 			});
 
+			var mouse_down_old:Boolean = false;
 			self.addEventListener(Event.ENTER_FRAME, function(e:Event)
 			{
 				if (Globals.active_name != "ButtonSettings")
@@ -41,6 +44,11 @@
 
 				if (mouse_down)
 					set_circle_x(scroll_bar_line.mouseX);
+
+				if (!mouse_down && mouse_down_old)
+					ExternalInterface.call("scroll_bar_moved", self.parent.name, level_current_raw);
+				
+				mouse_down_old = mouse_down;
 			});
 		}
 
@@ -66,15 +74,23 @@
 				}
 				++index;
 			}
-			scroll_bar_circle.x = i_x_diff_min;
+			scroll_bar_circle.x = int(i_x_diff_min);
 			level_current = index_x_diff_min - (levels / 2);
+			level_current_raw = index_x_diff_min;
 		}
 
 		public function set_level(val:int):void
 		{
 			level_current = val;
-			scroll_bar_circle.x = Globals.map_val(val, level_min, level_max,
-				scroll_bar_line.x + 4, scroll_bar_line.x + scroll_bar_line.width + 4);
+			scroll_bar_circle.x = int(Globals.map_val(val, level_min, level_max,
+				scroll_bar_line.x + 4, scroll_bar_line.x + scroll_bar_line.width + 4));
+		}
+
+		public function set_level2(val:int):void
+		{
+			level_current = val;
+			scroll_bar_circle.x = int(Globals.map_val(val, 0, levels,
+				scroll_bar_line.x + 4, scroll_bar_line.x + scroll_bar_line.width + 4));
 		}
 	}
 }

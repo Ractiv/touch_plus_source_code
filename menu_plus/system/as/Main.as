@@ -89,6 +89,12 @@
 				settings_item.toggle.switch_toggle(_is_on);
 			});
 
+			ExternalInterface.addCallback("set_scroll_bar", function(scroll_bar_name:String, _level:int):void
+			{
+				var settings_item:SettingsItem = settings_page.getChildByName(scroll_bar_name) as SettingsItem;
+				settings_item.scroll_bar.set_level2(_level);
+			});
+
 			ExternalInterface.call("set_gui_ready");
 		}
 

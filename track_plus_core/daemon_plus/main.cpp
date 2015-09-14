@@ -131,8 +131,8 @@ int main()
 		settings.check_for_updates = "1";
 		settings.touch_control = "1";
 		settings.table_mode = "0";
-		settings.auto_detect_interaction_plane = "0";
-		settings.scroll_bar_adjust_click_height_step = "5";
+		settings.detect_interaction_plane = "0";
+		settings.click_height = "5";
 
 		if (!directory_exists(data_path))
 			create_directory(data_path);
@@ -160,8 +160,8 @@ int main()
 				 +  settings_ptr->check_for_updates
 				 +  settings_ptr->touch_control
 				 +  settings_ptr->table_mode
-				 +  settings_ptr->auto_detect_interaction_plane
-				 +  settings_ptr->scroll_bar_adjust_click_height_step;
+				 +  settings_ptr->detect_interaction_plane
+				 +  settings_ptr->click_height;
 
 		ipc_ptr->send_message("menu_plus", "get toggles", response);
 	});
@@ -186,11 +186,14 @@ int main()
 		else if (toggle_name == "table_mode")
 			settings_ptr->table_mode = toggle_value;
 
-		else if (toggle_name == "auto_detect_interaction_plane")
-			settings_ptr->auto_detect_interaction_plane = toggle_value;
+		else if (toggle_name == "detect_interaction_plane")
+			settings_ptr->detect_interaction_plane = toggle_value;
 
-		else if (toggle_name == "scroll_bar_adjust_click_height_step")
-			settings_ptr->scroll_bar_adjust_click_height_step = toggle_value;
+		else if (toggle_name == "click_height")
+		{
+			settings_ptr->click_height = toggle_value;
+			COUT << toggle_value << endl;
+		}
 
 		ofstream settings_ofs(settings_file_path, ios::binary);
 		settings_ofs.write((char*)settings_ptr, sizeof(*settings_ptr));

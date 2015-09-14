@@ -56,8 +56,8 @@ struct Settings
     string check_for_updates;
     string touch_control;
     string table_mode;
-    string auto_detect_interaction_plane;
-    string scroll_bar_adjust_click_height_step;
+    string detect_interaction_plane;
+    string click_height;
 };
 
 //----------------------------------------instances----------------------------------------
@@ -250,7 +250,7 @@ void load_settings()
     {
         ifstream ifs(settings_file_path, ios::binary);
         ifs.read((char*)&settings, sizeof(settings));
-        actuate_dist = actuate_dist_raw + atoi(settings.scroll_bar_adjust_click_height_step.c_str()) - 5;
+        actuate_dist = actuate_dist_raw + atoi(settings.click_height.c_str()) - 5;
 
         COUT << "settings file loaded" << endl;
     }
