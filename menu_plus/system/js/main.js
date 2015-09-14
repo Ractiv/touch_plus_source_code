@@ -27,19 +27,31 @@ function get_var(var_name)
 	return var_name;
 }
 
+function call_as(cb)
+{
+	var interval = setInterval(function()
+	{
+		if (gui_ready)
+		{
+			clearInterval(interval);
+			cb();
+		}
+	}, 100);
+}
+
 swfobject.embedSWF("main.swf", "gui", "640", "675", "9.0.0");
 
 //----------------------------------------------------------------------------------------------------
 
-const ipc = new IPC("menu_plus");
-const nw = require("nw.gui");
-const tray = new nw.Tray({ icon: "./system/images/ractiv_tray.png" });
-const menu = new nw.Menu();
-const win = nw.Window.get();
-const winShow = false;
-const winShowOld = false;
-const s3 = new S3();
-const updater = new Updater(ipc, s3, menu);
+var ipc = new IPC("menu_plus");
+var nw = require("nw.gui");
+var tray = new nw.Tray({ icon: "./system/images/ractiv_tray.png" });
+var menu = new nw.Menu();
+var win = nw.Window.get();
+var winShow = false;
+var winShowOld = false;
+var s3 = new S3();
+var updater = new Updater(ipc, s3, menu);
   
 // win.hide();
 
@@ -47,10 +59,12 @@ const updater = new Updater(ipc, s3, menu);
 
 function terminate()
 {
+	console.log("terminate");
 	ipc.SendMessage("daemon_plus", "exit", "");
 
 	setTimeout(function()
 	{
+		console.log("force terminate");
 		ipc.SendMessage("everyone", "exit", "");
 		
 	}, 1000);
@@ -58,14 +72,14 @@ function terminate()
 
 function ShowNotification(notificationHead, notificationBody)
 {
-	const notification = new Notification(notificationHead,
+	var notification = new Notification(notificationHead,
 		{ body: notificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 }
 
 ipc.MapFunction("//evaluate javascript", function(messageBody)
 {
-	const path = messageBody.replace("//", "");
-	const str = ReadTextFileIntoString(path);
+	var path = messageBody.replace("//", "");
+	var str = ReadTextFileIntoString(path);
 	eval(str);
 });
 
@@ -128,10 +142,10 @@ ipc.MapFunction("hide window", function(messageBody)
 
 ipc.MapFunction("show notification", function(messageBody)
 {
-	const str_vec = messageBody.split(":");
-	const notificationHead = str_vec[0];
-	const notificationBody = str_vec[1];
-	const notification = new Notification(notificationHead,
+	var str_vec = messageBody.split(":");
+	var notificationHead = str_vec[0];
+	var notificationBody = str_vec[1];
+	var notification = new Notification(notificationHead,
 		{ body: notificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 });
 
@@ -153,15 +167,15 @@ ipc.MapFunction("download failed", function(messageBody)
 
 ipc.MapFunction("download", function(messageBody)
 {
-	const urlPath = messageBody.split("`");
-	const url = urlPath[0];
-	const path = urlPath[1];
+	var urlPath = messageBody.split("`");
+	var url = urlPath[0];
+	var path = urlPath[1];
 
-	const http = require("http");
-	const fs = require("fs");
+	var http = require("http");
+	var fs = require("fs");
 
-	const file = fs.createWriteStream(path);
-	const request = http.get(url, function(response)
+	var file = fs.createWriteStream(path);
+	var request = http.get(url, function(response)
 	{
 		response.pipe(file);
 		file.on("finish", function()
@@ -187,29 +201,19 @@ function ipc_loop()
 
 //----------------------------------------------------------------------------------------------------
 
-function toggle_clicked(toggle_name, toggle_state)
-{
-	console.log(toggle_name + " " + toggle_state);
-}
-
-function call_as(cb)
-{
-	const interval = setInterval(function()
-	{
-		if (gui_ready)
-		{
-			clearInterval(interval);
-			cb();
-		}
-	}, 100);
-}
-
-function switch_toggle(toggle_name)
+function switch_toggle(toggle_name, is_on)
 {
 	call_as(function()
 	{
-		gui.switch_toggle(toggle_name);
+		gui.switch_toggle(toggle_name, is_on);
 	});
 }
 
-switch_toggle("launch_on_startup");
+function toggle_clicked(toggle_name, is_on)
+{
+	var state = is_on ? "1" : "0";
+	ipc.GetResponse("daemon_plus", "set toggle", toggle_name + state, function(messageBody)
+    {
+     	switch_toggle(toggle_name, !is_on);
+    });
+}

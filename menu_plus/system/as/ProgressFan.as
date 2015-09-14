@@ -6,7 +6,7 @@
 	
 	public class ProgressFan extends MovieClip
 	{
-		private const self = this;
+		private var self = this;
 		
 		public var progress_percent:Number = 0;
 		public var progress_percent_current:Number = 0;
@@ -14,7 +14,7 @@
 		
 		public function ProgressFan():void
 		{
-			const position_marker_x:Number = self.progress_fan_half0.position_marker.x;
+			var position_marker_x:Number = self.progress_fan_half0.position_marker.x;
 			self.progress_fan_frame.visible = false;
 
 			self.addEventListener(Event.ENTER_FRAME, function(e:Event):void

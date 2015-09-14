@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-const IPC = function(selfNameIn)
+var IPC = function(selfNameIn)
 {
-	const self = this;
+	var self = this;
 
 	self.selfName = selfNameIn;
 
@@ -26,12 +26,12 @@ const IPC = function(selfNameIn)
 	{
 		if (messageBody == "")
 		{
-			const port = self.udp.Assign();
+			var port = self.udp.Assign();
 			self.SendMessage("track_plus", "open udp channel", port.toString());
 		}
 		else
 		{
-			const port = parseInt(messageBody);
+			var port = parseInt(messageBody);
 			self.udp.Assign(port);
 		}
 
@@ -52,12 +52,12 @@ IPC.prototype.udp = new UDP();
 
 IPC.prototype.Update = function()
 {
-	const self = this;
+	var self = this;
 
 	if (IPC.Updated > 0)
 		return;
 
-	const fileNameVec = ListFilesInDirectory(IpcPath);
+	var fileNameVec = ListFilesInDirectory(IpcPath);
 	for (var fileNameVecIndex in fileNameVec)
 	{
 		var fileNameCurrent = fileNameVec[fileNameVecIndex];
@@ -99,12 +99,12 @@ IPC.prototype.Update = function()
 			{
 				++IPC.Updated;
 
-				const lines = ReadTextFile(IpcPath + "/" + fileNameCurrent);
+				var lines = ReadTextFile(IpcPath + "/" + fileNameCurrent);
 				// DeleteFile(IpcPath + "/" + fileNameCurrent);
 
-				const messageVec = lines[0].split("!");
-				const messageHead = messageVec[0];
-				const messageBody = messageVec[1];
+				var messageVec = lines[0].split("!");
+				var messageHead = messageVec[0];
+				var messageBody = messageVec[1];
 
 				//console.log("message received " + messageHead + " " + messageBody + " " + fileNameCurrent + " " + fileName);
 
@@ -115,7 +115,7 @@ IPC.prototype.Update = function()
 				}
 				else
 				{
-					const func = self.responseMap[messageHead];
+					var func = self.responseMap[messageHead];
 					self.responseMap[messageHead] = null;
 					func(messageBody);
 				}
@@ -128,12 +128,12 @@ IPC.prototype.Update = function()
 
 IPC.prototype.Clear = function()
 {
-	const self = this;
+	var self = this;
 
-	const fileNameVec = ListFilesInDirectory(IpcPath);
+	var fileNameVec = ListFilesInDirectory(IpcPath);
 	for (var fileNameVecIndex in fileNameVec)
 	{
-		const fileNameCurrent = fileNameVec[fileNameVecIndex];
+		var fileNameCurrent = fileNameVec[fileNameVecIndex];
 
 		var fileNameEveryone = "";
 		if (fileNameCurrent.length >= 8)
@@ -159,13 +159,13 @@ IPC.prototype.Clear = function()
 
 IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 {
-	const self = this;
+	var self = this;
 
-	const lockFileName = "lock_" + self.selfName + IPC.LockFileCount.toString();
+	var lockFileName = "lock_" + self.selfName + IPC.LockFileCount.toString();
 	WriteStringToFile(IpcPath + "/" + lockFileName, "");
 	++IPC.LockFileCount;
 
-	const fileNameVec = ListFilesInDirectory(IpcPath);
+	var fileNameVec = ListFilesInDirectory(IpcPath);
 
 	var found = true;
 	var fileCount = 0;
@@ -174,7 +174,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 		found = false;
 		for (var fileNameVecIndex in fileNameVec)
 		{
-			const fileNameCurrent = fileNameVec[fileNameVecIndex];
+			var fileNameCurrent = fileNameVec[fileNameVecIndex];
 			if (fileNameCurrent == recipient + fileCount.toString())
 			{
 				found = true;
@@ -184,7 +184,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 		}
 	}
 
-	const pathNew = IpcPath + "/" + recipient + fileCount.toString();
+	var pathNew = IpcPath + "/" + recipient + fileCount.toString();
 	WriteStringToFile(pathNew, messageHead + "!" + messageBody);
 
 	++IPC.SentCount;
@@ -195,7 +195,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 
 IPC.prototype.GetResponse = function(recipient, messageHead, messageBody, callback)
 {
-	const self = this;
+	var self = this;
 
 	self.SendMessage(recipient, messageHead, messageBody);
 	self.responseMap[messageHead] = callback;
@@ -203,14 +203,14 @@ IPC.prototype.GetResponse = function(recipient, messageHead, messageBody, callba
 
 IPC.prototype.MapFunction = function(messageHead, callback)
 {
-	const self = this;
+	var self = this;
 
 	self.commandMap[messageHead] = callback;
 };
 
 IPC.prototype.SetUDPCallback = function(udpCallbackIn)
 {
-	const self = this;
+	var self = this;
 
 	self.udp.SetUDPCallback(udpCallbackIn);
 };

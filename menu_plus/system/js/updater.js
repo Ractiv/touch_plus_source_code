@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-const Updater = function(ipcIn, s3In, menuIn)
+var Updater = function(ipcIn, s3In, menuIn)
 {
-	const self = this;
+	var self = this;
 
 	self.ipc = ipcIn;
 	self.s3 = s3In;
@@ -39,7 +39,7 @@ Updater.prototype.patching = false;
 
 Updater.prototype.CheckForUpdate = function(manual)
 {
-	const self = this;
+	var self = this;
 
 	if (self.patching)
 		return;
@@ -49,7 +49,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 		self.manualInvoke = true;
 		self.NotificationHead = "Checking for updates";
 		self.NotificationBody = "Please wait";
-		const notification = new Notification(self.NotificationHead,
+		var notification = new Notification(self.NotificationHead,
 			{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 	}
 
@@ -67,14 +67,14 @@ Updater.prototype.CheckForUpdate = function(manual)
 		var found = false;
 		for (var i in keys)
 		{
-			const key = keys[i];
+			var key = keys[i];
 			if (key.Key == "software_update/version.txt")
 			{
 				found = true;
 
 				self.s3.ReadTextKey(key.Key, function(targetVersion)
 				{
-					const currentVersion = ReadTextFile(ExecutablePath + "/version.nrocinunerrad")[0];
+					var currentVersion = ReadTextFile(ExecutablePath + "/version.nrocinunerrad")[0];
 					if (targetVersion != currentVersion)
 					{
 						if (self.manualInvoke)
@@ -83,7 +83,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 						{
 							self.NotificationHead = "A new version of Touch+ software is available";
 							self.NotificationBody = "Click here to update";
-							const notification = new Notification(self.NotificationHead,
+							var notification = new Notification(self.NotificationHead,
 								{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 
 							notification.onclick = function()
@@ -96,7 +96,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 					{
 						self.NotificationHead = "Touch+ software is up to date";
 						self.NotificationBody = "Current vesion: " + currentVersion;
-						const notification = new Notification(self.NotificationHead,
+						var notification = new Notification(self.NotificationHead,
 							{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 
 						self.manualInvoke = false;
@@ -109,7 +109,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 					{
 						self.NotificationHead = "Update failed";
 						self.NotificationBody = "please check your internet connection";
-						const notification = new Notification(self.NotificationHead,
+						var notification = new Notification(self.NotificationHead,
 							{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 					}
 
@@ -130,7 +130,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 		{
 			self.NotificationHead = "Update failed";
 			self.NotificationBody = "please check your internet connection";
-			const notification = new Notification(self.NotificationHead,
+			var notification = new Notification(self.NotificationHead,
 				{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 		}
 
@@ -141,7 +141,7 @@ Updater.prototype.CheckForUpdate = function(manual)
 
 Updater.prototype.patch = function(targetVersion)
 {
-	const self = this;
+	var self = this;
 
 	if (self.patching)
 		return;
@@ -150,14 +150,14 @@ Updater.prototype.patch = function(targetVersion)
 
 	self.NotificationHead = "Downloading update";
 	self.NotificationBody = "Please wait";
-	const notification = new Notification(self.NotificationHead,
+	var notification = new Notification(self.NotificationHead,
 		{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 
 	self.s3.DownloadKey("software_update/patch.zip", ExecutablePath, function(path)
 	{
 		self.NotificationHead = "Installing update";
 		self.NotificationBody = "Please wait";
-		const notification = new Notification(self.NotificationHead,
+		var notification = new Notification(self.NotificationHead,
 			{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 
 		BlockExit = true;
@@ -165,13 +165,13 @@ Updater.prototype.patch = function(targetVersion)
 
 		setTimeout(function()
 		{
-			const AdmZip = require(process.cwd() + "/modules/adm-zip");
+			var AdmZip = require(process.cwd() + "/modules/adm-zip");
 			new AdmZip(path).extractAllTo(ExecutablePath, true);
 			DeleteFile(path);
 
 			self.NotificationHead = "Update finished";
 			self.NotificationBody = "Current version: " + targetVersion;
-			const notification = new Notification(self.NotificationHead,
+			var notification = new Notification(self.NotificationHead,
 				{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 
 			BlockExit = false;
@@ -189,7 +189,7 @@ Updater.prototype.patch = function(targetVersion)
 		{
 			self.NotificationHead = "Update failed";
 			self.NotificationBody = "please check your internet connection";
-			const notification = new Notification(self.NotificationHead,
+			var notification = new Notification(self.NotificationHead,
 				{ body: self.NotificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 
 			self.manualInvoke = false;

@@ -5,7 +5,7 @@
 	
 	public class SettingsItem extends MovieClip
 	{
-		private const self = this;
+		private var self = this;
 		private var is_enabled:Boolean = true;
 		private var current_type:String = "toggle";
 
@@ -32,7 +32,7 @@
       	[Inspectable(name = "active", type = Boolean)]
 		public function set active(val:Boolean):void
 		{
-			const new_color:ColorTransform = new ColorTransform();
+			var new_color:ColorTransform = new ColorTransform();
 			if (val)
 			{
 				// new_color.color = 0x666666;

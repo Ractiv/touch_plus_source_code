@@ -6,11 +6,11 @@
 
 	public class ScrollBar extends MovieClip
 	{
-		private const self = this;
+		private var self = this;
 
-		private const levels:int = 10;
-		private const level_max:int = levels / 2;
-		private const level_min:int = -(levels - level_max);
+		private var levels:int = 10;
+		private var level_max:int = levels / 2;
+		private var level_min:int = -(levels - level_max);
 
 		public var level_current:int = 0;
 		private var mouse_down:Boolean = false;
@@ -46,7 +46,7 @@
 
 		private function set_circle_x(x_val:int):void
 		{
-			const segment_length:int = scroll_bar_line.width / levels;
+			var segment_length:int = scroll_bar_line.width / levels;
 
 			var x_diff:Number = 0;
 			var x_diff_min:Number = 9999;
@@ -54,7 +54,7 @@
 			var index_x_diff_min:int = 0;
 
 			var index:int = 0;
-			const i_max:int = scroll_bar_line.x + scroll_bar_line.width;
+			var i_max:int = scroll_bar_line.x + scroll_bar_line.width;
 			for (var i:int = scroll_bar_line.x; i <= i_max; i += segment_length)
 			{
 				x_diff = Math.abs(i + 5 - x_val);

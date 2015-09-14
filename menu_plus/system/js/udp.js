@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-const UDP = function() { };
+var UDP = function() { };
 
 UDP.prototype.port = 3333;
 UDP.prototype.address = "127.0.0.1";
@@ -26,20 +26,20 @@ UDP.prototype.udpCallback = null;
 
 UDP.prototype.Assign = function(portIn)
 {
-	const self = this;
+	var self = this;
 
 	portIn = typeof portIn !== "undefined" ? portIn : -1;
 
-	const dgram = require("dgram");
+	var dgram = require("dgram");
 	self.socket = dgram.createSocket("udp4");
 
 	var fileFound = false;
 	var fileName = "";
 
-	const fileNameVec = ListFilesInDirectory(IpcPath);
+	var fileNameVec = ListFilesInDirectory(IpcPath);
 	for (var fileNameCurrentIndex in fileNameVec)
     {
-    	const fileNameCurrent = fileNameVec[fileNameCurrentIndex];
+    	var fileNameCurrent = fileNameVec[fileNameCurrentIndex];
     	if (fileNameCurrent == "udp_port")
     	{
     		fileFound = true;
@@ -50,7 +50,7 @@ UDP.prototype.Assign = function(portIn)
 
     if (fileFound)
     {
-    	const udpPortStr = ReadTextFile(IpcPath + "\\udp_port")[0];
+    	var udpPortStr = ReadTextFile(IpcPath + "\\udp_port")[0];
     	self.port = parseInt(udpPortStr);
     }
     else
@@ -82,7 +82,7 @@ UDP.prototype.Assign = function(portIn)
 
 UDP.prototype.dataReceived = function(message)
 {
-	const self = this;
+	var self = this;
 
 	if (self.callbackSet)
 		self.udpCallback(message);
@@ -90,7 +90,7 @@ UDP.prototype.dataReceived = function(message)
 
 UDP.prototype.SetUDPCallback = function(udpCallbackIn)
 {
-	const self = this;
+	var self = this;
 
 	self.udpCallback = udpCallbackIn;
 	self.callbackSet = true;
@@ -98,8 +98,8 @@ UDP.prototype.SetUDPCallback = function(udpCallbackIn)
 
 UDP.prototype.SendMessage = function(message)
 {
-	const self = this;
+	var self = this;
 
-	const buffer = new Buffer(message);
+	var buffer = new Buffer(message);
 	self.socket.send(buffer, 0, buffer.length, self.port, self.address);
 }

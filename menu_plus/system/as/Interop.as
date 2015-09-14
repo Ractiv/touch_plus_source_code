@@ -8,7 +8,7 @@ package
 
 		public static function call_js(js_code, cb):void
 		{
-			const cb_name:String = "cb" + cb_count.toString();
+			var cb_name:String = "cb" + cb_count.toString();
 			ExternalInterface.addCallback(cb_name, cb);
 			++cb_count;
 			ExternalInterface.call("gui." + cb_name + "(" + js_code + ")");

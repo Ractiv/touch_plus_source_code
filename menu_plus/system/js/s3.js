@@ -18,19 +18,19 @@
 
 // require("nw.gui").Window.get().evalNWBin(null, ExecutablePath + "/menu_plus/js/aws-credentials.bin");
 
-const AwsAccessKeyID = "";
-const AwsSecretAccessKey = "";
-const AwsBucketName = "";
+var AwsAccessKeyID = "";
+var AwsSecretAccessKey = "";
+var AwsBucketName = "";
 
-const S3 = function()
+var S3 = function()
 {
-	const self = this;
+	var self = this;
 	AWS.config.update({ accessKeyId: AwsAccessKeyID, secretAccessKey: AwsSecretAccessKey });
 };
 
 S3.prototype.GetKeys = function(callback, errorCallback)
 {
-	const self = this;
+	var self = this;
 
 	new AWS.S3().listObjects({ Bucket: AwsBucketName }, function(error, data)
 	{
@@ -43,9 +43,9 @@ S3.prototype.GetKeys = function(callback, errorCallback)
 
 S3.prototype.ReadTextKey = function(keyName, callback, errorCallback)
 {
-	const self = this;
+	var self = this;
 
-	const request = new AWS.S3().getObject({ Bucket: AwsBucketName, Key: keyName }, function(err, data)
+	var request = new AWS.S3().getObject({ Bucket: AwsBucketName, Key: keyName }, function(err, data)
 	{
 		if (!err && callback != null && callback != undefined)
 		{
@@ -67,9 +67,9 @@ S3.prototype.ReadTextKey = function(keyName, callback, errorCallback)
 
 S3.prototype.WriteTextKey = function(keyName, keyString, callback)
 {
-	const self = this;
+	var self = this;
 
-	const s3obj = new AWS.S3({ params: { Bucket: AwsBucketName, Key: keyName } });
+	var s3obj = new AWS.S3({ params: { Bucket: AwsBucketName, Key: keyName } });
 	s3obj.upload({ Body: keyString }, function()
 	{
 		if (callback != null && callback != undefined)
@@ -79,15 +79,15 @@ S3.prototype.WriteTextKey = function(keyName, keyString, callback)
 
 S3.prototype.UploadKey = function(keyName, path, callback)
 {
-	const self = this;
+	var self = this;
 
 	fs.readFile(path, function(err, data)
 	{
 		if (err) { throw err; }
 
-		const base64data = new Buffer(data, "binary");
+		var base64data = new Buffer(data, "binary");
 
-		const s3obj = new AWS.S3({ params: { Bucket: AwsBucketName, Key: keyName } });
+		var s3obj = new AWS.S3({ params: { Bucket: AwsBucketName, Key: keyName } });
 		s3obj.upload({ Body: base64data }, function()
 		{
 			if (callback != null && callback != undefined)
@@ -98,18 +98,18 @@ S3.prototype.UploadKey = function(keyName, path, callback)
 
 S3.prototype.DownloadKey = function(keyName, path, callback, errorCallback, progressCallback)
 {
-	const self = this;
+	var self = this;
 
-	const request = new AWS.S3().getObject({ Bucket: AwsBucketName, Key: keyName }, function(err, data)
+	var request = new AWS.S3().getObject({ Bucket: AwsBucketName, Key: keyName }, function(err, data)
 	{
 		if (!err)
 		{
-			const buffer = new Buffer(data.Body.length);
+			var buffer = new Buffer(data.Body.length);
 			for (var i = 0; i < data.Body.length; ++i)
 			    buffer.writeUInt8(data.Body[i], i);
 
-			const fileNameSplit = keyName.split("/");
-			const fileName = fileNameSplit[fileNameSplit.length - 1];
+			var fileNameSplit = keyName.split("/");
+			var fileName = fileNameSplit[fileNameSplit.length - 1];
 
 			fs.writeFileSync(path + "/" + fileName, buffer);
 

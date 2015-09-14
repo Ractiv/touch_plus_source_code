@@ -7,25 +7,25 @@
 	
 	public class MenuBar extends MovieClip
 	{
-		private const self = this;
+		private var self = this;
 
-		private const area_width:int = Globals.stage_width;
-		private const area_height:int = 100;
-		private const spacing:int = 50;
-		private const button_width:int = 50;
-		private const button_height:int = 50;
+		private var area_width:int = Globals.stage_width;
+		private var area_height:int = 100;
+		private var spacing:int = 50;
+		private var button_width:int = 50;
+		private var button_height:int = 50;
 
-		private const button_array:Array = new Array();
+		private var button_array:Array = new Array();
 
 		public var active_index:int = 0;
 		public var active_name:String;
 
 		public function MenuBar():void
 		{
-			const button_settings:ButtonSettings = new ButtonSettings();
-			const button_support:ButtonSupport = new ButtonSupport();
-			const button_visualize:ButtonVisualize = new ButtonVisualize();
-			const button_dev_tool:ButtonDebug = new ButtonDebug();
+			var button_settings:ButtonSettings = new ButtonSettings();
+			var button_support:ButtonSupport = new ButtonSupport();
+			var button_visualize:ButtonVisualize = new ButtonVisualize();
+			var button_dev_tool:ButtonDebug = new ButtonDebug();
 
 			button_array.push(button_settings);
 			button_array.push(button_visualize);
@@ -35,14 +35,14 @@
 			if (button_array.length == 0)
 				return;
 
-			const total_width:int = (button_array.length * button_width) + ((button_array.length - 1) * spacing);
-			const x_min:int = (area_width / 2) - (total_width / 2);
-			const y_min:int = (area_height / 2) - (button_height / 2);
+			var total_width:int = (button_array.length * button_width) + ((button_array.length - 1) * spacing);
+			var x_min:int = (area_width / 2) - (total_width / 2);
+			var y_min:int = (area_height / 2) - (button_height / 2);
 
 			var x_current:Number = x_min;
 			for (var i = 0; i < button_array.length; ++i)
 			{
-				const button_current = button_array[i];
+				var button_current = button_array[i];
 				button_current.x = x_current;
 				button_current.y = y_min;
 
@@ -64,10 +64,10 @@
 
 		private function activate(button)
 		{
-			const new_color:ColorTransform = new ColorTransform();
+			var new_color:ColorTransform = new ColorTransform();
 			for (var i:int = 0; i < button_array.length; ++i)
 			{
-				const button_current = button_array[i];
+				var button_current = button_array[i];
 				if (button_current != button)
 				{
 					new_color.color = 0x999999;

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-const ExecutablePath = "C:/e/Users/Lai/Documents/projects/ractiv/touch_plus/touch_plus_source_code/build";
-// const ExecutablePath = require("path").join(process.cwd(), "..");
-const IpcPath = ExecutablePath + "/ipc";
-const UserDataPath = ExecutablePath + "/userdata";
-const BlockExit = false;
+var ExecutablePath = "C:/e/Users/Lai/Documents/projects/ractiv/touch_plus/touch_plus_source_code/build";
+// var ExecutablePath = require("path").join(process.cwd(), "..");
+var IpcPath = ExecutablePath + "/ipc";
+var UserDataPath = ExecutablePath + "/userdata";
+var BlockExit = false;
