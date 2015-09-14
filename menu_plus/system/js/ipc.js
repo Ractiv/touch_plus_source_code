@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-var IPC = function(selfNameIn)
+const IPC = function(selfNameIn)
 {
 	const self = this;
 
@@ -26,12 +26,12 @@ var IPC = function(selfNameIn)
 	{
 		if (messageBody == "")
 		{
-			var port = self.udp.Assign();
+			const port = self.udp.Assign();
 			self.SendMessage("track_plus", "open udp channel", port.toString());
 		}
 		else
 		{
-			var port = parseInt(messageBody);
+			const port = parseInt(messageBody);
 			self.udp.Assign(port);
 		}
 
@@ -57,7 +57,7 @@ IPC.prototype.Update = function()
 	if (IPC.Updated > 0)
 		return;
 
-	var fileNameVec = ListFilesInDirectory(IpcPath);
+	const fileNameVec = ListFilesInDirectory(IpcPath);
 	for (var fileNameVecIndex in fileNameVec)
 	{
 		var fileNameCurrent = fileNameVec[fileNameVecIndex];
@@ -99,12 +99,12 @@ IPC.prototype.Update = function()
 			{
 				++IPC.Updated;
 
-				var lines = ReadTextFile(IpcPath + "/" + fileNameCurrent);
+				const lines = ReadTextFile(IpcPath + "/" + fileNameCurrent);
 				// DeleteFile(IpcPath + "/" + fileNameCurrent);
 
-				var messageVec = lines[0].split("!");
-				var messageHead = messageVec[0];
-				var messageBody = messageVec[1];
+				const messageVec = lines[0].split("!");
+				const messageHead = messageVec[0];
+				const messageBody = messageVec[1];
 
 				//console.log("message received " + messageHead + " " + messageBody + " " + fileNameCurrent + " " + fileName);
 
@@ -115,13 +115,12 @@ IPC.prototype.Update = function()
 				}
 				else
 				{
-					var func = self.responseMap[messageHead];
+					const func = self.responseMap[messageHead];
 					self.responseMap[messageHead] = null;
 					func(messageBody);
 				}
 
 				--IPC.Updated;
-
 			}
 		}
 	}
@@ -131,10 +130,10 @@ IPC.prototype.Clear = function()
 {
 	const self = this;
 
-	var fileNameVec = ListFilesInDirectory(IpcPath);
+	const fileNameVec = ListFilesInDirectory(IpcPath);
 	for (var fileNameVecIndex in fileNameVec)
 	{
-		var fileNameCurrent = fileNameVec[fileNameVecIndex];
+		const fileNameCurrent = fileNameVec[fileNameVecIndex];
 
 		var fileNameEveryone = "";
 		if (fileNameCurrent.length >= 8)
@@ -162,11 +161,11 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 {
 	const self = this;
 
-	var lockFileName = "lock_" + self.selfName + IPC.LockFileCount.toString();
+	const lockFileName = "lock_" + self.selfName + IPC.LockFileCount.toString();
 	WriteStringToFile(IpcPath + "/" + lockFileName, "");
 	++IPC.LockFileCount;
 
-	var fileNameVec = ListFilesInDirectory(IpcPath);
+	const fileNameVec = ListFilesInDirectory(IpcPath);
 
 	var found = true;
 	var fileCount = 0;
@@ -175,7 +174,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 		found = false;
 		for (var fileNameVecIndex in fileNameVec)
 		{
-			var fileNameCurrent = fileNameVec[fileNameVecIndex];
+			const fileNameCurrent = fileNameVec[fileNameVecIndex];
 			if (fileNameCurrent == recipient + fileCount.toString())
 			{
 				found = true;
@@ -185,7 +184,7 @@ IPC.prototype.SendMessage = function(recipient, messageHead, messageBody)
 		}
 	}
 
-	var pathNew = IpcPath + "/" + recipient + fileCount.toString();
+	const pathNew = IpcPath + "/" + recipient + fileCount.toString();
 	WriteStringToFile(pathNew, messageHead + "!" + messageBody);
 
 	++IPC.SentCount;

@@ -39,7 +39,7 @@
 			const x_min:int = (area_width / 2) - (total_width / 2);
 			const y_min:int = (area_height / 2) - (button_height / 2);
 
-			var x_current = x_min;
+			var x_current:Number = x_min;
 			for (var i = 0; i < button_array.length; ++i)
 			{
 				const button_current = button_array[i];
@@ -64,7 +64,7 @@
 
 		private function activate(button)
 		{
-			var new_color:ColorTransform = new ColorTransform();
+			const new_color:ColorTransform = new ColorTransform();
 			for (var i:int = 0; i < button_array.length; ++i)
 			{
 				const button_current = button_array[i];

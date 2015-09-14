@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-var UDP = function() { };
+const UDP = function() { };
 
 UDP.prototype.port = 3333;
 UDP.prototype.address = "127.0.0.1";
@@ -30,16 +30,16 @@ UDP.prototype.Assign = function(portIn)
 
 	portIn = typeof portIn !== "undefined" ? portIn : -1;
 
-	var dgram = require("dgram");
+	const dgram = require("dgram");
 	self.socket = dgram.createSocket("udp4");
 
 	var fileFound = false;
 	var fileName = "";
 
-	var fileNameVec = ListFilesInDirectory(IpcPath);
+	const fileNameVec = ListFilesInDirectory(IpcPath);
 	for (var fileNameCurrentIndex in fileNameVec)
     {
-    	var fileNameCurrent = fileNameVec[fileNameCurrentIndex];
+    	const fileNameCurrent = fileNameVec[fileNameCurrentIndex];
     	if (fileNameCurrent == "udp_port")
     	{
     		fileFound = true;
@@ -50,7 +50,7 @@ UDP.prototype.Assign = function(portIn)
 
     if (fileFound)
     {
-    	var udpPortStr = ReadTextFile(IpcPath + "\\udp_port")[0];
+    	const udpPortStr = ReadTextFile(IpcPath + "\\udp_port")[0];
     	self.port = parseInt(udpPortStr);
     }
     else
@@ -100,6 +100,6 @@ UDP.prototype.SendMessage = function(message)
 {
 	const self = this;
 
-	var buffer = new Buffer(message);
+	const buffer = new Buffer(message);
 	self.socket.send(buffer, 0, buffer.length, self.port, self.address);
 }

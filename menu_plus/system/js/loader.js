@@ -1,17 +1,17 @@
-var http = require("http");
-var fs = require("fs");
-var path = require("path");
-var net = require("net");
-var nw = require("nw.gui");
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const net = require("net");
+const nw = require("nw.gui");
 
 var portRange = 45032;
 
 function getPort(cb)
 {
-	var port = portRange;
+	const port = portRange;
 	portRange += 1;
 
-	var server = net.createServer();
+	const server = net.createServer();
 	server.listen(port, function(err)
 	{
 		server.once("close", function()
@@ -33,12 +33,12 @@ getPort(function(port)
 	{
 		console.log("request starting...");
 
-		var filePath = "." + request.url;
+		const filePath = "." + request.url;
 		if (filePath == "./")
 		    filePath = "./index.html";
 
-		var extname = path.extname(filePath);
-		var contentType = "text/html";
+		const extname = path.extname(filePath);
+		const contentType = "text/html";
 		switch (extname)
 		{
 		    case ".js":
@@ -88,10 +88,10 @@ getPort(function(port)
 
 	}).listen(port);
 
-	var url = "http://127.0.0.1:" + port;
+	const url = "http://127.0.0.1:" + port;
 	console.log("Server running at " + url);
 
-	var iframe = document.createElement("iframe");
+	const iframe = document.createElement("iframe");
 	iframe.src = url + "/system/main.html";
 	iframe.width = "100%";
 	iframe.height = "100%";

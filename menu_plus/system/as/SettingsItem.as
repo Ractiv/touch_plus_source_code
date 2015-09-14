@@ -32,7 +32,7 @@
       	[Inspectable(name = "active", type = Boolean)]
 		public function set active(val:Boolean):void
 		{
-			var new_color:ColorTransform = new ColorTransform();
+			const new_color:ColorTransform = new ColorTransform();
 			if (val)
 			{
 				// new_color.color = 0x666666;

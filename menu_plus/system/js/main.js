@@ -19,6 +19,7 @@ var downloading_percent = 100;
 function set_gui_ready()
 {
 	gui = document.getElementById("gui");
+	gui_ready = true;
 }
 
 function get_var(var_name)
@@ -30,15 +31,15 @@ swfobject.embedSWF("main.swf", "gui", "640", "675", "9.0.0");
 
 //----------------------------------------------------------------------------------------------------
 
-var ipc = new IPC("menu_plus");
-var nw = require("nw.gui");
-var tray = new nw.Tray({ icon: "./system/images/ractiv_tray.png" });
-var menu = new nw.Menu();
-var win = nw.Window.get();
-var winShow = false;
-var winShowOld = false;
-var s3 = new S3();
-var updater = new Updater(ipc, s3, menu);
+const ipc = new IPC("menu_plus");
+const nw = require("nw.gui");
+const tray = new nw.Tray({ icon: "./system/images/ractiv_tray.png" });
+const menu = new nw.Menu();
+const win = nw.Window.get();
+const winShow = false;
+const winShowOld = false;
+const s3 = new S3();
+const updater = new Updater(ipc, s3, menu);
   
 // win.hide();
 
@@ -57,14 +58,14 @@ function terminate()
 
 function ShowNotification(notificationHead, notificationBody)
 {
-	var notification = new Notification(notificationHead,
+	const notification = new Notification(notificationHead,
 		{ body: notificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 }
 
 ipc.MapFunction("//evaluate javascript", function(messageBody)
 {
-	var path = messageBody.replace("//", "");
-	var str = ReadTextFileIntoString(path);
+	const path = messageBody.replace("//", "");
+	const str = ReadTextFileIntoString(path);
 	eval(str);
 });
 
@@ -127,10 +128,10 @@ ipc.MapFunction("hide window", function(messageBody)
 
 ipc.MapFunction("show notification", function(messageBody)
 {
-	var str_vec = messageBody.split(":");
-	var notificationHead = str_vec[0];
-	var notificationBody = str_vec[1];
-	var notification = new Notification(notificationHead,
+	const str_vec = messageBody.split(":");
+	const notificationHead = str_vec[0];
+	const notificationBody = str_vec[1];
+	const notification = new Notification(notificationHead,
 		{ body: notificationBody, icon: "file://" + process.cwd() + "system/images/ractiv.png" });
 });
 
@@ -152,15 +153,15 @@ ipc.MapFunction("download failed", function(messageBody)
 
 ipc.MapFunction("download", function(messageBody)
 {
-	var urlPath = messageBody.split("`");
-	var url = urlPath[0];
-	var path = urlPath[1];
+	const urlPath = messageBody.split("`");
+	const url = urlPath[0];
+	const path = urlPath[1];
 
-	var http = require("http");
-	var fs = require("fs");
+	const http = require("http");
+	const fs = require("fs");
 
-	var file = fs.createWriteStream(path);
-	var request = http.get(url, function(response)
+	const file = fs.createWriteStream(path);
+	const request = http.get(url, function(response)
 	{
 		response.pipe(file);
 		file.on("finish", function()
@@ -183,3 +184,32 @@ function ipc_loop()
 {
 	ipc.Update();
 }
+
+//----------------------------------------------------------------------------------------------------
+
+function toggle_clicked(toggle_name, toggle_state)
+{
+	console.log(toggle_name + " " + toggle_state);
+}
+
+function call_as(cb)
+{
+	const interval = setInterval(function()
+	{
+		if (gui_ready)
+		{
+			clearInterval(interval);
+			cb();
+		}
+	}, 100);
+}
+
+function switch_toggle(toggle_name)
+{
+	call_as(function()
+	{
+		gui.switch_toggle(toggle_name);
+	});
+}
+
+switch_toggle("launch_on_startup");

@@ -171,25 +171,25 @@ int main()
 		const string toggle_name = message_body.substr(0, message_body.size() - 1);
 		const string toggle_value = message_body.substr(message_body.size() - 1, message_body.size());
 
-		if (toggle_name == "toggleLaunchOnStartup")
+		if (toggle_name == "launch_on_startup")
 			settings_ptr->launch_on_startup = toggle_value;
 
-		else if (toggle_name == "togglePowerSavingMode")
+		else if (toggle_name == "power_saving_mode")
 			settings_ptr->power_saving_mode = toggle_value;
 
-		else if (toggle_name == "toggleCheckForUpdates")
+		else if (toggle_name == "check_for_updates")
 			settings_ptr->check_for_updates = toggle_value;
 
-		else if (toggle_name == "toggleTouchControl")
+		else if (toggle_name == "touch_control")
 			settings_ptr->touch_control = toggle_value;
 
-		else if (toggle_name == "toggleTableMode")
+		else if (toggle_name == "table_mode")
 			settings_ptr->table_mode = toggle_value;
 
-		else if (toggle_name == "toggleAutoDetectInteractionPlane")
+		else if (toggle_name == "auto_detect_interaction_plane")
 			settings_ptr->auto_detect_interaction_plane = toggle_value;
 
-		else if (toggle_name == "scrollBarAdjustClickHeightStep")
+		else if (toggle_name == "scroll_bar_adjust_click_height_step")
 			settings_ptr->scroll_bar_adjust_click_height_step = toggle_value;
 
 		ofstream settings_ofs(settings_file_path, ios::binary);

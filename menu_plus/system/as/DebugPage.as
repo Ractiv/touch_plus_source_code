@@ -24,7 +24,7 @@
 					reading = true;
 					Interop.call_js("ReadTextFile('c:/touch_plus_software_log.txt')", function(obj):void
 					{
-						var lines_array:Array = obj as Array;
+						const lines_array:Array = obj as Array;
 						if (lines_array.length > lines_array_old.length)
 						{
 							for (var i:int = lines_array_old.length - 1; i < lines_array.length; ++i)
@@ -44,19 +44,19 @@
 				
 				Interop.call_js("get_var(status)", function(obj):void
 				{
-					var status:String = obj as String;
+					const status:String = obj as String;
 					status_text.text = status;
 				});
 				
 				Interop.call_js("get_var(loading_percent)", function(obj):void
 				{
-					var loading_percent:int = obj as int;
+					const loading_percent:int = obj as int;
 					progress_fan0.progress_percent = loading_percent;
 				});
 				
 				Interop.call_js("get_var(downloading_percent)", function(obj):void
 				{
-					var downloading_percent:int = obj as int;
+					const downloading_percent:int = obj as int;
 					progress_fan1.progress_percent = downloading_percent;
 				});
 				

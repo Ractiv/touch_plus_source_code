@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-var fs = require("fs");
+const fs = require("fs");
 
 function ListFilesInDirectory(path)
 {
-	var fileNameVec = fs.readdirSync(path);
+	const fileNameVec = fs.readdirSync(path);
 	return fileNameVec;   
 }
 
@@ -48,10 +48,10 @@ function WriteStringToFile(path, str)
 
 function ReadTextFile(path)
 {
-	var str = fs.readFileSync(path, "utf8");
-	var lines = str.split(/[\u000d\u000a\u0008]+/g);
+	const str = fs.readFileSync(path, "utf8");
+	const lines = str.split(/[\u000d\u000a\u0008]+/g);
 
-	var iMax = lines.length;
+	const iMax = lines.length;
 	for (var i = 0; i < iMax; ++i)
 		lines[i] = lines[i].replace(/[\u000d\u000a\u0008]+/g, "");
 	
@@ -74,13 +74,12 @@ function DeleteFile(path)
 
 function DeleteFolder(path)
 {
-    var files = [];
     if (fs.existsSync(path))
     {
-        files = fs.readdirSync(path);
+        const files = fs.readdirSync(path);
         files.forEach(function(file, index)
         {
-            var curPath = path + "/" + file;
+            const curPath = path + "/" + file;
             if(fs.lstatSync(curPath).isDirectory())
                 DeleteFolder(curPath);
             else

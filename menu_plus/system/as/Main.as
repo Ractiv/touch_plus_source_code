@@ -16,32 +16,31 @@
 		public function Main():void
 		{
 			stage.addEventListener(MouseEvent.RIGHT_CLICK, function(e:MouseEvent):void{});
-			ExternalInterface.call("set_gui_ready");
 
 			page_container.x = 0;
 			page_container.y = 0;
 			self.addChild(page_container);
 
-			var settings_page:SettingsPage = new SettingsPage();
+			const settings_page:SettingsPage = new SettingsPage();
 			add_page(settings_page);
 
-			var visualize_page:VisualizePage = new VisualizePage();
+			const visualize_page:VisualizePage = new VisualizePage();
 			add_page(visualize_page);
 
-			var support_page:SupportPage = new SupportPage();
+			const support_page:SupportPage = new SupportPage();
 			add_page(support_page);
 
-			var debug_page:DebugPage = new DebugPage();
+			const debug_page:DebugPage = new DebugPage();
 			add_page(debug_page);
 
 			var show_menu_bar_shade:Boolean = false;
-			var menu_bar_shade:MenuBarShade = new MenuBarShade();
+			const menu_bar_shade:MenuBarShade = new MenuBarShade();
 			menu_bar_shade.x = 0;
 			menu_bar_shade.y = 0;
 			menu_bar_shade.alpha = 0;
 			self.addChild(menu_bar_shade);
 
-			var menu_bar:MenuBar = new MenuBar();
+			const menu_bar:MenuBar = new MenuBar();
 			self.addChild(menu_bar);
 
 			var x_dest_old:int = 0;
@@ -79,10 +78,17 @@
 				if (menu_bar.active_name == "ButtonDebug" || menu_bar.active_name == "ButtonVisualize")
 					show_menu_bar_shade = true;
 
-				var menu_bar_shade_alpha:int = show_menu_bar_shade ? 1 : 0;
-				var alpha_diff:Number = (menu_bar_shade_alpha - menu_bar_shade.alpha) / 10;
+				const menu_bar_shade_alpha:int = show_menu_bar_shade ? 1 : 0;
+				const alpha_diff:Number = (menu_bar_shade_alpha - menu_bar_shade.alpha) / 10;
 				menu_bar_shade.alpha += alpha_diff;
 			});
+
+			ExternalInterface.addCallback("switch_toggle", function(toggle_name:String):void
+			{
+				Interop.log(toggle_name);
+			});
+
+			ExternalInterface.call("set_gui_ready");
 		}
 
 		private function add_page(page):void
