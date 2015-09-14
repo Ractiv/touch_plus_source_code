@@ -15,12 +15,10 @@
 				{
 					text_email_address.text = "";
 					text_message.text = "";
-					trace("message sent");
+					Globals.show_text_bubble("message sent");
 				}
 				else
-				{
-					trace("please enter a valid email address and message");
-				}
+					Globals.show_text_bubble("please enter a valid email address and message");
 			});
 		}
 	}

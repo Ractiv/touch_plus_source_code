@@ -43,6 +43,9 @@
 			var menu_bar:MenuBar = new MenuBar();
 			self.addChild(menu_bar);
 
+			self.addChild(Globals.text_bubble);
+			Globals.text_bubble.startDrag(true);
+
 			var x_dest_old:int = 0;
 			var speed_cap:Number = 9999;
 			self.addEventListener(Event.ENTER_FRAME, function(e:Event):void
