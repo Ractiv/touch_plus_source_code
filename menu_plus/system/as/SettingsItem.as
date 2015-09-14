@@ -9,7 +9,7 @@
 		private var is_enabled:Boolean = true;
 		private var current_type:String = "toggle";
 
-		[Inspectable(name = "label0", type = String, defaultValue = "this is my title")]
+		[Inspectable(name = "label0", type = String)]
 		public function set label0(val:String):void
 		{
 			line0.text = val;
@@ -19,7 +19,7 @@
            return line0.text;
       	}
 
-      	[Inspectable(name = "label1", type = String, defaultValue = "this is my subtitle")]
+      	[Inspectable(name = "label1", type = String)]
 		public function set label1(val:String):void
 		{
 			line1.text = val;
@@ -29,16 +29,16 @@
            return line1.text;
       	}
 
-      	[Inspectable(name = "active", type = Boolean, defaultValue = true)]
+      	[Inspectable(name = "active", type = Boolean)]
 		public function set active(val:Boolean):void
 		{
 			var new_color:ColorTransform = new ColorTransform();
 			if (val)
 			{
-				new_color.color = 0x666666;
-				self.transform.colorTransform = new_color;
-				self.mouseEnabled = true;
-				self.mouseChildren = true;
+				// new_color.color = 0x666666;
+				// self.transform.colorTransform = new_color;
+				// self.mouseEnabled = true;
+				// self.mouseChildren = true;
 			}
 			else
 			{
@@ -53,7 +53,7 @@
 			return is_enabled;
       	}
 		
-		[Inspectable(name = "item_type", type = List, defaultValue = "toggle")]
+		[Inspectable(name = "item_type", type = List)]
 		public function set item_type(val:String):void
 		{
 			if (val == "toggle")
@@ -72,7 +72,7 @@
 			return current_type;
       	}
 
-      	[Inspectable(name = "toggle_enabled", type = Boolean, defaultValue = false)]
+      	[Inspectable(name = "toggle_enabled", type = Boolean)]
 		public function set toggle_enabled(val:Boolean):void
 		{
 			toggle.is_on = val;
@@ -82,7 +82,7 @@
 			return toggle.is_on;
       	}
 
-      	[Inspectable(name = "scroll_bar_level", type = Number, defaultValue = 0)]
+      	[Inspectable(name = "scroll_bar_level", type = Number)]
 		public function set scroll_bar_level(val:Number):void
 		{
 			scroll_bar.set_level(val);

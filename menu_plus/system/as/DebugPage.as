@@ -60,7 +60,7 @@
 					progress_fan1.progress_percent = downloading_percent;
 				});
 				
-			}, 100);
+			}, 500);
 		}
 	}
 }

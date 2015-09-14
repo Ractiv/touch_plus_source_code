@@ -76,7 +76,7 @@
 				}
 
 				show_menu_bar_shade = false;
-				if (menu_bar.active_name == "ButtonDebug")
+				if (menu_bar.active_name == "ButtonDebug" || menu_bar.active_name == "ButtonVisualize")
 					show_menu_bar_shade = true;
 
 				var menu_bar_shade_alpha:int = show_menu_bar_shade ? 1 : 0;
