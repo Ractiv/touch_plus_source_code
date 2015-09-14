@@ -85,7 +85,8 @@
 
 			ExternalInterface.addCallback("switch_toggle", function(toggle_name:String):void
 			{
-				Interop.log(toggle_name);
+				const settings_item:SettingsItem = settings_page.getChildByName(toggle_name) as SettingsItem;
+				settings_item.toggle.switch_toggle();
 			});
 
 			ExternalInterface.call("set_gui_ready");

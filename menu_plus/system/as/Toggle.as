@@ -38,5 +38,13 @@
 				inner.x += x_diff;
 			});
 		}
+
+		public function switch_toggle():void
+		{
+			if (is_on)
+				is_on = false;
+			else
+				is_on = true;
+		}
 	}
 }
