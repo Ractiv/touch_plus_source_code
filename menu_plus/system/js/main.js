@@ -285,7 +285,6 @@ function send_feedback(email, message)
 	},
 	function()
 	{
-		console.log("send message failed");
 		call_as(function()
 		{
 			gui.message_failed();
