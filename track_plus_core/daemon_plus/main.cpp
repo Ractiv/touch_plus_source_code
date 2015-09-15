@@ -57,12 +57,12 @@ void guardian_thread_function()
 			continue;
 		}
 
-		/*if (process_running("menu_plus" + extension1, true) == 0)
+		if (process_running("menu_plus" + extension1, true) == 0)
 		{
 			COUT << "menu_plus created" << endl;
 			string menu_path = executable_path + slash + "menu_plus" + slash + "menu_plus" + extension1;
 			create_process(menu_path, "menu_plus" + extension1, show_console, true, true);
-		}*/
+		}
 
 		if (process_running("track_plus" + extension0) == 0)
 		{

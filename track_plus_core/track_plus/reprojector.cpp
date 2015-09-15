@@ -363,6 +363,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	}
 
 	compute_y_bounds();
+	ipc.send_message("menu_plus", "set download complete", "");
 }
 
 Mat Reprojector::remap(Mat* const image_in, const uchar side, const bool interpolate)

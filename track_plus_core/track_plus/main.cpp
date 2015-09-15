@@ -155,7 +155,6 @@ void wait_for_device()
         if (str == "Touch+ Camera")
         {
             ipc->send_message("menu_plus", "show notification", "Please wait:Attempting to communicate with Touch+");
-            ipc->send_message("menu_plus", "show stage", "");
             
             ipc->clear();
             if (camera != NULL)
@@ -167,7 +166,6 @@ void wait_for_device()
 #endif
 
     ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
-    ipc->send_message("menu_plus", "show stage", "");
 
     while (true)
     {
@@ -516,7 +514,6 @@ void compute()
             pointer_mapper.compute_calibration_points();
             calibrating = false;
             increment_keypress_count = false;
-            ipc->send_message("menu_plus", "show stage", "");
 
             COUT << "calibration finished" << endl;
         }
