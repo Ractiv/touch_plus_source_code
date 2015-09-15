@@ -25,7 +25,7 @@
 				if (self.inner)
 				{
 					if (self.progress_percent_current < self.progress_percent)
-						self.progress_percent_current += 0.2;
+						self.progress_percent_current += 0.5;
 					else
 						self.progress_percent_current = self.progress_percent;
 
@@ -35,7 +35,7 @@
 				else
 				{
 					if (self.progress_percent_current < self.progress_percent)
-						self.progress_percent_current += 0.2;
+						self.progress_percent_current += 0.5;
 					else
 						self.progress_percent_current = self.progress_percent;
 

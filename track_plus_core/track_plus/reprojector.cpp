@@ -89,12 +89,12 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	{
 		static bool block_thread = true;
 		ipc.send_message("menu_plus", "show window", "");
-		ipc.get_response("menu_plus", "show download", "", [](const string message_body)
+		ipc.get_response("menu_plus", "show download page", "", [](const string message_body)
 		{
 			COUT << "unblock" << endl;
 			block_thread = false;
 		});
-		
+
 		while (block_thread)
 			Sleep(100);
 

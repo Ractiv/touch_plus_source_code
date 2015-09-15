@@ -56,7 +56,6 @@ function show_page(index)
 function win_show()
 {
 	win.show();
-	show_page(0);
 }
 
 function win_hide()
@@ -172,6 +171,9 @@ ipc.MapFunction("download failed", function(messageBody)
 	// terminate();
 });
 
+var downloaded_count = 0;
+var downloaded_count_total = 3;
+
 ipc.MapFunction("download", function(messageBody)
 {
 	status = "downloading calibration data";
@@ -186,9 +188,25 @@ ipc.MapFunction("download", function(messageBody)
 	var file = fs.createWriteStream(path);
 	var request = http.get(url, function(response)
 	{
+		var len = parseInt(response.headers["content-length"], 10);
+        var cur = 0;
+        response.on("data", function(chunk)
+        {
+            cur += chunk.length;
+            var percent = (downloaded_count * 100.0 / downloaded_count_total) + (100.0 * cur / len / downloaded_count_total);
+
+            console.log(percent);
+
+            call_as(function()
+			{
+				gui.set_downloading_percent(percent);
+			});
+        });
+
 		response.pipe(file);
 		file.on("finish", function()
 		{
+			++downloaded_count;
 			file.close();
 			ipc.SendMessage("track_plus", "download", "true");
 		});
@@ -209,6 +227,12 @@ ipc.MapFunction("set download complete", function(messageBody)
 ipc.MapFunction("show settings page", function(messageBody)
 {
 	show_page(0);
+});
+
+ipc.MapFunction("show download page", function(messageBody)
+{
+	show_page(3);
+    ipc.SendMessage("track_plus", "show download page", "");
 });
 
 //----------------------------------------------------------------------------------------------------

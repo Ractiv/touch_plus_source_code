@@ -108,6 +108,9 @@
 				menu_bar.activate_index(index);
 			});
 
+			ExternalInterface.addCallback("set_downloading_percent", debug_page.set_downloading_percent);
+			ExternalInterface.addCallback("set_loading_percent", debug_page.set_loading_percent);
+
 			ExternalInterface.call("set_gui_ready");
 		}
 
