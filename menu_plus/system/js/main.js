@@ -257,3 +257,38 @@ ipc.GetResponse("daemon_plus", "get toggles", "", function(messageBody)
 
 	set_scroll_bar("click_height", click_height);
 });
+
+//----------------------------------------------------------------------------------------------------
+
+function send_feedback(email, message)
+{
+	s3.GetKeys(function(keys)
+	{
+		var count = 0;
+
+		for (var keyIndex in keys)
+		{
+			var key = keys[keyIndex];
+			var keyPath = key.Key.split("/");
+
+			if (keyPath[0] == "bug_report" && keyPath[1] == email && keyPath[2].substring(0, 1) == "m")
+				++count;
+		}
+
+		s3.WriteTextKey("bug_report/" + email + "/message" + count + ".txt", message, function()
+		{
+			call_as(function()
+			{
+				gui.message_sent();
+			});
+		});
+	},
+	function()
+	{
+		console.log("send message failed");
+		call_as(function()
+		{
+			gui.message_failed();
+		});
+	});
+}

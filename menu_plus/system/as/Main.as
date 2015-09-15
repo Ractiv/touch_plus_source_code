@@ -43,8 +43,10 @@
 			var menu_bar:MenuBar = new MenuBar();
 			self.addChild(menu_bar);
 
-			self.addChild(Globals.text_bubble);
-			Globals.text_bubble.startDrag(true);
+			var text_bubble:TextBubble = Globals.text_bubble;
+			self.addChild(text_bubble);
+			text_bubble.init();
+			text_bubble.startDrag(true);
 
 			var x_dest_old:int = 0;
 			var speed_cap:Number = 9999;
@@ -97,6 +99,9 @@
 				var settings_item:SettingsItem = settings_page.getChildByName(scroll_bar_name) as SettingsItem;
 				settings_item.scroll_bar.set_level2(_level);
 			});
+
+			ExternalInterface.addCallback("message_sent", support_page.message_sent);
+			ExternalInterface.addCallback("message_failed", support_page.message_failed);
 
 			ExternalInterface.call("set_gui_ready");
 		}
