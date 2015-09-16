@@ -22,23 +22,24 @@
 				if (Globals.active_name != "ButtonDebug")
 					return;
 
-				if (self.inner)
+				if (progress_percent_current < progress_percent)
 				{
-					if (self.progress_percent_current < self.progress_percent)
-						self.progress_percent_current += 0.5;
-					else
-						self.progress_percent_current = self.progress_percent;
+					var percent_diff = (progress_percent - progress_percent_current) / 20;
+					if (percent_diff > 1)
+						percent_diff = 1;
 
+					progress_percent_current += percent_diff;
+				}
+				else
+					progress_percent_current = progress_percent;
+
+				if (inner)
+				{
 					self.progress_fan_half0.position_marker.x = position_marker_x - 20;
 					self.progress_fan_half1.position_marker.x = position_marker_x - 20;
 				}
 				else
 				{
-					if (self.progress_percent_current < self.progress_percent)
-						self.progress_percent_current += 0.5;
-					else
-						self.progress_percent_current = self.progress_percent;
-
 					self.progress_fan_half0.position_marker.x = position_marker_x + 20;
 					self.progress_fan_half1.position_marker.x = position_marker_x + 20;
 				}
@@ -46,7 +47,7 @@
 				var progress_fan_text_pos_global:Point;
 				var progress_fan_text_pos_local:Point;
 
-				if (self.progress_percent_current < 50)
+				if (progress_percent_current < 50)
 				{
 					progress_fan_text_pos_global = self.progress_fan_half0.localToGlobal
 					(
@@ -55,7 +56,7 @@
 
 					progress_fan_text_pos_local = self.globalToLocal(new Point(progress_fan_text_pos_global.x, progress_fan_text_pos_global.y));
 
-					self.progress_fan_half0.rotation = Globals.map_val(self.progress_percent_current, 0, 50, 180, 360);
+					self.progress_fan_half0.rotation = Globals.map_val(progress_percent_current, 0, 50, 180, 360);
 					self.progress_fan_half1.rotation = 0;
 					self.progress_fan_half1.visible = false;
 				}
@@ -68,14 +69,14 @@
 
 					progress_fan_text_pos_local = self.globalToLocal(new Point(progress_fan_text_pos_global.x, progress_fan_text_pos_global.y));
 
-					self.progress_fan_half1.rotation = Globals.map_val(self.progress_percent_current, 50, 100, 0, 180);
+					self.progress_fan_half1.rotation = Globals.map_val(progress_percent_current, 50, 100, 0, 180);
 					self.progress_fan_half0.rotation = 0;
 					self.progress_fan_half1.visible = true;
 				}
 
 				self.progress_fan_text.x = progress_fan_text_pos_local.x;
 				self.progress_fan_text.y = progress_fan_text_pos_local.y;
-				self.progress_fan_text.progress_text.text = self.progress_percent_current.toString();
+				self.progress_fan_text.progress_text.text = progress_percent_current.toString();
 			});
 		}
 	}

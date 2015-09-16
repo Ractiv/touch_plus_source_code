@@ -30,6 +30,9 @@
 			var support_page:SupportPage = new SupportPage();
 			add_page(support_page);
 
+			var tutorial_page:TutorialPage = new TutorialPage();
+			add_page(tutorial_page);
+
 			var debug_page:DebugPage = new DebugPage();
 			add_page(debug_page);
 
@@ -40,8 +43,10 @@
 			menu_bar_shade.alpha = 0;
 			self.addChild(menu_bar_shade);
 
-			var menu_bar:MenuBar = new MenuBar();
+			Globals.menu_bar = new MenuBar();
+			var menu_bar:MenuBar = Globals.menu_bar;
 			self.addChild(menu_bar);
+			menu_bar.init();
 
 			var text_bubble:TextBubble = Globals.text_bubble;
 			self.addChild(text_bubble);
@@ -80,8 +85,10 @@
 				}
 
 				show_menu_bar_shade = false;
-				if (menu_bar.active_name == "ButtonDebug" || menu_bar.active_name == "ButtonVisualize")
-					show_menu_bar_shade = true;
+				if (menu_bar.active_name == "ButtonDebug" ||
+					menu_bar.active_name == "ButtonVisualize" ||
+					menu_bar.active_name == "ButtonTutorial")
+						show_menu_bar_shade = true;
 
 				var menu_bar_shade_alpha:int = show_menu_bar_shade ? 1 : 0;
 				var alpha_diff:Number = (menu_bar_shade_alpha - menu_bar_shade.alpha) / 10;
@@ -108,8 +115,11 @@
 				menu_bar.activate_index(index);
 			});
 
-			ExternalInterface.addCallback("set_downloading_percent", debug_page.set_downloading_percent);
-			ExternalInterface.addCallback("set_loading_percent", debug_page.set_loading_percent);
+			ExternalInterface.addCallback("set_downloading_progress", debug_page.set_downloading_progress);
+			ExternalInterface.addCallback("set_loading_progress", debug_page.set_loading_progress);
+			ExternalInterface.addCallback("set_status", debug_page.set_status);
+			ExternalInterface.addCallback("show_progress", debug_page.show_progress);
+			ExternalInterface.addCallback("hide_progress", debug_page.hide_progress);
 
 			ExternalInterface.call("set_gui_ready");
 		}

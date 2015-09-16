@@ -20,17 +20,13 @@
 		public var active_index:int = 0;
 		public var active_name:String;
 
-		public function MenuBar():void
+		public function init():void
 		{
-			var button_settings:ButtonSettings = new ButtonSettings();
-			var button_support:ButtonSupport = new ButtonSupport();
-			var button_visualize:ButtonVisualize = new ButtonVisualize();
-			var button_dev_tool:ButtonDebug = new ButtonDebug();
-
-			button_array.push(button_settings);
-			button_array.push(button_visualize);
-			button_array.push(button_support);
-			button_array.push(button_dev_tool);
+			button_array.push(new ButtonSettings());
+			button_array.push(new ButtonVisualize());
+			button_array.push(new ButtonSupport());
+			button_array.push(new ButtonTutorial());
+			button_array.push(new ButtonDebug());
 
 			if (button_array.length == 0)
 				return;

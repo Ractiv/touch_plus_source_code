@@ -154,6 +154,7 @@ void wait_for_device()
     for (string& str : lines)
         if (str == "Touch+ Camera")
         {
+            ipc->send_message("menu_plus", "set status", "communicating");
             ipc->send_message("menu_plus", "show notification", "Please wait:Attempting to communicate with Touch+");
             
             ipc->clear();
@@ -165,6 +166,7 @@ void wait_for_device()
         }
 #endif
 
+    ipc->send_message("menu_plus", "set status", "device not found");
     ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
 
     while (true)
@@ -179,6 +181,7 @@ void wait_for_device()
 
         if (camera_count_new > camera_count_old)
         {
+            ipc->send_message("menu_plus", "set status", "restarting");
             ipc->clear();
 #ifdef __APPLE__
             if (camera != NULL)
@@ -200,6 +203,7 @@ void wait_for_device()
         for (string& str : lines)
             if (str == "Touch+ Camera")
             {
+                ipc->send_message("menu_plus", "set status", "restarting");
                 ipc->clear();
                 if (camera != NULL)
                     camera->stopVideoStream();
@@ -258,6 +262,7 @@ void on_first_frame()
 {
     COUT << "on first frame" << endl;
 
+    ipc->send_message("menu_plus", "set status", "verifying serial number");
     serial_number = camera->getSerialNumber();
 
     if (serial_number.size() == 10)
@@ -278,11 +283,9 @@ void on_first_frame()
     }
 
     if (!serial_verified)
-    {
-        COUT << "please reconnect your Touch+ sensor" << endl;
         wait_for_device();
-    }
 
+    ipc->send_message("menu_plus", "set loading progress", "10");
     COUT << "serial number: " << serial_number << endl;
 
     data_path_current_module = data_path + slash + serial_number;
@@ -294,9 +297,18 @@ void on_first_frame()
     
     Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
 
+    ipc->send_message("menu_plus", "set status", "loading calibration data");
     reprojector.load(*ipc, true);
+    ipc->send_message("menu_plus", "set loading progress", "40");
+
+    ipc->send_message("menu_plus", "set status", "initializing camera");
     CameraInitializerNew::init(camera);
+
+    ipc->send_message("menu_plus", "set status", "loading pose data");
     pose_estimator.init();
+    ipc->send_message("menu_plus", "set loading progress", "70");
+
+    ipc->send_message("menu_plus", "set status", "starting cursor subprocess");
 
 #ifdef _WIN32
     child_module_name = "win_cursor_plus";
@@ -322,6 +334,8 @@ void on_first_frame()
     {
         load_settings();
     });
+
+    ipc->send_message("menu_plus", "set loading progress", "100");
 }
 
 void compute()
@@ -339,6 +353,9 @@ void compute()
         on_first_frame();
         first_frame = false;
     }
+
+    while (true)
+        Sleep(1000);
 
     if (!play || settings.touch_control != "1")
     {
@@ -639,10 +656,7 @@ void guardian_thread_function()
     while (true)
     {
         if (wait_count >= (serial_verified ? 5 : 10))
-        {
-            COUT << "restarting" << endl;
             wait_for_device();
-        }
 
         ++wait_count;
 
@@ -716,7 +730,9 @@ int main()
         Sleep(1000);
     }
 
+    ipc->send_message("menu_plus", "show debug page", "");
     ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
+    ipc->send_message("menu_plus", "set status", "initializing");
     ipc->open_udp_channel("menu_plus");
 
 #ifdef _WIN32

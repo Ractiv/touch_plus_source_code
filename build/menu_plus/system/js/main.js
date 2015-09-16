@@ -12,10 +12,6 @@
 var gui;
 var gui_ready = false;
 
-var status = "hello world";
-var loading_percent = 0;
-var downloading_percent = 0;
-
 function set_gui_ready()
 {
 	gui = document.getElementById("gui");
@@ -166,7 +162,6 @@ ipc.MapFunction("exit", function(messageBody)
 
 ipc.MapFunction("download failed", function(messageBody)
 {
-	status = "download failed";
 	// alert("Download failed, cannot connect to server");
 	// terminate();
 });
@@ -176,8 +171,6 @@ var downloaded_count_total = 3;
 
 ipc.MapFunction("download", function(messageBody)
 {
-	status = "downloading calibration data";
-
 	var urlPath = messageBody.split("`");
 	var url = urlPath[0];
 	var path = urlPath[1];
@@ -195,11 +188,9 @@ ipc.MapFunction("download", function(messageBody)
             cur += chunk.length;
             var percent = (downloaded_count * 100.0 / downloaded_count_total) + (100.0 * cur / len / downloaded_count_total);
 
-            console.log(percent);
-
             call_as(function()
 			{
-				gui.set_downloading_percent(percent);
+				gui.set_downloading_progress(percent);
 			});
         });
 
@@ -213,15 +204,33 @@ ipc.MapFunction("download", function(messageBody)
 
 	}).on("error", function(err)
 	{
-		alert("Download failed, cannot connect to server");
+		// alert("Download failed, cannot connect to server");
 		ipc.SendMessage("track_plus", "download", "false");
 	});
 });
 
-ipc.MapFunction("set download complete", function(messageBody)
+ipc.MapFunction("set downloading complete", function(messageBody)
 {
-	downloading_percent = 100;
-	status = "calibration data loaded";
+	call_as(function()
+	{
+		gui.set_downloading_progress(100);
+	});
+});
+
+ipc.MapFunction("set loading progress", function(messageBody)
+{
+	call_as(function()
+	{
+		gui.set_loading_progress(parseInt(messageBody));
+	});
+});
+
+ipc.MapFunction("set status", function(messageBody)
+{
+	call_as(function()
+	{
+		gui.set_status(messageBody);
+	});
 });
 
 ipc.MapFunction("show settings page", function(messageBody)
@@ -231,8 +240,13 @@ ipc.MapFunction("show settings page", function(messageBody)
 
 ipc.MapFunction("show download page", function(messageBody)
 {
-	show_page(3);
+	show_page(4);
     ipc.SendMessage("track_plus", "show download page", "");
+});
+
+ipc.MapFunction("show debug page", function(messageBody)
+{
+	show_page(4);
 });
 
 //----------------------------------------------------------------------------------------------------

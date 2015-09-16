@@ -9,6 +9,7 @@
 		public static var active_name:String;
 
 		public static var text_bubble:TextBubble = new TextBubble();
+		public static var menu_bar:MenuBar;
 
 		public static function map_val(value:Number, left_min:Number, left_max:Number, right_min:Number, right_max:Number):Number
 		{

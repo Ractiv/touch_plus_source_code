@@ -89,6 +89,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	{
 		static bool block_thread = true;
 		ipc.send_message("menu_plus", "show window", "");
+   	 	ipc.send_message("menu_plus", "set status", "downloading calibration data");
 		ipc.get_response("menu_plus", "show download page", "", [](const string message_body)
 		{
 			COUT << "unblock" << endl;
@@ -363,7 +364,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	}
 
 	compute_y_bounds();
-	ipc.send_message("menu_plus", "set download complete", "");
+	ipc.send_message("menu_plus", "set downloading complete", "");
 }
 
 Mat Reprojector::remap(Mat* const image_in, const uchar side, const bool interpolate)

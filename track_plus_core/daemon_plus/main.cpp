@@ -94,7 +94,7 @@ int main()
 #endif
 
 {
-    //freopen("C:\\touch_plus_software_log.txt", "w", stdout);
+    freopen("C:\\touch_plus_software_log.txt", "w", stdout);
 	
 #ifdef _WIN32
 	char buffer[MAX_PATH];
@@ -207,10 +207,6 @@ int main()
 		block_guardian = true;
 		ipc.send_message("everyone", "exit", "");
 		ipc.clear();
-
-		if (file_exists("C:\\touch_plus_software_log.txt"))
-			delete_file("C:\\touch_plus_software_log.txt");
-
 		exit(0);
 	});
     

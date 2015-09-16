@@ -7,7 +7,7 @@
 	"window": {
 		"title": "Touch+ control panel",
 		"icon": "system/imagessystem/images/ractiv.png",
-		"toolbar": true,
+		"toolbar": false,
 		"frame": true,
 		"width": 640,
 		"height": 675,
