@@ -209,6 +209,14 @@ ipc.MapFunction("download", function(messageBody)
 	});
 });
 
+ipc.MapFunction("reset progress", function(messageBody)
+{
+	call_as(function()
+	{
+		gui.reset_progress();
+	});
+});
+
 ipc.MapFunction("set downloading complete", function(messageBody)
 {
 	call_as(function()

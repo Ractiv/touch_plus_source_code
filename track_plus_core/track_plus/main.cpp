@@ -141,6 +141,7 @@ void hide_cursors()
 void wait_for_device()
 {
     COUT << "waiting for device " << endl;
+     ipc->send_message("menu_plus", "reset progress", "");
 
     hide_cursors();
     
@@ -166,7 +167,8 @@ void wait_for_device()
         }
 #endif
 
-    ipc->send_message("menu_plus", "set status", "device not found");
+    ipc->send_message("menu_plus", "show debug page", "");
+    ipc->send_message("menu_plus", "set status", "error: device not found");
     ipc->send_message("menu_plus", "show notification", "Device not found:Please reconnect your Touch+ module");
 
     while (true)
@@ -181,7 +183,7 @@ void wait_for_device()
 
         if (camera_count_new > camera_count_old)
         {
-            ipc->send_message("menu_plus", "set status", "restarting");
+            ipc->send_message("menu_plus", "set status", "restarting tracking core");
             ipc->clear();
 #ifdef __APPLE__
             if (camera != NULL)
@@ -203,7 +205,7 @@ void wait_for_device()
         for (string& str : lines)
             if (str == "Touch+ Camera")
             {
-                ipc->send_message("menu_plus", "set status", "restarting");
+                ipc->send_message("menu_plus", "set status", "restarting tracking core");
                 ipc->clear();
                 if (camera != NULL)
                     camera->stopVideoStream();
@@ -432,7 +434,7 @@ void compute()
     }
 #endif
 
-	static bool show_wiggle_sent = false;
+	/*static bool show_wiggle_sent = false;
 	if (!show_wiggle_sent)
 	{
         if (child_module_name != "")
@@ -441,7 +443,7 @@ void compute()
 		ipc->send_message("menu_plus", "show window", "");
 		ipc->send_message("menu_plus", "show wiggle", "");
 	}
-	show_wiggle_sent = true;
+	show_wiggle_sent = true;*/
 
     if (enable_imshow)
     {
@@ -732,7 +734,7 @@ int main()
 
     ipc->send_message("menu_plus", "show debug page", "");
     ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
-    ipc->send_message("menu_plus", "set status", "initializing");
+    ipc->send_message("menu_plus", "set status", "initializing tracking core");
     ipc->open_udp_channel("menu_plus");
 
 #ifdef _WIN32

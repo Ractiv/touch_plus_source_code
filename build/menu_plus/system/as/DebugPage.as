@@ -12,7 +12,8 @@
 		private var lines_array_old:Array = new Array();
 		private var loaded:Boolean = false;
 		private var loaded_old:Boolean = false;
-		private var target_alpha:int = 0;
+		private var target_alpha_progress:int = 0;
+		private var target_alpha_status:int = 0;
 
 		public function DebugPage():void
 		{
@@ -50,15 +51,21 @@
 						 progress_fan0.progress_percent == 100;
 
 					if (loaded && !loaded_old)
+					{
 						hide_progress();
+						hide_status();
+					}
 
 					loaded_old = loaded;
 
-					var current_alpha:Number = progress_fan0.alpha;
-					var alpha_diff:Number = (target_alpha - current_alpha) / 10;
-					progress_fan0.alpha += alpha_diff;
-					progress_fan1.alpha += alpha_diff;
-					status_text.alpha += alpha_diff;
+					var current_alpha_progress:Number = progress_fan0.alpha;
+					var alpha_diff_progress:Number = (target_alpha_progress - current_alpha_progress) / 10;
+					progress_fan0.alpha += alpha_diff_progress;
+					progress_fan1.alpha += alpha_diff_progress;
+
+					var current_alpha_status:Number = status_text.alpha;
+					var alpha_diff_status:Number = (target_alpha_status - current_alpha_status) / 10;
+					status_text.alpha += alpha_diff_status;
 				}
 			});
 
@@ -99,14 +106,33 @@
 			}
 		}
 
-		public function show_progress():void
+		private function show_progress():void
 		{
-			target_alpha = 1;
+			progress_fan0.visible = true;
+			progress_fan1.visible = true;
+			target_alpha_progress = 1;
 		}
 
-		public function hide_progress():void
+		private function hide_progress():void
 		{
-			target_alpha = 0;
+			target_alpha_progress = 0;
+		}
+
+		private function show_status():void
+		{
+			status_text.visible = true;
+			target_alpha_status = 1;
+		}
+
+		private function hide_status():void
+		{
+			target_alpha_status = 0;
+		}
+
+		public function reset_progress():void
+		{
+			progress_fan0.progress_percent = 0;
+			progress_fan1.progress_percent = 0;
 		}
 
 		public function set_downloading_progress(percent:int):void
@@ -130,6 +156,7 @@
 		public function set_status(_status:String):void
 		{
 			status_text.text = _status;
+			show_status();
 		}
 	}
 }

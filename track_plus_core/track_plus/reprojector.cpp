@@ -88,7 +88,6 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	if (!has_complete_calib_data)
 	{
 		static bool block_thread = true;
-		ipc.send_message("menu_plus", "show window", "");
    	 	ipc.send_message("menu_plus", "set status", "downloading calibration data");
 		ipc.get_response("menu_plus", "show download page", "", [](const string message_body)
 		{

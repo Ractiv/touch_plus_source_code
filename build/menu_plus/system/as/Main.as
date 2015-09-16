@@ -115,11 +115,10 @@
 				menu_bar.activate_index(index);
 			});
 
+			ExternalInterface.addCallback("reset_progress", debug_page.reset_progress);
 			ExternalInterface.addCallback("set_downloading_progress", debug_page.set_downloading_progress);
 			ExternalInterface.addCallback("set_loading_progress", debug_page.set_loading_progress);
 			ExternalInterface.addCallback("set_status", debug_page.set_status);
-			ExternalInterface.addCallback("show_progress", debug_page.show_progress);
-			ExternalInterface.addCallback("hide_progress", debug_page.hide_progress);
 
 			ExternalInterface.call("set_gui_ready");
 		}
