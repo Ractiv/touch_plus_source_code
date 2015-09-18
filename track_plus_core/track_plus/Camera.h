@@ -23,7 +23,6 @@
 #include "EtronDI_O.h"
 #include "eSPAEAWBCtrl.h"
 #include "CameraDS.h"
-#include "RactivJPEGDecompressor.h"
 
 #elif __APPLE__
 #include "libusb.h"
@@ -34,12 +33,13 @@
 #include <functional>
 #include "opencv2/opencv.hpp"
 #include <time.h>
- #include <fstream>
+#include <fstream>
 #include <string>
 #include <iostream>
 #include <algorithm>
 
 #include "globals.h"
+#include "jpeg_decompressor.h"
 
 using namespace cv;
 using namespace std;
@@ -53,7 +53,7 @@ public:
 	Camera();
 	Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in);
 	~Camera();
-    
+
 	unsigned char* frame;
 
 	bool device_not_detected = false;

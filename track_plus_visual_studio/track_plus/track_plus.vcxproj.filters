@@ -128,9 +128,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\processes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -153,6 +150,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\dtw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\value_accumulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\jpeg_decompressor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -265,9 +268,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\Ray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -290,6 +290,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\dtw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\value_accumulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\jpeg_decompressor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

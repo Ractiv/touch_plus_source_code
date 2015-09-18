@@ -62,14 +62,14 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 
 	if (step0 == false)
 	{
-		if (count == 5)
+		if (count == 10)
 		{
 			image_leds_on = image_in;
 			GaussianBlur(image_leds_on, image_leds_on, Size(49, 49), 0, 0);
 			camera->turnLEDsOff();
 		}
 
-		if (count == 10)
+		if (count == 20)
 		{
 			step0 = true;
 

@@ -24,10 +24,6 @@
 
 function<void (Mat& image_in)> Camera::callback;
 
-#ifdef _WIN32
-static RactivJPEGDecompressor* decomp = new RactivJPEGDecompressor();
-#endif
-
 unsigned char * myBuffer;
 Mat image_out = Mat(480, 1280, CV_8UC3);
 
@@ -226,11 +222,15 @@ int Camera::stopVideoStream()
 }
 #endif
 
+JPEGDecompressor jpeg_decompressor;
+
 #ifdef _WIN32
-static void frameCallback(BYTE * pBuffer, long lBufferSize)
+static void frameCallback(BYTE* pBuffer, long lBufferSize)
 {
-    decomp->decompress(pBuffer, lBufferSize, myBuffer, 1280, 480);
-    Camera::callback(image_out);
+    if (jpeg_decompressor.compute(pBuffer, lBufferSize, myBuffer, 1280, 480))
+        Camera::callback(image_out);
+    else
+        COUT << "bad image caught" << endl;
 }
 #endif
 

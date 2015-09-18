@@ -24,6 +24,7 @@
 #include "contour_functions.h"
 #include "mat_functions.h"
 #include "value_store.h"
+#include "value_accumulator.h"
 
 class MotionProcessorNew
 {
@@ -49,6 +50,8 @@ public:
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
 	ValueStore value_store;
+
+	ValueAccumulator value_accumulator;
 
 	bool compute(Mat& image_in,             Mat& image_raw, const int y_ref, float pitch,
 				 bool construct_background, string name,    bool visualize);

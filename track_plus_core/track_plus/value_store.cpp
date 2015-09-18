@@ -67,6 +67,23 @@ vector<int>* ValueStore::push_int(string name, int value)
 	return vec_ptr;
 }
 
+vector<float>* ValueStore::push_float(string name, float value)
+{
+	if (float_vec_map.count(name) == 0)
+	{
+		float_vec_map[name] = &float_vec_pool[float_vec_pool_index];
+		++float_vec_pool_index;
+
+		if (float_vec_pool_index == 10)
+			COUT << "overflow float_vec_pool_index" << endl;
+	}
+
+	vector<float>* vec_ptr = float_vec_map[name];
+	vec_ptr->push_back(value);
+
+	return vec_ptr;
+}
+
 vector<Point>* ValueStore::push_point(string name, Point value)
 {
 	if (point_vec_map.count(name) == 0)
@@ -189,6 +206,20 @@ vector<int>* ValueStore::get_int_vec(string name)
 	}
 
 	return int_vec_map[name];
+}
+
+vector<float>* ValueStore::get_float_vec(string name)
+{
+	if (float_vec_map.count(name) == 0)
+	{
+		float_vec_map[name] = &float_vec_pool[float_vec_pool_index];
+		++float_vec_pool_index;
+
+		if (float_vec_pool_index == 10)
+			COUT << "overflow float_vec_pool_index" << endl;
+	}
+
+	return float_vec_map[name];
 }
 
 vector<Point>* ValueStore::get_point_vec(string name)

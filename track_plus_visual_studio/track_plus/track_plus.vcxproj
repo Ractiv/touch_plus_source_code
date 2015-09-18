@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\histogram_builder.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\hungarian.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\jpeg_decompressor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\point_resolver.h" />
@@ -50,12 +51,12 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\pointer_mapper.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\processes.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\udp.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\value_accumulator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\warper.h" />
     <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.h" />
@@ -79,6 +80,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\histogram_builder.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\jpeg_decompressor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
@@ -97,12 +99,12 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\RactivJPEGDecompressor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\Ray.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\value_accumulator.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmmin.c" />
@@ -183,7 +185,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(TURBOJPEG_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(SFML_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(LIBJPEG-TURBO_DIR)\include;$(SFML_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointModel>Precise</FloatingPointModel>
       <MinimalRebuild>false</MinimalRebuild>
@@ -194,7 +196,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\lib;$(DIRECTSHOW_DIR)\lib;$(TURBOJPEG_DIR)\;$(SFML_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBJPEG-TURBO_DIR)\lib;$(ETRON_DIR)\;$(OPENCV_DIR)\lib;$(DIRECTSHOW_DIR)\lib;$(SFML_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>dxguid.lib;ole32.lib;strmiids.lib;uuid.lib;opencv_core249.lib;opencv_highgui249.lib;opencv_imgproc249.lib;opencv_video249.lib;opencv_calib3d249.lib;eSPDI.lib;eSPAEAWBCtrl.lib;sfml-network.lib;turbojpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
     </Link>

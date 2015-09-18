@@ -314,11 +314,20 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				{
 					x_separator_left = blob_detector_image_subtraction->x_min_result - 5;
 					x_separator_right = blob_detector_image_subtraction->x_max_result + 5;
+
+					// value_accumulator.compute(x_separator_left, "x_separator_left", 1000, 0, 0.9);
+					// value_accumulator.compute(x_separator_right, "x_separator_right", 1000, WIDTH_SMALL, 0.1);
 				}
 				else if (left_moving)
+				{
 					x_separator_left = blob_detector_image_subtraction->x_min_result - 5;
+					// value_accumulator.compute(x_separator_left, "x_separator_left", 1000, 0, 0.9);
+				}
 				else if (right_moving)
+				{
 					x_separator_right = blob_detector_image_subtraction->x_max_result + 5;
+					// value_accumulator.compute(x_separator_right, "x_separator_right", 1000, WIDTH_SMALL, 0.1);
+				}
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -379,11 +388,13 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						blobs_y_min = blob.y_min;
 
 				y_separator_up = blobs_y_min + 5;
+				value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9);
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
 
-			if ((((left_moving || right_moving) && value_store.get_bool("result", false)) || both_moving) && construct_background)
+			if ((((left_moving || right_moving) && value_store.get_bool("result", false)) || both_moving) &&
+				construct_background && value_accumulator.ready)
 			{
 				//triangle fill
 				if (y_separator_up > 0)

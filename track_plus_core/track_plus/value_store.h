@@ -35,6 +35,7 @@ public:
 	unordered_map<string, int> int_map;
 	unordered_map<string, bool> bool_map;
 	unordered_map<string, vector<int>*> int_vec_map;
+	unordered_map<string, vector<float>*> float_vec_map;
 	unordered_map<string, vector<Point>*> point_vec_map;
 	unordered_map<string, vector<BlobNew>*> blob_vec_map;
 	unordered_map<string, vector<Mat>*> mat_vec_map;
@@ -44,6 +45,7 @@ public:
 	unordered_map<string, LowPassFilter*> low_pass_filter_map;
 
 	vector<int>* int_vec_pool = new vector<int>[10];
+	vector<float>* float_vec_pool = new vector<float>[10];
 	vector<Point>* point_vec_pool = new vector<Point>[10];
 	vector<BlobNew>* blob_vec_pool = new vector<BlobNew>[10];
 	vector<Mat>* mat_vec_pool = new vector<Mat>[10];
@@ -52,6 +54,7 @@ public:
 	LowPassFilter* low_pass_filter_pool = new LowPassFilter[10];
 
 	int int_vec_pool_index = 0;
+	int float_vec_pool_index = 0;
 	int point_vec_pool_index = 0;
 	int blob_vec_pool_index = 0;
 	int mat_vec_pool_index = 0;
@@ -67,6 +70,7 @@ public:
 	void set_mat(string name, Mat value);
 
 	vector<int>* push_int(string name, int value);
+	vector<float>* push_float(string name, float value);
 	vector<Point>* push_point(string name, Point value);
 	vector<BlobNew>* push_blob(string name, BlobNew value);
 	vector<Mat>* push_mat(string name, Mat value);
@@ -79,6 +83,7 @@ public:
 	Mat get_mat(string name, bool if_not_exist_return_zero_mat = false);
 
 	vector<int>* get_int_vec(string name);
+	vector<float>* get_float_vec(string name);
 	vector<Point>* get_point_vec(string name);
 	vector<BlobNew>* get_blob_vec(string name);
 	vector<Mat>* get_mat_vec(string name);

@@ -25,9 +25,6 @@
 				if (progress_percent_current < progress_percent)
 				{
 					var percent_diff = (progress_percent - progress_percent_current) / 20;
-					if (percent_diff > 1)
-						percent_diff = 1;
-
 					progress_percent_current += percent_diff;
 				}
 				else

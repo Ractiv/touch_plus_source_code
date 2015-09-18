@@ -98,10 +98,14 @@ PointerMapper pointer_mapper;
 
 LowPassFilter low_pass_filter;
 
-const int points_pool_count_max = 1000;
-vector<Point> points_pool[points_pool_count_max];
-int points_pool_count = 0;
-vector<Point>* points_ptr = NULL;
+const int pool_size_max = 10;
+
+Mat image_pool[pool_size_max];
+int image_pool_count = 0;
+
+vector<Point> point_vec_pool[pool_size_max];
+int point_vec_pool_count = 0;
+vector<Point>* point_vec_ptr = NULL;
 
 bool serial_verified = false;
 bool exposure_adjusted = false;
@@ -141,7 +145,7 @@ void hide_cursors()
 void wait_for_device()
 {
     COUT << "waiting for device " << endl;
-     ipc->send_message("menu_plus", "reset progress", "");
+    ipc->send_message("menu_plus", "reset progress", "");
 
     hide_cursors();
     
@@ -221,7 +225,13 @@ void wait_for_device()
 
 void update(Mat& image_in)
 {
-    image_current_frame = image_in;
+    image_pool[image_pool_count] = image_in;
+	image_current_frame = image_pool[image_pool_count];
+    
+    ++image_pool_count;
+    if (image_pool_count == pool_size_max)
+        image_pool_count = 0;
+
     wait_count = 0;
     updated = true;
 }
@@ -344,6 +354,12 @@ void compute()
 {
     updated = false;
 
+    if (image_current_frame.cols == 0)
+    {
+        COUT << "bad frame" << endl;
+        return;
+    }
+
     Mat image_flipped;
     flip(image_current_frame, image_flipped, 0);
 
@@ -355,9 +371,6 @@ void compute()
         on_first_frame();
         first_frame = false;
     }
-
-    while (true)
-        Sleep(1000);
 
     if (!play || settings.touch_control != "1")
     {
@@ -374,9 +387,6 @@ void compute()
     int z_accel;
     camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);
     imu.compute(x_accel, y_accel, z_accel);
-
-    if (image_current_frame.cols == 0)
-        return;
 
     //----------------------------------------core algorithm----------------------------------------
 
@@ -441,7 +451,7 @@ void compute()
 		  ipc->open_udp_channel(child_module_name);
         
 		ipc->send_message("menu_plus", "show window", "");
-		ipc->send_message("menu_plus", "show wiggle", "");
+		ipc->send_message("menu_plus", "show wiggle", "");//todo
 	}
 	show_wiggle_sent = true;*/
 
@@ -463,7 +473,7 @@ void compute()
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
                                              construct_background, "0",          true);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "1",          true);
+                                             construct_background, "1",          false);
     }
 
     if (first_pass && motion_processor0.both_moving)
@@ -517,7 +527,7 @@ void compute()
         {
             COUT << "step " << calibration_step << " complete" << endl; 
 
-            ipc->send_message("menu_plus", "show calibration next", "");
+            // ipc->send_message("menu_plus", "show calibration next", "");//todo
             ++calibration_step;
         }
         else if (keypress_count < calibration_points_count)
@@ -549,7 +559,7 @@ void pose_estimator_thread_function()
     while (true)
     {
         if (initialized)
-            pose_estimator.compute(*points_ptr);
+            pose_estimator.compute(*point_vec_ptr);
 
         Sleep(100);
     }
