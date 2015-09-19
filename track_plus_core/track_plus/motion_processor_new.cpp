@@ -326,26 +326,21 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
+			int x_separator_offset = map_val(pitch, 35, 45, 5, 15);
+			if (x_separator_offset < 0)
+				x_separator_offset = 0;
+
 			if ((left_moving || right_moving) && value_store.get_bool("x_min_max_set"))
 			{
 				if (both_moving)
 				{
-					x_separator_left = blob_detector_image_subtraction->x_min_result - 5;
-					x_separator_right = blob_detector_image_subtraction->x_max_result + 5;
-
-					// value_accumulator.compute(x_separator_left, "x_separator_left", 1000, 0, 0.9);
-					// value_accumulator.compute(x_separator_right, "x_separator_right", 1000, WIDTH_SMALL, 0.1);
+					x_separator_left = blob_detector_image_subtraction->x_min_result - x_separator_offset;
+					x_separator_right = blob_detector_image_subtraction->x_max_result + x_separator_offset;
 				}
 				else if (left_moving)
-				{
-					x_separator_left = blob_detector_image_subtraction->x_min_result - 5;
-					// value_accumulator.compute(x_separator_left, "x_separator_left", 1000, 0, 0.9);
-				}
+					x_separator_left = blob_detector_image_subtraction->x_min_result - x_separator_offset;
 				else if (right_moving)
-				{
-					x_separator_right = blob_detector_image_subtraction->x_max_result + 5;
-					// value_accumulator.compute(x_separator_right, "x_separator_right", 1000, WIDTH_SMALL, 0.1);
-				}
+					x_separator_right = blob_detector_image_subtraction->x_max_result + x_separator_offset;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -417,16 +412,23 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				//triangle fill
 				if (y_separator_up > 0)
 				{
-					Point pt_center = Point(x_separator_middle, y_separator_up);
-					Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
-					line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
-					line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
-					floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
+					if (pitch <= 40)
+					{
+						Point pt_center = Point(x_separator_middle, y_separator_up);
+						Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
+						line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
+						line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
+						floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
 
-					const int j_max = image_flood_fill.rows;
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < j_max; ++j)
-							if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
+						const int j_max = image_flood_fill.rows;
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < j_max; ++j)
+								if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
+									fill_image_background_static(i, j, image_in);
+					}
+					else
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = y_separator_up; j >= 0; --j)
 								fill_image_background_static(i, j, image_in);
 				}
 
@@ -517,7 +519,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				static float diff_threshold_stereo;
 				if (name == "0")
 				{
-					diff_threshold = static_diff_max * 0.3;
+					diff_threshold = static_diff_max * 0.2;
 					diff_threshold_stereo = diff_threshold;
 				}
 				else
