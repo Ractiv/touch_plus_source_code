@@ -62,14 +62,14 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 
 	if (step0 == false)
 	{
-		if (count == 10)
+		if (count == 5)
 		{
 			image_leds_on = image_in;
 			GaussianBlur(image_leds_on, image_leds_on, Size(49, 49), 0, 0);
 			camera->turnLEDsOff();
 		}
 
-		if (count == 20)
+		if (count == 10)
 		{
 			step0 = true;
 
@@ -126,13 +126,15 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		if (gray_diff < 5)
 			gray_diff = 5;
 
-		float r_val = exponential(gray_diff - 10 < 0 ? 0 : gray_diff - 10, 0.9967884, 0.001570977, -0.1430162);
+		float r_val = exponential(gray_diff, 0.9967884, 0.001570977, -0.1430162) + 0.25;
+		if (r_val > 3)
+			r_val = 3;
 		COUT << "r_val is " << r_val << endl;
 
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 
-		exposure_val = linear(gray_diff - 10 < 0 ? 0 : gray_diff - 10, 0.31111111, -0.55555556);
+		exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
 		COUT << "exposure_val is " << exposure_val << endl;
 
 		camera->setExposureTime(Camera::both, exposure_val);

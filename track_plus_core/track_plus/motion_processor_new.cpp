@@ -217,7 +217,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				float entropy_max = max(entropy_left, entropy_right);
 				float entropy_min = min(entropy_left, entropy_right);
 
-				if (entropy_max / entropy_min > 2)
+				if (entropy_max / entropy_min > 2 || entropy_min < entropy_threshold)
 					both_moving = false;
 			}
 		}
@@ -327,8 +327,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
 			int x_separator_offset = map_val(pitch, 35, 45, 5, 15);
-			if (x_separator_offset < 0)
-				x_separator_offset = 0;
+			if (x_separator_offset < 5)
+				x_separator_offset = 5;
 
 			if ((left_moving || right_moving) && value_store.get_bool("x_min_max_set"))
 			{
@@ -409,26 +409,19 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			if ((((left_moving || right_moving) && value_store.get_bool("result", false)) || both_moving) &&
 				construct_background && value_accumulator.ready)
 			{
-				//triangle fill
-				if (y_separator_up > 0)
+				if (y_separator_up > 0 && !value_store.get_bool("triangle_fill_complete", false))
 				{
-					if (pitch <= 40)
-					{
-						Point pt_center = Point(x_separator_middle, y_separator_up);
-						Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
-						line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
-						line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
-						floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
+					value_store.set_bool("triangle_fill_complete", true);
+					Point pt_center = Point(x_separator_middle, y_separator_up);
+					Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
+					line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
+					line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
+					floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
 
-						const int j_max = image_flood_fill.rows;
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-							for (int j = 0; j < j_max; ++j)
-								if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
-									fill_image_background_static(i, j, image_in);
-					}
-					else
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-							for (int j = y_separator_up; j >= 0; --j)
+					const int j_max = image_flood_fill.rows;
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < j_max; ++j)
+							if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
 								fill_image_background_static(i, j, image_in);
 				}
 
