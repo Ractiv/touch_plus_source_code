@@ -422,12 +422,12 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					for (int i = 0; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < j_max; ++j)
 							if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
-								fill_image_background_static(i, j, image_in);
+								fill_image_background_static(i, j, image_in); //triangle fill
 				}
 
 				for (int i = 0; i < WIDTH_SMALL; ++i)
 					for (int j = y_separator_down; j < HEIGHT_SMALL; ++j)
-						fill_image_background_static(i, j, image_in);
+						fill_image_background_static(i, j, image_in); //bottom fill
 
 				//------------------------------------------------------------------------------------------------------------------------
 
@@ -533,40 +533,17 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
 							floodFill(image_in_thresholded, pt, Scalar(254));
 
-				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 10);
+				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 5);
 
 				//------------------------------------------------------------------------------------------------------------------------
 
-				BlobDetectorNew* blob_detector_image_in_thresholded = value_store.get_blob_detector("blob_detector_image_in_thresholded");
-				blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-				for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)
-					if (blob.x < x_separator_left || blob.x > x_separator_right)
-						for (Point& pt : blob.data)
-							fill_image_background_static(pt.x, pt.y, image_in);
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				const int x_separator_middle_const = x_separator_middle;
-
-				if (gray_threshold_left != 9999)
-					for (int i = 0; i < x_separator_middle; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
-								fill_image_background_static(i, j, image_in);
-
-				if (gray_threshold_right != 9999)
-					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
-								fill_image_background_static(i, j, image_in);
-
-				//------------------------------------------------------------------------------------------------------------------------
+				Mat image_borders = value_store.get_mat("image_borders", true);
+				bool image_borders_set = false;
 
 				if (both_moving)
 				{
-					// float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664);
-					float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
+					float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664);
+					//float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
 
 					float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
 					Point pt_left_up = Point(x_separator_left - width_diff_left, y_separator_up);
@@ -598,7 +575,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					if (b0 && b1 && b2 && b3)
 					{
-						Mat image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+						image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 						line(image_borders, pt_intersection_up_left, pt_intersection_down_left, Scalar(254), 1);
 						line(image_borders,	pt_intersection_up_right, pt_intersection_down_right, Scalar(254), 1);
 
@@ -608,14 +585,59 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (pt_intersection_up_right.x < WIDTH_SMALL_MINUS)
 							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
 
-						for (int i = 0; i < WIDTH_SMALL; ++i)
-							for (int j = 0; j < HEIGHT_SMALL; ++j)
-								if (image_borders.ptr<uchar>(j, i)[0] > 0)
-									fill_image_background_static(i, j, image_in);
+						value_store.set_mat("image_borders", image_borders);
+						image_borders_set = true;
 					}
+				}
 
-					//------------------------------------------------------------------------------------------------------------------------
+				//------------------------------------------------------------------------------------------------------------------------
 
+				BlobDetectorNew* blob_detector_image_in_thresholded = value_store.get_blob_detector("blob_detector_image_in_thresholded");
+				blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+				for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)
+				{
+					float overlap_count = 0;
+					for (Point& pt : blob.data)
+						if (image_borders.ptr<uchar>(pt.y, pt.x)[0] > 0)
+							++overlap_count;
+
+					const float overlap_ratio = overlap_count / blob.count;
+					if (overlap_ratio > 0.5 || blob.x < x_separator_left || blob.x > x_separator_right || blob.y > y_separator_down)
+						for (Point& pt : blob.data)
+							fill_image_background_static(pt.x, pt.y, image_in); //out of bounds blob fill
+				}
+
+				//------------------------------------------------------------------------------------------------------------------------
+
+				const int x_separator_middle_const = x_separator_middle;
+
+				if (gray_threshold_left != 9999)
+					for (int i = 0; i < x_separator_middle; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
+								fill_image_background_static(i, j, image_in); //left dilated hand fill
+
+				if (gray_threshold_right != 9999)
+					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
+								fill_image_background_static(i, j, image_in); //right dilated hand fill
+
+				//------------------------------------------------------------------------------------------------------------------------
+
+				if (image_borders_set)
+				{
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (image_borders.ptr<uchar>(j, i)[0] > 0)
+								fill_image_background_static(i, j, image_in); //borders fill
+				}
+
+				//------------------------------------------------------------------------------------------------------------------------
+
+				if (both_moving)
+				{
 					float hole_count_left = 0;
 					float hole_count_right = 0;
 
@@ -635,7 +657,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					if (ratio_max < 2)
 					{
-						alpha = 0.5;
+						alpha = 0.1;
 						value_store.set_bool("result", true);
 					}
 				}
