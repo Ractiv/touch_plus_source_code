@@ -17,6 +17,7 @@
  */
 
 #include "point_resolver.h"
+#include "mat_functions.h"
 
 Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 	               Mat& image_background_in,        const uchar diff_threshold,

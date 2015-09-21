@@ -350,6 +350,12 @@ void on_first_frame()
     ipc->send_message("menu_plus", "set loading progress", "100");
 }
 
+void left_mouse_cb(int event, int x, int y, int flags, void* userdata)
+{
+    if (event == EVENT_LBUTTONDOWN)
+        COUT << x << ", " << y << " " << imu.pitch << endl;
+}
+
 void compute()
 {
     updated = false;
@@ -404,7 +410,7 @@ void compute()
     GaussianBlur(image_preprocessed0, image_preprocessed0, Size(3, 9), 0, 0);
     GaussianBlur(image_preprocessed1, image_preprocessed1, Size(3, 9), 0, 0);
 
-    if (!CameraInitializerNew::adjust_exposure(camera, image_small0))
+    if (!CameraInitializerNew::adjust_exposure(camera, image_preprocessed0))
     {
         static int step_count = 0;
         if (step_count == 3)
@@ -459,6 +465,10 @@ void compute()
     {
         imshow("image_small1", image_small1);
         imshow("image_preprocessed1", image_preprocessed1);
+
+        // setMouseCallback("image_preprocessed1", left_mouse_cb, NULL);
+        // waitKey(1);
+        // return;
     }
 
     static bool motion_processor_proceed = false;
@@ -482,7 +492,7 @@ void compute()
 
         first_pass = false;
         exposure_adjusted = false;
-        CameraInitializerNew::adjust_exposure(camera, image_small0, true);
+        CameraInitializerNew::adjust_exposure(camera, image_preprocessed0, true);
     }
     else if (!first_pass)
         construct_background = true;
@@ -517,6 +527,11 @@ void compute()
         proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
+    }
+
+    if (proceed)
+    {
+        stereo_processor.compute(mono_processor0, mono_processor1, reprojector, pointer_mapper);
     }
 
     ++frame_num;

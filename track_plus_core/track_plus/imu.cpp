@@ -17,6 +17,7 @@
  */
 
 #include "imu.h"
+#include "globals.h"
 
 Point3f IMU::compute_azimuth(float x_accel, float y_accel, float z_accel)
 {
@@ -34,7 +35,7 @@ void IMU::compute(float x_accel, float y_accel, float z_accel)
 	pitch = heading.y;
 	yaw = heading.z;
 
-	low_pass_filter.compute(roll, 0.5, "roll");
-	low_pass_filter.compute(pitch, 0.5, "pitch");
-	low_pass_filter.compute(yaw, 0.5, "yaw");
+	low_pass_filter.compute(roll, 0.1, "roll");
+	low_pass_filter.compute(pitch, 0.1, "pitch");
+	low_pass_filter.compute(yaw, 0.1, "yaw");
 }

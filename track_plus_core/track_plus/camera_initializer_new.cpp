@@ -139,7 +139,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 
 		camera->setExposureTime(Camera::both, exposure_val);
 
-		return true;		
+		return true;
 	}
 
 	return false;

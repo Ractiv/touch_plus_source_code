@@ -19,10 +19,6 @@
 #pragma once
 
 #include "globals.h"
-#include "blob_detector_new.h"
-#include "low_pass_filter.h"
-#include "contour_functions.h"
-#include "mat_functions.h"
 #include "value_store.h"
 #include "value_accumulator.h"
 

@@ -203,6 +203,16 @@ float power(float x, float a, float b)
 	return a * pow(x, b);
 }
 
+float quadratic(float x, float a, float b, float c)
+{
+	return a + (b * x) + pow(c * x, 2);
+}
+
+float cubic(float x, float a, float b, float c, float d)
+{
+	return a + (b * x) + pow(c * x, 2) + pow(d * x, 3);
+}
+
 float solve_triangle_A_abc(float a, float b, float c)
 {
 	return acos((-(a * a) + (b * b) + (c * c)) / (2 * b * c));

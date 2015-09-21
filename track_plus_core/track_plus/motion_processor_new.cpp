@@ -17,6 +17,9 @@
  */
 
 #include "motion_processor_new.h"
+#include "mat_functions.h"
+#include "contour_functions.h"
+
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
@@ -326,10 +329,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-			int x_separator_offset = map_val(pitch, 35, 45, 5, 15);
-			if (x_separator_offset < 5)
-				x_separator_offset = 5;
-
+			const int x_separator_offset = 10;
 			if ((left_moving || right_moving) && value_store.get_bool("x_min_max_set"))
 			{
 				if (both_moving)
@@ -533,7 +533,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
 							floodFill(image_in_thresholded, pt, Scalar(254));
 
-				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 5);
+				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 10);
 
 				//------------------------------------------------------------------------------------------------------------------------
 
@@ -565,7 +565,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 				if (both_moving)
 				{
-					float width_diff = power(pitch, 0.006834535, 2.199475);
+					// float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664);
+					float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
 
 					float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
 					Point pt_left_up = Point(x_separator_left - width_diff_left, y_separator_up);

@@ -44,6 +44,8 @@ uchar get_quadrant(int x, int y, int pivot_x, int pivot_y);
 float linear(float x, float m, float c);
 float exponential(float x, float a, float b, float c);
 float power(float x, float a, float b);
+float quadratic(float x, float a, float b, float c);
+float cubic(float x, float a, float b, float c, float d);
 
 //abc are sides, ABC are angles opposing abc sides in radians
 float solve_triangle_A_abc(float a, float b, float c);
