@@ -25,8 +25,6 @@
 class MotionProcessorNew
 {
 public:
-	const int entropy_threshold = 500;
-
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
 	float x_separator_middle = WIDTH_SMALL_HALF;

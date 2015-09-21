@@ -20,11 +20,30 @@
 #include "mat_functions.h"
 #include "contour_functions.h"
 
+const int entropy_threshold = 500;
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
+	const int target_frame = value_store.get_int("target_frame", 1);
+	int current_frame = value_store.get_int("current_frame", 0);
+
+	++current_frame;
+
+	bool to_return = false;
+	if (current_frame != target_frame)
+		to_return = true;
+	else
+		current_frame = 0;
+
+	value_store.set_int("current_frame", current_frame);
+
+	if (to_return)
+		return value_store.get_bool("result", false);
+
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
+
+	bool both_moving_temp = false;
 
 	if (compute_background_static == false && construct_background == true)
 	{
@@ -37,14 +56,12 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 		left_moving = false;
 		right_moving = false;
-		both_moving = false;
 	}
 
 	compute_background_static = construct_background;
 
 	left_moving = false;
 	right_moving = false;
-	both_moving = false;
 
 	static float alpha = 1;
 
@@ -213,25 +230,43 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			int entropy_max = max(entropy_left, entropy_right) + 1;
 
 			if (entropy_max / entropy_min == 1)
-				both_moving = (total_width > 80 && gap_ratio > 0.3);
+				both_moving_temp = (total_width > 80 && gap_ratio > 0.3);
 
-			if (both_moving)
+			if (both_moving_temp)
 			{
 				float entropy_max = max(entropy_left, entropy_right);
 				float entropy_min = min(entropy_left, entropy_right);
 
 				if (entropy_max / entropy_min > 2 || entropy_min < entropy_threshold)
-					both_moving = false;
+					both_moving_temp = false;
 			}
 		}
+
+		static int both_moving0 = -1;
+		static int both_moving1 = -1;
+		static int both_moving_old0 = -1;
+		static int both_moving_old1 = -1;
+
+		if (name == "0")
+		{
+			both_moving_old0 = both_moving0;
+			both_moving0 = both_moving_temp;
+		}
+		else if (name == "1")
+		{
+			both_moving_old1 = both_moving1;
+			both_moving1 = both_moving_temp;
+		}
+
+		both_moving = false;
+		if (both_moving0 || both_moving_old0 || both_moving1 || both_moving_old1)
+			both_moving = true;
 
 		static bool both_moving_0_set = false;
 		static bool both_moving_1_set = false;
 
 		static int x_separator_middle0;
 		static int x_separator_middle1;
-
-		static string motion_processor_primary_name = "";
 
 		if (both_moving)
 		{
@@ -263,17 +298,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			}
 			else
 			{
-				if (motion_processor_primary_name == "")
-				{
-					int x_diff0 = abs(WIDTH_SMALL_HALF - x_separator_middle0);
-					int x_diff1 = abs(WIDTH_SMALL_HALF - x_separator_middle1);
-
-					if (x_diff0 < x_diff1)
-						motion_processor_primary_name = "0";
-					else
-						motion_processor_primary_name = "1";
-				}
-
 				left_moving = true;
 				right_moving = true;
 			}
@@ -346,7 +370,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			//------------------------------------------------------------------------------------------------------------------------
 
 			int intensity_array0[HEIGHT_SMALL] { 0 };
-			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+			for (BlobNew& blob : *blob_detector_image_subtraction->blobs)//mark
 				for (Point& pt : blob.data)
 					++intensity_array0[pt.y];
 
@@ -533,7 +557,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
 							floodFill(image_in_thresholded, pt, Scalar(254));
 
-				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 5);
+				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 10);
 
 				//------------------------------------------------------------------------------------------------------------------------
 
@@ -659,6 +683,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					{
 						alpha = 0.1;
 						value_store.set_bool("result", true);
+						value_store.set_int("target_frame", 10);
 					}
 				}
 			}
@@ -676,6 +701,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				line(image_visualization, Point(0, y_ref), Point(999, y_ref), Scalar(254), 1);
 
 				imshow("image_visualizationadfasdfdff" + name, image_visualization);
+				imshow("image_subtractionsdfsdfsdfsdf" + name, image_subtraction);
 			}
 		}
 	}

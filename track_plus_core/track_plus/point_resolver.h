@@ -21,4 +21,14 @@
 #include "reprojector.h"
 #include "motion_processor_new.h"
 
-Point2f resolve_point(Point pt, uchar side, Mat& image_color, MotionProcessorNew& motion_processor, Reprojector& reprojector);
+class PointResolver
+{
+public:
+	MotionProcessorNew* motion_processor0;
+	MotionProcessorNew* motion_processor1;
+	Reprojector* reprojector;
+
+	PointResolver(MotionProcessorNew& _motion_processor0, MotionProcessorNew& _motion_processor1, Reprojector& _reprojector);
+
+	Point2f compute(Point pt, Mat& image_color, uchar side);
+};

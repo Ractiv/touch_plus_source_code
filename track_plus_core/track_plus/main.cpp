@@ -35,6 +35,7 @@
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
+#include "point_resolver.h"
 #include "pointer_mapper.h"
 
 #ifdef _WIN32
@@ -90,15 +91,17 @@ StereoProcessor stereo_processor;
 
 PoseEstimator pose_estimator;
 
+Reprojector reprojector;
+
 HandResolver hand_resolver;
 
-Reprojector reprojector;
+PointResolver point_resolver = PointResolver(motion_processor0, motion_processor1, reprojector);
 
 PointerMapper pointer_mapper;
 
 LowPassFilter low_pass_filter;
 
-const int pool_size_max = 100;
+const int pool_size_max = 10;
 
 Mat image_pool[pool_size_max];
 int image_pool_count = 0;
@@ -531,7 +534,7 @@ void compute()
 
     if (proceed)
     {
-        stereo_processor.compute(mono_processor0, mono_processor1, reprojector, pointer_mapper);
+        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
     }
 
     ++frame_num;

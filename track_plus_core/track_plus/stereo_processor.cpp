@@ -17,6 +17,7 @@
  */
 
 #include "stereo_processor.h"
+#include "dtw.h"
 
 struct Point4f
 {
@@ -56,8 +57,8 @@ struct compare_blob_pair_angle_diff
 	}
 };
 
-bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
-							  Reprojector& reprojector,          PointerMapper& pointer_mapper)
+bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1, PointResolver& point_resolver,
+							  PointerMapper& pointer_mapper,     Mat& image0,                       Mat& image1)
 {
 	vector<Point>* vec0 = &mono_processor0.stereo_matching_points;
 	vector<Point>* vec1 = &mono_processor1.stereo_matching_points;
@@ -189,11 +190,29 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		checker1[key1] = 1;
 	}
 
+	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
+
 	for (BlobPair& pair : blob_pair_vec_filtered)
 	{
 		BlobNew* blob0 = pair.blob0;
 		BlobNew* blob1 = pair.blob1;
+
+		// Point2f pt_resolved0 = point_resolver.compute(blob0->pt_y_max, image0, 0);
+		// Point2f pt_resolved1 = point_resolver.compute(blob1->pt_y_max, image1, 1);
+		Point pt_resolved0 = point_resolver.reprojector->remap_point(blob0->pt_y_max, 0, 4);
+		Point pt_resolved1 = point_resolver.reprojector->remap_point(blob1->pt_y_max, 1, 4);
+
+		if (pt_resolved0.x != 9999 && pt_resolved1.x != 9999)
+		{
+			// circle(image_visualization, Point(pt_resolved0.x, pt_resolved0.y), 5, Scalar(254), 2);
+			// circle(image_visualization, Point(pt_resolved1.x, pt_resolved1.y), 5, Scalar(127), 2);
+
+			Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
+			circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
+		}
 	}
+
+	imshow("image_visualizationadsfasdfasdf", image_visualization);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 

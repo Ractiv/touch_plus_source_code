@@ -19,18 +19,20 @@
 #include "point_resolver.h"
 #include "mat_functions.h"
 
+BlobDetectorNew blob_detector_point_resolver;
+
+const int window_width = 50;
+const int window_height = 30;
+const int window_width_half = window_width / 2;
+const int window_height_half = window_height / 2;
+
 Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 	               Mat& image_background_in,        const uchar diff_threshold,
 			   	   const uchar gray_threshold_left, const uchar gray_threshold_right,
-				   Reprojector& reprojector,        const uchar side,
+				   Reprojector* reprojector,        const uchar side,
 										  		    const int x_separator_middle)
 {
 	Point pt_large = pt_in * 4;
-
-	const int window_width = 50;
-	const int window_height = 30;
-	const int window_width_half = window_width / 2;
-	const int window_height_half = window_height / 2;
 
 	int x0 = pt_large.x - window_width_half;
 	int y0 = pt_large.y - window_height_half;
@@ -64,7 +66,7 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 	Mat image_cropped_preprocessed;
 	compute_channel_diff_image(image_cropped, image_cropped_preprocessed, true, "image_cropped_preprocessed");
 	Point pt_offset0;
-	image_cropped_preprocessed = reprojector.remap(&image_cropped_preprocessed, x0, y0, side, pt_offset0);
+	image_cropped_preprocessed = reprojector->remap(&image_cropped_preprocessed, x0, y0, side, pt_offset0);
 
 	Mat image_background_cropped = image_background_in(crop_rect_small).clone();
 
@@ -89,7 +91,7 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 	resize(image_background_cropped, image_background_cropped_scaled, crop_rect.size(), 0, 0, INTER_LINEAR);
 
 	Point pt_offset1;
-	image_background_cropped_scaled = reprojector.remap(&image_background_cropped_scaled, x0, y0, side, pt_offset1);
+	image_background_cropped_scaled = reprojector->remap(&image_background_cropped_scaled, x0, y0, side, pt_offset1);
 
 	if (image_background_cropped_scaled.cols == 0)
 		return Point(-1, -1);
@@ -116,34 +118,81 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 		}
 	}
 
-	float x_mean = 0;
-	float y_mean = 0;
-	int count = 0;
+	threshold(image_subtraction, image_subtraction, diff_threshold, 254, THRESH_BINARY);
+	GaussianBlur(image_subtraction, image_subtraction, Size(5, 5), 0, 0);
+	threshold(image_subtraction, image_subtraction, 100, 254, THRESH_BINARY);
 
-	for (int i = 0; i < image_width; ++i)
-		for (int j = 0; j < image_height; ++j)
-			if (image_subtraction.ptr<uchar>(j, i)[0] > diff_threshold)
+	float point_x = 0;
+	float point_y = 0;
+	float point_count = 0;
+
+	blob_detector_point_resolver.compute(image_subtraction, 254, 0, image_subtraction.cols, 0, image_subtraction.rows, true);
+	if (blob_detector_point_resolver.blobs->size() <= 1)
+	{
+		for (BlobNew& blob : *blob_detector_point_resolver.blobs)
+			for (Point& pt : blob.data)
 			{
-				x_mean += i;
-				y_mean += j;
-				++count;
+				point_x += pt.x;
+				point_y += pt.y;
+				++point_count;
 			}
+	}
+	else
+	{
+		const int x_middle = image_subtraction.cols / 2;
+		BlobNew* blob_x_diff_min = NULL;
+		int x_diff_min = 9999;
 
-	x_mean /= count;
-	y_mean /= count;
+		for (BlobNew& blob : *blob_detector_point_resolver.blobs)
+		{
+			int x_diff = abs(blob.x - x_middle);
+			if (x_diff < x_diff_min)
+			{
+				blob_x_diff_min = &blob;
+				x_diff_min = x_diff;
+			}
+		}
+		for (Point& pt : blob_x_diff_min->data)
+		{
+			point_x += pt.x;
+			point_y += pt.y;
+			++point_count;
+		}
+	}
+	if (point_count == 0)
+		point_count = 1;
 
-	return Point2f(x_mean + pt_offset0.x, y_mean + pt_offset0.y);
+	point_x /= point_count;
+	point_y /= point_count;
+
+	if (point_x == 0 && point_y == 0)
+		return Point2f(9999, 9999);
+
+	return Point2f(point_x + pt_offset0.x, point_y + pt_offset0.y);
 }
 
-Point2f resolve_point(Point pt, uchar side, Mat& image_color, MotionProcessorNew& motion_processor, Reprojector& reprojector)
+PointResolver::PointResolver(MotionProcessorNew& _motion_processor0, MotionProcessorNew& _motion_processor1, Reprojector& _reprojector)
 {
+	motion_processor0 = &_motion_processor0;
+	motion_processor1 = &_motion_processor1;
+	reprojector = &_reprojector;
+}
+
+Point2f PointResolver::compute(Point pt, Mat& image_color, uchar side)
+{
+	MotionProcessorNew* motion_processor;
+	if (side == 0)
+		motion_processor = motion_processor0;
+	else
+		motion_processor = motion_processor1;
+
 	return do_resolve(pt,
 					  image_color,
-					  motion_processor.image_background_static,
-					  motion_processor.diff_threshold,
-					  motion_processor.gray_threshold_left,
-					  motion_processor.gray_threshold_right,
+					  motion_processor->image_background_static,
+					  motion_processor->diff_threshold,
+					  motion_processor->gray_threshold_left,
+					  motion_processor->gray_threshold_right,
 					  reprojector,
 					  side,
-					  motion_processor.x_separator_middle);
+					  motion_processor->x_separator_middle);
 }
