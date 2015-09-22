@@ -417,291 +417,293 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			//------------------------------------------------------------------------------------------------------------------------
 
-			if (left_moving || right_moving)
+			if ((((left_moving || right_moving) && value_store.get_bool("result", true)) || both_moving))
 			{
-				int blobs_y_min = 9999;
-				for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
-					if (blob.y_min < blobs_y_min)
-						blobs_y_min = blob.y_min;
-
-				y_separator_up = blobs_y_min + 5;
-				value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9);
-			}
-
-			//------------------------------------------------------------------------------------------------------------------------
-
-			if ((((left_moving || right_moving) && value_store.get_bool("result", false)) || both_moving) &&
-				construct_background && value_accumulator.ready)
-			{
-				if (y_separator_up > 0 && !value_store.get_bool("triangle_fill_complete", false))
+				if (left_moving || right_moving)
 				{
-					value_store.set_bool("triangle_fill_complete", true);
-					Point pt_center = Point(x_separator_middle, y_separator_up);
-					Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
-					line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
-					line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
-					floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
+					int blobs_y_min = 9999;
+					for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
+						if (blob.y_min < blobs_y_min)
+							blobs_y_min = blob.y_min;
 
-					const int j_max = image_flood_fill.rows;
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < j_max; ++j)
-							if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
-								fill_image_background_static(i, j, image_in); //triangle fill
+					y_separator_up = blobs_y_min + 5;
+					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9);
 				}
-
-				for (int i = 0; i < WIDTH_SMALL; ++i)
-					for (int j = y_separator_down; j < HEIGHT_SMALL; ++j)
-						fill_image_background_static(i, j, image_in); //bottom fill
 
 				//------------------------------------------------------------------------------------------------------------------------
 
-				static float gray_threshold_left_stereo = 9999;
-				static float gray_threshold_right_stereo = 9999;
-
-				if (name == "0")
+				if (value_accumulator.ready && construct_background)
 				{
-					vector<uchar> gray_vec_left;
-					vector<uchar> gray_vec_right;
+					if (y_separator_up > 0 && !value_store.get_bool("triangle_fill_complete", false))
+					{
+						value_store.set_bool("triangle_fill_complete", true);
+						Point pt_center = Point(x_separator_middle, y_separator_up);
+						Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
+						line(image_flood_fill, pt_center, Point(x_separator_left, 0), Scalar(254), 1);
+						line(image_flood_fill, pt_center, Point(x_separator_right, 0), Scalar(254), 1);
+						floodFill(image_flood_fill, Point(pt_center.x, 0), Scalar(254));
+
+						const int j_max = image_flood_fill.rows;
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < j_max; ++j)
+								if (image_flood_fill.ptr<uchar>(j, i)[0] > 0)
+									fill_image_background_static(i, j, image_in); //triangle fill
+					}
+
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = y_separator_down; j < HEIGHT_SMALL; ++j)
+							fill_image_background_static(i, j, image_in); //bottom fill
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					static float gray_threshold_left_stereo = 9999;
+					static float gray_threshold_right_stereo = 9999;
+
+					if (name == "0")
+					{
+						vector<uchar> gray_vec_left;
+						vector<uchar> gray_vec_right;
+
+						for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
+							if (blob.active)
+	                        {
+								if (blob.x < x_separator_middle)
+								{
+									for (Point pt : blob.data)
+									{
+										uchar gray = std::max(image_in.ptr<uchar>(pt.y, pt.x)[0], image_background.ptr<uchar>(pt.y, pt.x)[0]);
+										gray_vec_left.push_back(gray);
+									}
+								}
+								else
+								{
+									for (Point pt : blob.data)
+									{
+										uchar gray = std::max(image_in.ptr<uchar>(pt.y, pt.x)[0], image_background.ptr<uchar>(pt.y, pt.x)[0]);
+										gray_vec_right.push_back(gray);
+									}	
+								}
+	                        }
+
+						if (gray_vec_left.size() > 0 && left_moving)
+						{
+							sort(gray_vec_left.begin(), gray_vec_left.end());
+							float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
+
+							gray_threshold_left = gray_median_left - 20;
+							low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
+							gray_threshold_left_stereo = gray_threshold_left;
+						}
+
+						if (gray_vec_right.size() > 0 && right_moving)
+						{
+							sort(gray_vec_right.begin(), gray_vec_right.end());
+							float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
+
+							gray_threshold_right = gray_median_right - 20;
+							low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
+							gray_threshold_right_stereo = gray_threshold_right;
+						}
+					}
+					else
+					{
+						gray_threshold_left = gray_threshold_left_stereo;
+						gray_threshold_right = gray_threshold_right_stereo;
+					}
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					Mat image_in_thresholded = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (i < x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_left)
+								image_in_thresholded.ptr<uchar>(j, i)[0] = 127;
+							else if (i > x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_right)
+								image_in_thresholded.ptr<uchar>(j, i)[0] = 127;
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					uchar static_diff_max = 255;
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (image_in_thresholded.ptr<uchar>(j, i)[0] > 0)
+								if (image_background_static.ptr<uchar>(j, i)[0] < 255)
+								{
+									const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background_static.ptr<uchar>(j, i)[0]);
+									if (diff > static_diff_max)
+										static_diff_max = diff;
+								}
+
+					static float diff_threshold_stereo;
+					if (name == "0")
+					{
+						diff_threshold = static_diff_max * 0.2;
+						diff_threshold_stereo = diff_threshold;
+					}
+					else
+						diff_threshold = diff_threshold_stereo;
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					Mat image_canny;
+					Canny(image_raw, image_canny, 20, 60, 3);
+
+					for (int i = 0; i < WIDTH_SMALL; ++i)
+						for (int j = 0; j < HEIGHT_SMALL; ++j)
+							if (image_canny.ptr<uchar>(j, i)[0] > 0)
+								image_in_thresholded.ptr<uchar>(j, i)[0] = 0;
 
 					for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
-						if (blob.active)
-                        {
-							if (blob.x < x_separator_middle)
-							{
-								for (Point pt : blob.data)
-								{
-									uchar gray = std::max(image_in.ptr<uchar>(pt.y, pt.x)[0], image_background.ptr<uchar>(pt.y, pt.x)[0]);
-									gray_vec_left.push_back(gray);
-								}
-							}
-							else
-							{
-								for (Point pt : blob.data)
-								{
-									uchar gray = std::max(image_in.ptr<uchar>(pt.y, pt.x)[0], image_background.ptr<uchar>(pt.y, pt.x)[0]);
-									gray_vec_right.push_back(gray);
-								}	
-							}
-                        }
-
-					if (gray_vec_left.size() > 0 && left_moving)
-					{
-						sort(gray_vec_left.begin(), gray_vec_left.end());
-						float gray_median_left = gray_vec_left[gray_vec_left.size() * 0.5];
-
-						gray_threshold_left = gray_median_left - 20;
-						low_pass_filter->compute(gray_threshold_left, 0.1, "gray_threshold_left");
-						gray_threshold_left_stereo = gray_threshold_left;
-					}
-
-					if (gray_vec_right.size() > 0 && right_moving)
-					{
-						sort(gray_vec_right.begin(), gray_vec_right.end());
-						float gray_median_right = gray_vec_right[gray_vec_right.size() * 0.5];
-
-						gray_threshold_right = gray_median_right - 20;
-						low_pass_filter->compute(gray_threshold_right, 0.1, "gray_threshold_right");
-						gray_threshold_right_stereo = gray_threshold_right;
-					}
-				}
-				else
-				{
-					gray_threshold_left = gray_threshold_left_stereo;
-					gray_threshold_right = gray_threshold_right_stereo;
-				}
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				Mat image_in_thresholded = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-				for (int i = 0; i < WIDTH_SMALL; ++i)
-					for (int j = 0; j < HEIGHT_SMALL; ++j)
-						if (i < x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_left)
-							image_in_thresholded.ptr<uchar>(j, i)[0] = 127;
-						else if (i > x_separator_middle && image_in.ptr<uchar>(j, i)[0] > gray_threshold_right)
-							image_in_thresholded.ptr<uchar>(j, i)[0] = 127;
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				uchar static_diff_max = 255;
-				for (int i = 0; i < WIDTH_SMALL; ++i)
-					for (int j = 0; j < HEIGHT_SMALL; ++j)
-						if (image_in_thresholded.ptr<uchar>(j, i)[0] > 0)
-							if (image_background_static.ptr<uchar>(j, i)[0] < 255)
-							{
-								const uchar diff = abs(image_in.ptr<uchar>(j, i)[0] - image_background_static.ptr<uchar>(j, i)[0]);
-								if (diff > static_diff_max)
-									static_diff_max = diff;
-							}
-
-				static float diff_threshold_stereo;
-				if (name == "0")
-				{
-					diff_threshold = static_diff_max * 0.2;
-					diff_threshold_stereo = diff_threshold;
-				}
-				else
-					diff_threshold = diff_threshold_stereo;
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				Mat image_canny;
-				Canny(image_raw, image_canny, 20, 60, 3);
-
-				for (int i = 0; i < WIDTH_SMALL; ++i)
-					for (int j = 0; j < HEIGHT_SMALL; ++j)
-						if (image_canny.ptr<uchar>(j, i)[0] > 0)
-							image_in_thresholded.ptr<uchar>(j, i)[0] = 0;
-
-				for (BlobNew& blob : *(blob_detector_image_subtraction->blobs))
-					for (Point& pt : blob.data)
-						if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
-							floodFill(image_in_thresholded, pt, Scalar(254));
-
-				dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 10);
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				Mat image_borders = value_store.get_mat("image_borders", true);
-				bool image_borders_set = false;
-
-				if (both_moving)
-				{
-					float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664);
-					//float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
-
-					float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
-					Point pt_left_up = Point(x_separator_left - width_diff_left, y_separator_up);
-					Point pt_left_down = Point(x_separator_left, y_separator_down);
-
-					float width_diff_right = map_val(x_separator_right, WIDTH_SMALL_MINUS / 2, WIDTH_SMALL_MINUS, 0, width_diff);
-					Point pt_right_up = Point(x_separator_right - width_diff_right, y_separator_up);
-					Point pt_right_down = Point(x_separator_right, y_separator_down);
-
-					Point pt_intersection_up_left;
-					bool b0 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
-													pt_left_down.x, pt_left_down.y, 0, 
-													pt_intersection_up_left);
-
-					Point pt_intersection_down_left;
-					bool b1 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
-													pt_left_down.x, pt_left_down.y, HEIGHT_SMALL_MINUS, 
-													pt_intersection_down_left);
-
-					Point pt_intersection_up_right;
-					bool b2 = get_intersection_at_y(pt_right_up.x, pt_right_up.y, 
-													pt_right_down.x, pt_right_down.y, 0, 
-													pt_intersection_up_right);
-
-					Point pt_intersection_down_right;
-					bool b3 = get_intersection_at_y(pt_right_up.x, pt_right_up.y, 
-													pt_right_down.x, pt_right_down.y, HEIGHT_SMALL_MINUS, 
-													pt_intersection_down_right);
-
-					if (b0 && b1 && b2 && b3)
-					{
-						image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-						line(image_borders, pt_intersection_up_left, pt_intersection_down_left, Scalar(254), 1);
-						line(image_borders,	pt_intersection_up_right, pt_intersection_down_right, Scalar(254), 1);
-
-						if (pt_intersection_up_left.x > 0)
-							floodFill(image_borders, Point(0, 0), Scalar(254));
-
-						if (pt_intersection_up_right.x < WIDTH_SMALL_MINUS)
-							floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
-
-						value_store.set_mat("image_borders", image_borders);
-						image_borders_set = true;
-					}
-				}
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				BlobDetectorNew* blob_detector_image_in_thresholded = value_store.get_blob_detector("blob_detector_image_in_thresholded");
-				blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
-
-				for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)
-				{
-					float overlap_count = 0;
-					for (Point& pt : blob.data)
-						if (image_borders.ptr<uchar>(pt.y, pt.x)[0] > 0)
-							++overlap_count;
-
-					const float overlap_ratio = overlap_count / blob.count;
-					if (overlap_ratio > 0.5 || blob.x < x_separator_left || blob.x > x_separator_right || blob.y > y_separator_down)
 						for (Point& pt : blob.data)
-							fill_image_background_static(pt.x, pt.y, image_in); //out of bounds blob fill
-				}
+							if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
+								floodFill(image_in_thresholded, pt, Scalar(254));
 
-				//------------------------------------------------------------------------------------------------------------------------
+					dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 10);
 
-				const int x_separator_middle_const = x_separator_middle;
+					//------------------------------------------------------------------------------------------------------------------------
 
-				if (gray_threshold_left != 9999)
-					for (int i = 0; i < x_separator_middle; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
-								fill_image_background_static(i, j, image_in); //left dilated hand fill
+					Mat image_borders = value_store.get_mat("image_borders", true);
+					bool image_borders_set = false;
 
-				if (gray_threshold_right != 9999)
-					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
-								fill_image_background_static(i, j, image_in); //right dilated hand fill
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				if (image_borders_set)
-				{
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_borders.ptr<uchar>(j, i)[0] > 0)
-								fill_image_background_static(i, j, image_in); //borders fill
-				}
-
-				//------------------------------------------------------------------------------------------------------------------------
-
-				if (both_moving)
-				{
-					float hole_count_left = 0;
-					float hole_count_right = 0;
-
-					for (int i = 0; i < WIDTH_SMALL; ++i)
-						for (int j = 0; j < HEIGHT_SMALL; ++j)
-							if (image_background_static.ptr<uchar>(j, i)[0] == 255)
-							{
-								if (i < x_separator_middle)
-									++hole_count_left;
-								else
-									++hole_count_right;
-							}
-
-					float ratio0 = hole_count_right / (entropy_right + 0.1);
-					float ratio1 = hole_count_left / (entropy_left + 0.1);
-					float ratio_max = max(ratio0, ratio1);
-
-					if (ratio_max < 2)
+					if (both_moving)
 					{
-						alpha = 0.1;
-						value_store.set_bool("result", true);
-						value_store.set_int("target_frame", 10);
+						float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664);
+						//float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
+
+						float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
+						Point pt_left_up = Point(x_separator_left - width_diff_left, y_separator_up);
+						Point pt_left_down = Point(x_separator_left, y_separator_down);
+
+						float width_diff_right = map_val(x_separator_right, WIDTH_SMALL_MINUS / 2, WIDTH_SMALL_MINUS, 0, width_diff);
+						Point pt_right_up = Point(x_separator_right - width_diff_right, y_separator_up);
+						Point pt_right_down = Point(x_separator_right, y_separator_down);
+
+						Point pt_intersection_up_left;
+						bool b0 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
+														pt_left_down.x, pt_left_down.y, 0, 
+														pt_intersection_up_left);
+
+						Point pt_intersection_down_left;
+						bool b1 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
+														pt_left_down.x, pt_left_down.y, HEIGHT_SMALL_MINUS, 
+														pt_intersection_down_left);
+
+						Point pt_intersection_up_right;
+						bool b2 = get_intersection_at_y(pt_right_up.x, pt_right_up.y, 
+														pt_right_down.x, pt_right_down.y, 0, 
+														pt_intersection_up_right);
+
+						Point pt_intersection_down_right;
+						bool b3 = get_intersection_at_y(pt_right_up.x, pt_right_up.y, 
+														pt_right_down.x, pt_right_down.y, HEIGHT_SMALL_MINUS, 
+														pt_intersection_down_right);
+
+						if (b0 && b1 && b2 && b3)
+						{
+							image_borders = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+							line(image_borders, pt_intersection_up_left, pt_intersection_down_left, Scalar(254), 1);
+							line(image_borders,	pt_intersection_up_right, pt_intersection_down_right, Scalar(254), 1);
+
+							if (pt_intersection_up_left.x > 0)
+								floodFill(image_borders, Point(0, 0), Scalar(254));
+
+							if (pt_intersection_up_right.x < WIDTH_SMALL_MINUS)
+								floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
+
+							value_store.set_mat("image_borders", image_borders);
+							image_borders_set = true;
+						}
+					}
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					BlobDetectorNew* blob_detector_image_in_thresholded = value_store.get_blob_detector("blob_detector_image_in_thresholded");
+					blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
+
+					for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)
+					{
+						float overlap_count = 0;
+						for (Point& pt : blob.data)
+							if (image_borders.ptr<uchar>(pt.y, pt.x)[0] > 0)
+								++overlap_count;
+
+						const float overlap_ratio = overlap_count / blob.count;
+						if (overlap_ratio > 0.5 || blob.x < x_separator_left || blob.x > x_separator_right || blob.y > y_separator_down)
+							for (Point& pt : blob.data)
+								fill_image_background_static(pt.x, pt.y, image_in); //out of bounds blob fill
+					}
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					const int x_separator_middle_const = x_separator_middle;
+
+					if (gray_threshold_left != 9999)
+						for (int i = 0; i < x_separator_middle; ++i)
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
+									fill_image_background_static(i, j, image_in); //left dilated hand fill
+
+					if (gray_threshold_right != 9999)
+						for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								if (image_in_thresholded.ptr<uchar>(j, i)[0] == 0)
+									fill_image_background_static(i, j, image_in); //right dilated hand fill
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					if (image_borders_set)
+					{
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								if (image_borders.ptr<uchar>(j, i)[0] > 0)
+									fill_image_background_static(i, j, image_in); //borders fill
+					}
+
+					//------------------------------------------------------------------------------------------------------------------------
+
+					if (both_moving)
+					{
+						float hole_count_left = 0;
+						float hole_count_right = 0;
+
+						for (int i = 0; i < WIDTH_SMALL; ++i)
+							for (int j = 0; j < HEIGHT_SMALL; ++j)
+								if (image_background_static.ptr<uchar>(j, i)[0] == 255)
+								{
+									if (i < x_separator_middle)
+										++hole_count_left;
+									else
+										++hole_count_right;
+								}
+
+						float ratio0 = hole_count_right / (entropy_right + 0.1);
+						float ratio1 = hole_count_left / (entropy_left + 0.1);
+						float ratio_max = max(ratio0, ratio1);
+
+						if (ratio_max < 2)
+						{
+							alpha = 0.1;
+							value_store.set_bool("result", true);
+							value_store.set_int("target_frame", 10);
+						}
 					}
 				}
-			}
 
-			//------------------------------------------------------------------------------------------------------------------------
+				//------------------------------------------------------------------------------------------------------------------------
 
-			if (enable_imshow && visualize)
-			{
-				Mat image_visualization = image_background_static.clone();
-				line(image_visualization, Point(x_separator_left, 0), Point(x_separator_left, 999), Scalar(254), 1);
-				line(image_visualization, Point(x_separator_right, 0), Point(x_separator_right, 999), Scalar(254), 1);
-				line(image_visualization, Point(x_separator_middle, 0), Point(x_separator_middle, 999), Scalar(254), 1);
-				line(image_visualization, Point(0, y_separator_down), Point(999, y_separator_down), Scalar(254), 1);
-				line(image_visualization, Point(0, y_separator_up), Point(999, y_separator_up), Scalar(254), 1);
-				line(image_visualization, Point(0, y_ref), Point(999, y_ref), Scalar(254), 1);
+				if (enable_imshow && visualize)
+				{
+					Mat image_visualization = image_background_static.clone();
+					line(image_visualization, Point(x_separator_left, 0), Point(x_separator_left, 999), Scalar(254), 1);
+					line(image_visualization, Point(x_separator_right, 0), Point(x_separator_right, 999), Scalar(254), 1);
+					line(image_visualization, Point(x_separator_middle, 0), Point(x_separator_middle, 999), Scalar(254), 1);
+					line(image_visualization, Point(0, y_separator_down), Point(999, y_separator_down), Scalar(254), 1);
+					line(image_visualization, Point(0, y_separator_up), Point(999, y_separator_up), Scalar(254), 1);
+					line(image_visualization, Point(0, y_ref), Point(999, y_ref), Scalar(254), 1);
 
-				imshow("image_visualizationadfasdfdff" + name, image_visualization);
-				imshow("image_subtractionsdfsdfsdfsdf" + name, image_subtraction);
+					imshow("image_visualizationadfasdfdff" + name, image_visualization);
+					imshow("image_subtractionsdfsdfsdfsdf" + name, image_subtraction);
+				}
 			}
 		}
 	}

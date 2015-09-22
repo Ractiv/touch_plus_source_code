@@ -19,7 +19,6 @@
 #pragma once
 
 #include "motion_processor_new.h"
-#include "mat_functions.h"
 #include "value_store.h"
 
 class ForegroundExtractorNew

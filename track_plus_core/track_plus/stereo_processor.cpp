@@ -192,24 +192,32 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 
 	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
 
+	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_processor0.pt_palm, 0, 4);
+	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_processor1.pt_palm, 1, 4);
+
 	for (BlobPair& pair : blob_pair_vec_filtered)
 	{
 		BlobNew* blob0 = pair.blob0;
 		BlobNew* blob1 = pair.blob1;
 
-		// Point2f pt_resolved0 = point_resolver.compute(blob0->pt_y_max, image0, 0);
-		// Point2f pt_resolved1 = point_resolver.compute(blob1->pt_y_max, image1, 1);
-		Point pt_resolved0 = point_resolver.reprojector->remap_point(blob0->pt_y_max, 0, 4);
-		Point pt_resolved1 = point_resolver.reprojector->remap_point(blob1->pt_y_max, 1, 4);
+		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_y_max, image0, 0);
+		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_y_max, image1, 1);
+		circle(image_visualization, pt_resolved0, 5, Scalar(127), 2);
+		circle(image_visualization, pt_resolved1, 5, Scalar(254), 2);
+		circle(image_visualization, pt_resolved_pivot0, 10, Scalar(127), 2);
+		circle(image_visualization, pt_resolved_pivot1, 10, Scalar(254), 2);
 
-		if (pt_resolved0.x != 9999 && pt_resolved1.x != 9999)
-		{
-			// circle(image_visualization, Point(pt_resolved0.x, pt_resolved0.y), 5, Scalar(254), 2);
-			// circle(image_visualization, Point(pt_resolved1.x, pt_resolved1.y), 5, Scalar(127), 2);
+		// Point pt_resolved0 = point_resolver.reprojector->remap_point(blob0->pt_y_max, 0, 4);
+		// Point pt_resolved1 = point_resolver.reprojector->remap_point(blob1->pt_y_max, 1, 4);
 
-			Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
-			circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
-		}
+		// if (pt_resolved0.x != 9999 && pt_resolved1.x != 9999)
+		// {
+		// 	// circle(image_visualization, Point(pt_resolved0.x, pt_resolved0.y), 5, Scalar(254), 2);
+		// 	// circle(image_visualization, Point(pt_resolved1.x, pt_resolved1.y), 5, Scalar(127), 2);
+
+		// 	Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
+		// 	circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
+		// }
 	}
 
 	imshow("image_visualizationadsfasdfasdf", image_visualization);
