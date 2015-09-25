@@ -31,6 +31,8 @@ struct Uchar3D
 class HandSplitterNew
 {
 public:
+	ValueStore value_store;
+
 	vector<BlobNew> primary_hand_blobs;
 
 	int x_min_result = 0;

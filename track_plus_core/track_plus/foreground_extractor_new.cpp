@@ -46,6 +46,12 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	threshold(image_foreground, image_foreground, diff_threshold, 254, THRESH_BINARY);
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 
+	int x_min_result_temp = 9999;
+	int x_max_result_temp = -1;
+	int y_min_result_temp = 9999;
+	int y_max_result_temp = -1;
+
+	int active_count = 0;
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.y > motion_processor.y_separator_down ||
 			blob.x_max < motion_processor.x_separator_left ||
@@ -56,6 +62,30 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		}
 		else if (blob.width <= 3 || blob.height <= 3)
 			blob.active = false;
+		else
+		{
+			if (blob.x_min < x_min_result_temp)
+				x_min_result_temp = blob.x_min;
+			if (blob.x_max > x_max_result_temp)
+				x_max_result_temp = blob.x_max;
+			if (blob.y_min < y_min_result_temp)
+				y_min_result_temp = blob.y_min;
+			if (blob.y_max > y_max_result_temp)
+				y_max_result_temp = blob.y_max;
+
+			++active_count;
+		}
+
+	if (active_count == 0)
+		return false;
+
+	if (x_min_result_temp < 9999 && x_max_result_temp > -1 && y_min_result_temp < 9999 && y_max_result_temp > -1)
+	{
+		x_min_result = x_min_result_temp;
+		x_max_result = x_max_result_temp;
+		y_min_result = y_min_result_temp;
+		y_max_result = y_max_result_temp;
+	}
 
 	if (visualize && enable_imshow)
 		imshow("image_foreground" + name, image_foreground);

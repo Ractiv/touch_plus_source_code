@@ -229,8 +229,8 @@ static void frameCallback(BYTE* pBuffer, long lBufferSize)
 {
     if (jpeg_decompressor.compute(pBuffer, lBufferSize, myBuffer, 1280, 480))
         Camera::callback(image_out);
-    else
-        COUT << "bad image caught" << endl;
+    // else
+        // COUT << "bad image caught" << endl;
 }
 #endif
 

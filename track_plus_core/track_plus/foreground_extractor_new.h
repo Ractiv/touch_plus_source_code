@@ -27,5 +27,10 @@ public:
 	BlobDetectorNew blob_detector;
 	ValueStore value_store;
 
+	int x_min_result = 0;
+	int x_max_result = 0;
+	int y_min_result = 0;
+	int y_max_result = 0;
+
 	bool compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize);
 };

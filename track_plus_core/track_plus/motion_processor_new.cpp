@@ -25,25 +25,10 @@ const int entropy_threshold = 500;
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
-	const int target_frame = value_store.get_int("target_frame", 1);
-	int current_frame = value_store.get_int("current_frame", 0);
-
-	++current_frame;
-
-	bool to_return = false;
-	if (current_frame != target_frame)
-		to_return = true;
-	else
-		current_frame = 0;
-
-	value_store.set_int("current_frame", current_frame);
-
-	if (to_return)
-		return value_store.get_bool("result", false);
-
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	bool both_moving_temp = false;
+	both_moving = false;
 
 	if (compute_background_static == false && construct_background == true)
 	{
@@ -64,6 +49,24 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 	right_moving = false;
 
 	static float alpha = 1;
+
+	//------------------------------------------------------------------------------------------------------------------------
+
+	const int target_frame = value_store.get_int("target_frame", 1);
+	int current_frame = value_store.get_int("current_frame", 0);
+
+	++current_frame;
+
+	bool to_return = false;
+	if (current_frame != target_frame)
+		to_return = true;
+	else
+		current_frame = 0;
+
+	value_store.set_int("current_frame", current_frame);
+
+	if (to_return)
+		return value_store.get_bool("result", false);
 
 	//------------------------------------------------------------------------------------------------------------------------
 
@@ -114,6 +117,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 	{
 		int x_min = blob_detector_image_subtraction_unbiased->x_min_result;
 		int x_max = blob_detector_image_subtraction_unbiased->x_max_result;
+		int y_min = blob_detector_image_subtraction_unbiased->y_min_result;
+		int y_max = blob_detector_image_subtraction_unbiased->y_max_result;
 
 		float x_seed_vec0_max = value_store.get_float("x_seed_vec0_max");
 		float x_seed_vec1_min = value_store.get_float("x_seed_vec1_min");
@@ -230,7 +235,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			int entropy_max = max(entropy_left, entropy_right) + 1;
 
 			if (entropy_max / entropy_min == 1)
-				both_moving_temp = (total_width > 80 && gap_ratio > 0.3);
+				both_moving_temp = (/*total_width > 80 && */((float)(x_max - x_min) / (y_max - y_min)) > 1.5 && gap_ratio > 0.3);
 
 			if (both_moving_temp)
 			{
@@ -258,7 +263,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			both_moving1 = both_moving_temp;
 		}
 
-		both_moving = false;
 		if (both_moving0 || both_moving_old0 || both_moving1 || both_moving_old1)
 			both_moving = true;
 
@@ -333,14 +337,14 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			//------------------------------------------------------------------------------------------------------------------------
 
-			if (entropy_right > entropy_threshold && entropy_right < 2000 && (both_moving || entropy_left < entropy_right))
+			if (right_moving && entropy_right < 2000)
 				if (entropy_right / entropy_right_biased == 0)
 					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							image_background.ptr<uchar>(j, i)[0] +=
 								(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
-			if (entropy_left > entropy_threshold && entropy_left < 2000 && (both_moving || entropy_left > entropy_right))
+			if (left_moving && entropy_left < 2000)
 				if (entropy_left / entropy_left_biased == 0)
 					for (int i = 0; i < x_separator_middle; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
