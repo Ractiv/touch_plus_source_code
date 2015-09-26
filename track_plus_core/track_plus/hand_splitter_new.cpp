@@ -148,6 +148,49 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 		value_store.set_bool("x_min_max_set", true);
 
+		//------------------------------------------------------------------------------------------------------------------------
+
+		int width0 = x_seed_vec0_max - x_min;
+		int width1 = x_max - x_seed_vec1_min;
+		int width_min = min(width0, width1);
+
+		float gap_size = x_seed_vec1_min - x_seed_vec0_max;
+		low_pass_filter->compute_if_larger(gap_size, 0.1, "gap_size");
+
+		//------------------------------------------------------------------------------------------------------------------------
+
+		bool bool_complexity = complexity >= 15;
+		bool bool_width_min = width_min >= 20;
+		bool bool_gap_size = gap_size >= 5;
+		bool bool_gap_order = x_seed_vec0_max < x_seed_vec1_min;
+
+		bool dual = bool_gap_order && bool_width_min && (bool_gap_size || bool_complexity);
+		bool dual_old = value_store.get_bool("dual_old", dual);
+
+		float total_width = value_store.get_float("total_width", x_max - x_min);
+		if (dual && !value_accumulator.ready)
+		{
+			total_width = x_max - x_min;
+			value_accumulator.compute(total_width, "total_width", 1000, 0, 0.5);
+			value_store.set_float("total_width", total_width);
+		}
+
+		if (!value_accumulator.ready)
+			return false;
+
+		// if (name == "0")
+			// COUT << total_width << endl;
+
+		if (!dual && dual_old && name == "0")
+		{
+			float width = x_max - x_min;
+			COUT << width / total_width << endl;
+		}
+
+		value_store.set_bool("dual_old", dual);
+
+		//------------------------------------------------------------------------------------------------------------------------
+
 		#if 1
 		{
 			Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -161,91 +204,17 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 			circle(image_histogram, seed0, 5, Scalar(64), -1);
 			circle(image_histogram, seed1, 5, Scalar(64), -1);
 
-			line(image_histogram, Point(x_seed_vec0_max, 0), Point(x_seed_vec0_max, 9999), Scalar(64), 1);
-			line(image_histogram, Point(x_seed_vec1_min, 0), Point(x_seed_vec1_min, 9999), Scalar(64), 1);
+			if (dual)
+			{
+				line(image_histogram, Point(x_seed_vec1_min, 0), Point(x_seed_vec1_min, 9999), Scalar(127), 1);
+				line(image_histogram, Point(x_seed_vec0_max, 0), Point(x_seed_vec0_max, 9999), Scalar(64), 2);
+			}
 
-			imshow("image_histogramasd" + name, image_histogram);
+			if (name == "0")
+				imshow("image_histogramasd" + name, image_histogram);
 		}
 		#endif
 	}
-
-	int width0 = x_max - x_seed_vec1_min;
-	int width1 = x_seed_vec0_max - x_min;
-	int width_min = min(width0, width1);
-
-	float gap_size = x_seed_vec1_min - x_seed_vec0_max;
-	low_pass_filter->compute_if_larger(gap_size, 0.1, "gap_size");
-
-	//------------------------------------------------------------------------------------------------------------------------
-
-	bool bool_complexity = complexity >= 15;
-	bool bool_width_min = width_min >= 20;
-	bool bool_gap_size = gap_size >= 5;
-
-	bool dual_temp = false;
-	if (bool_width_min && (bool_gap_size || bool_complexity))
-		dual_temp = true;
-
-	int width = x_max - x_min;
-	int width_old = value_store.get_int("width_old", width);
-
-	int x_separator_middle_temp = (x_seed_vec0_max + x_seed_vec1_min) / 2;
-	int x_separator_middle_temp_old = value_store.get_int("x_separator_middle_temp_old", x_separator_middle_temp);
-
-	bool dual_temp_old = value_store.get_bool("dual_temp_old", dual_temp);
-	if (!dual_temp && dual_temp_old)
-	{
-		COUT << wdith0 + width1 << endl;
-		// COUT << abs(width - width_old) << " " << (x_separator_middle_temp - x_separator_middle_temp_old) << endl;
-	}
-
-	value_store.set_bool("dual_temp_old", dual_temp);
-	value_store.set_int("width_old", width);
-	value_store.set_int("x_separator_middle_temp_old", x_separator_middle_temp);
-
-	// int subject_width = value_store.get_int("subject_width", width0 + width1);
-	// if (dual_temp)
-	// 	value_store.set_int("subject_width", width0 + width1);
-	// else
-	// {
-	// 	COUT << subject_width - (x_max - x_min) << endl;
-	// }
-
-
-	//------------------------------------------------------------------------------------------------------------------------
-
-	// if (dual)
-	// 	x_separator_middle = (x_seed_vec0_max + x_seed_vec1_min) / 2;
-
-	// value_store.set_int("x_separator_middle", x_separator_middle);
-
-	// line(image_visualization, Point(x_separator_middle, 0), Point(x_separator_middle, 999), Scalar(127), 1);
-
-	// imshow("image_visualizationadfasdfasdf", image_visualization);
-
-	// int x_separator_middle = motion_processor.x_separator_middle;
-
-	// primary_hand_blobs = vector<BlobNew>();
-	// x_min_result = 9999;
-	// x_max_result = 0;
-	// y_min_result = 9999;
-	// y_max_result = 0;
-
-	// for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
-	// 	if (blob.active)
-	// 		if (blob.x > x_separator_middle)
-	// 		{
-	// 			primary_hand_blobs.push_back(blob);
-
-	// 			if (blob.x_min < x_min_result)
-	// 				x_min_result = blob.x_min;
-	// 			if (blob.x_max > x_max_result)
-	// 				x_max_result = blob.x_max;
-	// 			if (blob.y_min < y_min_result)
-	// 				y_min_result = blob.y_min;
-	// 			if (blob.y_max > y_max_result)
-	// 				y_max_result = blob.y_max;
-	// 		}
 
 	if (primary_hand_blobs.size() > 0)
 		return true;

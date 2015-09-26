@@ -26,8 +26,12 @@ public:
 	bool ready = false;
 
 	unordered_map<string, bool> ready_map;
+	unordered_map<string, float> max_val_map;
+	unordered_map<string, float> min_val_map;
 
 	ValueStore value_store; 
 
-	void compute(float& val, string name, int size_limit, float val_default, float ratio);
+	void compute(float val, string name, int size_limit, float val_default, float ratio);
+	float compute_max(float val, string name);
+	float compute_min(float val, string name);
 };

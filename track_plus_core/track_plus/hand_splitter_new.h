@@ -32,6 +32,7 @@ class HandSplitterNew
 {
 public:
 	ValueStore value_store;
+	ValueAccumulator value_accumulator;
 
 	vector<BlobNew> primary_hand_blobs;
 

@@ -18,7 +18,7 @@
 
 #include "value_accumulator.h"
 
-void ValueAccumulator::compute(float& val, string name, int size_limit, float val_default, float ratio)
+void ValueAccumulator::compute(float val, string name, int size_limit, float val_default, float ratio)
 {
 	const int size_threshold = 20;
 
@@ -52,4 +52,30 @@ void ValueAccumulator::compute(float& val, string name, int size_limit, float va
 	}
 	else
 		val = val_default;
+}
+
+float ValueAccumulator::compute_max(float val, string name)
+{
+	float val_max = FLT_MIN;
+	if (max_val_map.count(name) > 0)
+		val_max = max_val_map[name];
+
+	if (val > val_max)
+		val_max = val;
+
+	max_val_map[name] = val_max;
+	return val_max;
+}
+
+float ValueAccumulator::compute_min(float val, string name)
+{
+	float val_min = FLT_MAX;
+	if (min_val_map.count(name) > 0)
+		val_min = min_val_map[name];
+
+	if (val < val_min)
+		val_min = val;
+
+	min_val_map[name] = val_min;
+	return val_min;
 }
