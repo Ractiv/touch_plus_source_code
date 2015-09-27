@@ -137,6 +137,8 @@
 			ExternalInterface.addCallback("set_downloading_progress", debug_page.set_downloading_progress);
 			ExternalInterface.addCallback("set_loading_progress", debug_page.set_loading_progress);
 			ExternalInterface.addCallback("set_status", debug_page.set_status);
+			ExternalInterface.addCallback("error_screen_on", debug_page.error_screen_on);
+			ExternalInterface.addCallback("error_screen_off", debug_page.error_screen_off);
 
 			ExternalInterface.call("set_gui_ready");
 		}

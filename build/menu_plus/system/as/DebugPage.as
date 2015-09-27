@@ -32,6 +32,7 @@
 		private var loaded_old:Boolean = false;
 		private var target_alpha_progress:int = 0;
 		private var target_alpha_status:int = 0;
+		private var error_screen_is_on:Boolean = false;
 
 		public function DebugPage():void
 		{
@@ -85,6 +86,11 @@
 					var alpha_diff_status:Number = (target_alpha_status - current_alpha_status) / 10;
 					status_text.alpha += alpha_diff_status;
 				}
+
+				if (error_screen_is_on)
+					self.debug_page_background.nextFrame();
+				else
+					self.debug_page_background.prevFrame();
 			});
 
 			setInterval(function():void
@@ -175,6 +181,16 @@
 		{
 			status_text.text = _status;
 			show_status();
+		}
+
+		public function error_screen_on():void
+		{
+			error_screen_is_on = true;
+		}
+
+		public function error_screen_off():void
+		{
+			error_screen_is_on = false;
 		}
 	}
 }

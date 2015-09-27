@@ -269,25 +269,20 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 		static bool both_moving_0_set = false;
 		static bool both_moving_1_set = false;
 
-		static int x_separator_middle0;
-		static int x_separator_middle1;
-
 		if (both_moving)
 		{
 			//------------------------------------------------------------------------------------------------------------------------
 
-			vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
-			if (x_separator_middle_vec->size() < 1000)
+			if (compute_x_separator_middle)
 			{
-				x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
-				sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
+				vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
+				if (x_separator_middle_vec->size() < 1000)
+				{
+					x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
+					sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
+				}
+				x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
 			}
-			x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
-
-			if (name == "0")
-				x_separator_middle0 = x_separator_middle;
-			if (name == "1")
-				x_separator_middle1 = x_separator_middle;
 
 			//------------------------------------------------------------------------------------------------------------------------
 

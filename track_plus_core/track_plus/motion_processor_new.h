@@ -36,6 +36,7 @@ public:
 	float diff_threshold = 9999;
 
 	bool compute_background_static = false;
+	bool compute_x_separator_middle = true;
 
 	bool both_moving;
 	bool left_moving;

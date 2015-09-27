@@ -257,6 +257,22 @@ ipc.MapFunction("set status", function(messageBody)
 	{
 		gui.set_status(messageBody);
 	});
+
+	if (messageBody.substring(0, 5) == "error")
+	{
+		call_as(function()
+		{
+			console.log("hahaha here");
+			gui.error_screen_on();
+		});
+	}
+	else
+	{
+		call_as(function()
+		{
+			gui.error_screen_off();
+		});
+	}
 });
 
 ipc.MapFunction("show settings page", function(messageBody)

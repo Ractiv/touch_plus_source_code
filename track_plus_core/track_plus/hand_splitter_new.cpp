@@ -43,17 +43,7 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	{
 		vector<Point> contour_approximated;
 		approxPolyDP(Mat(contour), contour_approximated, 10, false);
-
 		complexity += contour_approximated.size();
-
-		Point pt_old = Point(-1, -1);
-		for (Point& pt : contour_approximated)
-		{
-			if (pt_old.x != -1)
-				line(image_visualization, pt_old, pt, Scalar(127), 2);
-			
-			pt_old = pt;
-		}
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------
@@ -178,20 +168,26 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		if (!value_accumulator.ready)
 			return false;
 
-		// if (name == "0")
-			// COUT << total_width << endl;
-
-		if (!dual && dual_old && name == "0")
+		if (!dual && dual_old)
 		{
 			float width = x_max - x_min;
-			COUT << width / total_width << endl;
+			if (width / total_width > 0.5)
+				dual = true;
 		}
 
 		value_store.set_bool("dual_old", dual);
 
 		//------------------------------------------------------------------------------------------------------------------------
 
-		#if 1
+		if (dual)
+		{
+			motion_processor.compute_x_separator_middle = false;
+			motion_processor.x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------
+
+		#if 0
 		{
 			Mat image_histogram = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
@@ -215,6 +211,9 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		}
 		#endif
 	}
+
+	line(image_visualization, Point(motion_processor.x_separator_middle, 0), Point(motion_processor.x_separator_middle, 9999), Scalar(127), 1);
+	imshow("image_visualizationlaskdhflijh", image_visualization);
 
 	if (primary_hand_blobs.size() > 0)
 		return true;
