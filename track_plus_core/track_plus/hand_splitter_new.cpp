@@ -179,11 +179,45 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 		//------------------------------------------------------------------------------------------------------------------------
 
+		int x_offset_reference = value_store.get_int("x_offset_reference", 0);
+		bool reference_is_left = value_store.get_bool("reference_is_left", false);
+
+		int count_max_left = -1;
+		int count_max_right = -1;
+		BlobNew* blob_max_size_left = NULL;
+		BlobNew* blob_max_size_right = NULL;
+
+		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+			if (blob.active)
+				if (blob.x < motion_processor.x_separator_middle && blob.count > count_max_left)
+				{
+					count_max_left = blob.count;
+					blob_max_size_left = &blob;
+				}
+				else if (blob.x >= motion_processor.x_separator_middle && blob.count > count_max_right)
+				{
+					count_max_right = blob.count;
+					blob_max_size_right = &blob;
+				}
+
 		if (dual)
 		{
 			motion_processor.compute_x_separator_middle = false;
 			motion_processor.x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
+
+			x_offset_reference = motion_processor.x_separator_middle - foreground_extractor.blob_detector.blob_max_size->x;
+			reference_is_left = foreground_extractor.blob_detector.blob_max_size->x < motion_processor.x_separator_middle;
 		}
+		else
+		{
+			if (reference_is_left && blob_max_size_left != NULL)
+				motion_processor.x_separator_middle = blob_max_size_left->x + x_offset_reference;
+			else if (!reference_is_left && blob_max_size_right != NULL)
+				motion_processor.x_separator_middle = blob_max_size_right->x + x_offset_reference;
+		}
+
+		value_store.set_int("x_offset_reference", x_offset_reference);
+		value_store.set_bool("reference_is_left", reference_is_left);
 
 		//------------------------------------------------------------------------------------------------------------------------
 
