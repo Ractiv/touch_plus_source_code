@@ -52,7 +52,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	const int target_frame = value_store.get_int("target_frame", 1);
+	const int target_frame = value_store.get_int("target_frame", 2);
 	int current_frame = value_store.get_int("current_frame", 0);
 
 	++current_frame;
@@ -425,7 +425,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (blob.y_min < blobs_y_min)
 							blobs_y_min = blob.y_min;
 
-					y_separator_up = blobs_y_min + 5;
+					y_separator_up = blobs_y_min + 10;
 					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9);
 				}
 

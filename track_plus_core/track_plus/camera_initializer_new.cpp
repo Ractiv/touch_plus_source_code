@@ -134,8 +134,10 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 
-		exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
-		COUT << "exposure_val is " << exposure_val << endl;
+		exposure_val = 4;
+
+		// exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
+		// COUT << "exposure_val is " << exposure_val << endl;
 
 		camera->setExposureTime(Camera::both, exposure_val);
 
