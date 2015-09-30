@@ -28,6 +28,8 @@
 class MonoProcessorNew
 {
 public:
+	string algo_name = "mono_processor";
+
 	ValueStore value_store;
 
 	Point pt_index;

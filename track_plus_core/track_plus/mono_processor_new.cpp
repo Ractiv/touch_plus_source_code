@@ -46,6 +46,14 @@ struct compare_point_z
 
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
+	if (value_store.get_bool("first_pass", false) == false)
+	{
+		value_store.set_bool("first_pass", true);
+		algo_name += name;
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	pt_index = Point(-1, -1);
 	pt_thumb = Point(-1, -1);
 
@@ -858,6 +866,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	value_store.set_bool("reset", false);
+	algo_name_vec.push_back(algo_name);
 	return true;
 }
 

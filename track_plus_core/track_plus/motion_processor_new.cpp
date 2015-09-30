@@ -25,6 +25,14 @@ const int entropy_threshold = 500;
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
+	if (value_store.get_bool("first_pass", false) == false)
+	{
+		value_store.set_bool("first_pass", true);
+		algo_name += name;
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	bool both_moving_temp = false;
@@ -566,7 +574,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					if (both_moving)
 					{
-						float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664);
+						float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664) * 3 / 4;
 						//float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
 
 						float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
@@ -706,8 +714,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			}
 		}
 	}
+	bool ret_val = value_store.get_bool("result", false);
+	if (ret_val)
+		algo_name_vec.push_back(algo_name);
 
-	return value_store.get_bool("result", false);
+	return ret_val;
 }
 
 inline void MotionProcessorNew::fill_image_background_static(const int x, const int y, Mat& image_in)

@@ -24,6 +24,8 @@
 class ForegroundExtractorNew
 {
 public:
+	string algo_name = "foreground_extractor";
+
 	BlobDetectorNew blob_detector;
 	ValueStore value_store;
 

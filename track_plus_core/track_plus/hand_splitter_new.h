@@ -31,6 +31,8 @@ struct Uchar3D
 class HandSplitterNew
 {
 public:
+	string algo_name = "hand_splitter";
+
 	ValueStore value_store;
 	ValueAccumulator value_accumulator;
 

@@ -21,6 +21,14 @@
 
 bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
+	if (value_store.get_bool("first_pass", false) == false)
+	{
+		value_store.set_bool("first_pass", true);
+		algo_name += name;
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	const int x_separator_middle = motion_processor.x_separator_middle;
 	const uchar gray_threshold_left = motion_processor.gray_threshold_left;
 	const uchar gray_threshold_right = motion_processor.gray_threshold_right;
@@ -90,5 +98,6 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	if (visualize && enable_imshow)
 		imshow("image_foreground" + name, image_foreground);
 
+	algo_name_vec.push_back(algo_name);
 	return true;
 }

@@ -21,6 +21,14 @@
 
 bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name)
 {
+	if (value_store.get_bool("first_pass", false) == false)
+	{
+		value_store.set_bool("first_pass", true);
+		algo_name += name;
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
@@ -250,7 +258,10 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	imshow("image_visualizationlaskdhflijh", image_visualization);
 
 	if (primary_hand_blobs.size() > 0)
+	{
+		algo_name_vec.push_back(algo_name);
 		return true;
-	else
-		return false;
+	}
+
+	return false;
 }

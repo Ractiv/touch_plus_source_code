@@ -20,6 +20,7 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -73,3 +74,6 @@ extern bool has_pen;
 
 extern int actuate_dist_raw;
 extern int actuate_dist;
+
+extern vector<string> algo_name_vec;
+extern vector<string> algo_name_vec_old;

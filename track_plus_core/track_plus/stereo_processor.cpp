@@ -224,5 +224,6 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	algo_name_vec.push_back(algo_name);
 	return true;
 }

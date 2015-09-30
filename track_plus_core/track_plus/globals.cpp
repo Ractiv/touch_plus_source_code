@@ -54,3 +54,6 @@ bool motion_detected = false;
 
 int actuate_dist_raw = 8;
 int actuate_dist = actuate_dist_raw;
+
+vector<string> algo_name_vec = vector<string>();
+vector<string> algo_name_vec_old = vector<string>();

@@ -25,6 +25,8 @@
 class MotionProcessorNew
 {
 public:
+	string algo_name = "motion_processor";
+
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
 	float x_separator_middle = WIDTH_SMALL_HALF;

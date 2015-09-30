@@ -474,6 +474,9 @@ void compute()
         // return;
     }
 
+    algo_name_vec_old = algo_name_vec;
+	algo_name_vec.clear();
+
     static bool motion_processor_proceed = false;
     static bool construct_background = false;
     static bool first_pass = true;
