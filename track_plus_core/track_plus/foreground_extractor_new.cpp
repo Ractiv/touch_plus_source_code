@@ -68,7 +68,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 			blob.active = false;
 			blob.fill(image_foreground, 0);
 		}
-		else if (blob.width <= 3 || blob.height <= 3)
+		else if (blob.width <= 1 || blob.height <= 1)
 			blob.active = false;
 		else
 		{

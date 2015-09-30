@@ -27,6 +27,14 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		algo_name += name;
 	}
 
+	bool do_reset = true;
+	for (String& algo_name_current : algo_name_vec_old)
+		if (algo_name_current == algo_name)
+		{
+			do_reset = false;
+			break;
+		}
+
 	//------------------------------------------------------------------------------------------------------------------------
 
 	Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -216,12 +224,16 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 			x_offset_reference = motion_processor.x_separator_middle - foreground_extractor.blob_detector.blob_max_size->x;
 			reference_is_left = foreground_extractor.blob_detector.blob_max_size->x < motion_processor.x_separator_middle;
 		}
-		else
+		else if (!do_reset)
 		{
 			if (reference_is_left && blob_max_size_left != NULL)
 				motion_processor.x_separator_middle = blob_max_size_left->x + x_offset_reference;
 			else if (!reference_is_left && blob_max_size_right != NULL)
 				motion_processor.x_separator_middle = blob_max_size_right->x + x_offset_reference;
+		}
+		else
+		{
+			COUT << "reset " << rand() << endl;
 		}
 
 		value_store.set_int("x_offset_reference", x_offset_reference);
@@ -257,11 +269,10 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	line(image_visualization, Point(motion_processor.x_separator_middle, 0), Point(motion_processor.x_separator_middle, 9999), Scalar(127), 1);
 	imshow("image_visualizationlaskdhflijh", image_visualization);
 
+	algo_name_vec.push_back(algo_name);
+
 	if (primary_hand_blobs.size() > 0)
-	{
-		algo_name_vec.push_back(algo_name);
 		return true;
-	}
 
 	return false;
 }

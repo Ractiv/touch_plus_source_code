@@ -74,7 +74,13 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 	value_store.set_int("current_frame", current_frame);
 
 	if (to_return)
-		return value_store.get_bool("result", false);
+	{
+		bool ret_val = value_store.get_bool("result", false);
+		if (ret_val)
+			algo_name_vec.push_back(algo_name);
+
+		return ret_val;
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------
 
