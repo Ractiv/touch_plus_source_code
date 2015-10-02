@@ -35,7 +35,7 @@ void IMU::compute(float x_accel, float y_accel, float z_accel)
 	pitch = heading.y;
 	yaw = heading.z;
 
-	low_pass_filter.compute(roll, 0.1, "roll");
-	low_pass_filter.compute(pitch, 0.1, "pitch");
-	low_pass_filter.compute(yaw, 0.1, "yaw");
+	low_pass_filter.compute(roll, 0.01, "roll");
+	low_pass_filter.compute(pitch, 0.01, "pitch");
+	low_pass_filter.compute(yaw, 0.01, "yaw");
 }

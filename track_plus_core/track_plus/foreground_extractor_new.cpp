@@ -106,8 +106,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		threshold(image_foreground_processed, image_foreground_processed, 1, 254, THRESH_BINARY);
 		erode(image_foreground_processed, image_foreground_processed, Mat(), Point(-1, -1), 5);
 
+		const int j_max = (motion_processor.y_separator_down - motion_processor.y_separator_up) / 5 + motion_processor.y_separator_up;
 		for (int i = 0; i < WIDTH_SMALL; ++i)
-			for (int j = 0; j < HEIGHT_SMALL; ++j)
+			for (int j = j_max; j >= 0; --j)
 				if (image_foreground_processed.ptr<uchar>(j, i)[0] > 0)
 					motion_processor.image_background_static.ptr<uchar>(j, i)[0] = 255;
 	}

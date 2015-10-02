@@ -457,9 +457,9 @@ void compute()
     if (normalized)
     {
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "0",          true);
+                                             construct_background, "0",          false);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "1",          true);
+                                             construct_background, "1",          false);
     }
 
     if (first_pass && motion_processor0.both_moving)
@@ -486,7 +486,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
         proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
@@ -500,7 +500,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
     }

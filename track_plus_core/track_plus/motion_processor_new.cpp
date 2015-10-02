@@ -20,6 +20,8 @@
 #include "mat_functions.h"
 #include "contour_functions.h"
 
+const float subtraction_threshold_ratio = 0.20;
+
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
@@ -96,7 +98,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			image_subtraction_unbiased.ptr<uchar>(j, i)[0] = diff;
 		}
-	threshold(image_subtraction_unbiased, image_subtraction_unbiased, diff_max_unbiased * 0.1, 254, THRESH_BINARY);
+	threshold(image_subtraction_unbiased, image_subtraction_unbiased, diff_max_unbiased * subtraction_threshold_ratio, 254, THRESH_BINARY);
 
 	value_store.set_mat("image_background_unbiased", image_in);
 
@@ -126,7 +128,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	if (entropy_left + entropy_right < 4000)
+	if (entropy_left + entropy_right < (entropy_threshold * 8))
 	{
 		int x_min = blob_detector_image_subtraction_unbiased->x_min_result;
 		int x_max = blob_detector_image_subtraction_unbiased->x_max_result;
@@ -339,20 +341,20 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					image_subtraction.ptr<uchar>(j, i)[0] = diff;
 				}
-			threshold(image_subtraction, image_subtraction, diff_max * 0.1, 254, THRESH_BINARY);
+			threshold(image_subtraction, image_subtraction, diff_max * subtraction_threshold_ratio, 254, THRESH_BINARY);
 			// GaussianBlur(image_subtraction, image_subtraction, Size(9, 9), 0, 0);
 			// threshold(image_subtraction, image_subtraction, 100, 254, THRESH_BINARY);
 
 			//------------------------------------------------------------------------------------------------------------------------
 
-			if (right_moving && entropy_right < 2000)
+			if (right_moving && entropy_right < (entropy_threshold * 4))
 				if (entropy_right / entropy_right_biased == 0)
 					for (int i = x_separator_middle; i < WIDTH_SMALL; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
 							image_background.ptr<uchar>(j, i)[0] +=
 								(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
-			if (left_moving && entropy_left < 2000)
+			if (left_moving && entropy_left < (entropy_threshold * 4))
 				if (entropy_left / entropy_left_biased == 0)
 					for (int i = 0; i < x_separator_middle; ++i)
 						for (int j = 0; j < HEIGHT_SMALL; ++j)
@@ -570,7 +572,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 							if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
 								floodFill(image_in_thresholded, pt, Scalar(254));
 
-					dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 3);
+					dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 5);
 
 					//------------------------------------------------------------------------------------------------------------------------
 
@@ -694,7 +696,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 						if (ratio_max < 2)
 						{
-							alpha = 0.1;
+							alpha = 0.10;
 							value_store.set_bool("result", true);
 							value_store.set_int("target_frame", 10);
 						}
