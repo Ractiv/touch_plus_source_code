@@ -94,7 +94,7 @@ int main()
 #endif
 
 {
-    // freopen("C:\\touch_plus_software_log.txt", "w", stdout);
+    freopen("C:\\touch_plus_software_log.txt", "w", stdout);
 	
 #ifdef _WIN32
 	char buffer[MAX_PATH];
