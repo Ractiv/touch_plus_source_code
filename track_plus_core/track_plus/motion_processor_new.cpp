@@ -20,8 +20,6 @@
 #include "mat_functions.h"
 #include "contour_functions.h"
 
-const int entropy_threshold = 500;
-
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
@@ -60,10 +58,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	const int target_frame = value_store.get_int("target_frame", 2);
+	const int target_frame = value_store.get_int("target_frame", 1);
 	int current_frame = value_store.get_int("current_frame", 0);
 
 	++current_frame;
+	will_compute_next_frame = current_frame == target_frame - 1;
 
 	bool to_return = false;
 	if (current_frame != target_frame)
@@ -571,7 +570,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 							if (image_in_thresholded.ptr<uchar>(pt.y, pt.x)[0] == 127)
 								floodFill(image_in_thresholded, pt, Scalar(254));
 
-					dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 10);
+					dilate(image_in_thresholded, image_in_thresholded, Mat(), Point(-1, -1), 3);
 
 					//------------------------------------------------------------------------------------------------------------------------
 

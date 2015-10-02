@@ -27,17 +27,18 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		algo_name += name;
 	}
 
-	bool do_reset = true;
+	bool algo_name_found = false;
 	for (String& algo_name_current : algo_name_vec_old)
 		if (algo_name_current == algo_name)
 		{
-			do_reset = false;
+			algo_name_found = true;
 			break;
 		}
 
-	//------------------------------------------------------------------------------------------------------------------------
+	int do_reset = value_store.get_bool("do_reset", false);
+	if (!algo_name_found)
+		value_store.set_bool("do_reset", true);
 
-	Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	//------------------------------------------------------------------------------------------------------------------------
@@ -45,10 +46,7 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
 		if (blob.active)
-		{
-			blob.fill(image_visualization, 254);
 			blob.fill(image_find_contours, 254);
-		}
 
 	vector<vector<Point>> contours = legacyFindContours(image_find_contours);
 	if (contours.size() == 0)
@@ -184,12 +182,12 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		if (!value_accumulator.ready)
 			return false;
 
-		if (!dual && dual_old)
-		{
-			float width = x_max - x_min;
-			if (width / total_width > 0.5)
-				dual = true;
-		}
+		// if (!dual && dual_old)
+		// {
+		// 	float width = x_max - x_min;
+		// 	if (width / total_width > 0.5)
+		// 		dual = true;
+		// }
 
 		value_store.set_bool("dual_old", dual);
 
@@ -218,6 +216,8 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 		if (dual)
 		{
+			value_store.set_bool("do_reset", false);
+
 			motion_processor.compute_x_separator_middle = false;
 			motion_processor.x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
 
@@ -231,9 +231,18 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 			else if (!reference_is_left && blob_max_size_right != NULL)
 				motion_processor.x_separator_middle = blob_max_size_right->x + x_offset_reference;
 		}
-		else
+		else if (do_reset && foreground_extractor.count_result > motion_processor.entropy_threshold)
 		{
-			COUT << "reset " << rand() << endl;
+			value_store.set_bool("do_reset", false);
+
+			reference_is_left = foreground_extractor.blob_detector.blob_max_size->x < motion_processor.x_separator_middle;
+
+			if (reference_is_left)
+				motion_processor.x_separator_middle = foreground_extractor.x_max_result;
+			else
+				motion_processor.x_separator_middle = foreground_extractor.x_min_result;
+
+			x_offset_reference = motion_processor.x_separator_middle - foreground_extractor.blob_detector.blob_max_size->x;
 		}
 
 		value_store.set_int("x_offset_reference", x_offset_reference);
@@ -266,13 +275,20 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		#endif
 	}
 
-	line(image_visualization, Point(motion_processor.x_separator_middle, 0), Point(motion_processor.x_separator_middle, 9999), Scalar(127), 1);
-	imshow("image_visualizationlaskdhflijh", image_visualization);
+	//------------------------------------------------------------------------------------------------------------------------
 
-	algo_name_vec.push_back(algo_name);
+	primary_hand_blobs.clear();
+	for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+		if (blob.active && blob.x > motion_processor.x_separator_middle)
+			primary_hand_blobs.push_back(blob);
+
+	//------------------------------------------------------------------------------------------------------------------------
 
 	if (primary_hand_blobs.size() > 0)
+	{
+		algo_name_vec.push_back(algo_name);
 		return true;
+	}
 
 	return false;
 }

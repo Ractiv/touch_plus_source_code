@@ -36,6 +36,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	const Mat image_background_static = motion_processor.image_background_static;
 
 	Mat image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
 	for (int i = 0; i < WIDTH_SMALL; ++i)
 		for (int j = 0; j < HEIGHT_SMALL; ++j)
 		{
@@ -58,6 +59,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	int x_max_result_temp = -1;
 	int y_min_result_temp = 9999;
 	int y_max_result_temp = -1;
+	int count_result_temp = -1;
 
 	int active_count = 0;
 	for (BlobNew& blob : *blob_detector.blobs)
@@ -81,6 +83,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 			if (blob.y_max > y_max_result_temp)
 				y_max_result_temp = blob.y_max;
 
+			count_result_temp += blob.count;
 			++active_count;
 		}
 
@@ -93,6 +96,20 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		x_max_result = x_max_result_temp;
 		y_min_result = y_min_result_temp;
 		y_max_result = y_max_result_temp;
+		count_result = count_result_temp;
+	}
+
+	if (motion_processor.will_compute_next_frame)
+	{
+		Mat image_foreground_processed;
+		GaussianBlur(image_foreground, image_foreground_processed, Size(1, 29), 0, 0);
+		threshold(image_foreground_processed, image_foreground_processed, 1, 254, THRESH_BINARY);
+		erode(image_foreground_processed, image_foreground_processed, Mat(), Point(-1, -1), 5);
+
+		for (int i = 0; i < WIDTH_SMALL; ++i)
+			for (int j = 0; j < HEIGHT_SMALL; ++j)
+				if (image_foreground_processed.ptr<uchar>(j, i)[0] > 0)
+					motion_processor.image_background_static.ptr<uchar>(j, i)[0] = 255;
 	}
 
 	if (visualize && enable_imshow)

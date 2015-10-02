@@ -27,6 +27,8 @@ class MotionProcessorNew
 public:
 	string algo_name = "motion_processor";
 
+	const int entropy_threshold = 500;
+
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
 	float x_separator_middle = WIDTH_SMALL_HALF;
@@ -36,6 +38,8 @@ public:
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;
 	float diff_threshold = 9999;
+
+	bool will_compute_next_frame = false;
 
 	bool compute_background_static = false;
 	bool compute_x_separator_middle = true;

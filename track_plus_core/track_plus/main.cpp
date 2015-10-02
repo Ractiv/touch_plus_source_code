@@ -113,45 +113,16 @@ vector<Point>* point_vec_ptr = NULL;
 bool serial_verified = false;
 bool exposure_adjusted = false;
 bool initialized = false;
-bool calibrating = true;
-bool increment_keypress_count = false;
-bool first_frame = true;
-bool show_point_sent = false;
-bool show_calibration_sent = false;
-bool show_cursor_index = false;
-bool show_cursor_thumb = false;
 bool updated = false;
 
-int calibration_key_codes[4] { 56, 187, 161, 77 };
-int calibration_step = 0;
-int calibration_points_count = 20;
-int keypress_count = 0;
 int wait_count = 0;
-int accel_val_old = 0;
-int val_diff_counter = 0;
-int val_diff_old = 9999;
-int frame_num = 0;
 //
-
-void hide_cursors()
-{
-    if ((!show_cursor_index && !show_cursor_thumb) || child_module_name == "")
-        return;
-
-    show_cursor_index = false;
-    show_cursor_thumb = false;
-
-    ipc->send_udp_message(child_module_name, "hide_cursor_index");
-    ipc->send_udp_message(child_module_name, "hide_cursor_thumb");
-}
 
 void wait_for_device()
 {
     COUT << "waiting for device " << endl;
     ipc->send_message("menu_plus", "reset progress", "");
 
-    hide_cursors();
-    
 #ifdef __APPLE__
     string command = "ioreg -p IOUSB -w0 | sed 's/[^o]*o //; s/@.*$//' | grep -v '^Root.*' > " + executable_path + "/devices.txt";
     system(command.c_str());
@@ -375,6 +346,7 @@ void compute()
     Mat image0 = image_flipped(Rect(0, 0, 640, 480));
     Mat image1 = image_flipped(Rect(640, 0, 640, 480));
 
+    static bool first_frame = true;
     if (first_frame)
     {
         on_first_frame();
@@ -383,8 +355,6 @@ void compute()
 
     if (!play || settings.touch_control != "1")
     {
-        hide_cursors();
-
         if (enable_imshow)
             waitKey(1);
 
@@ -516,7 +486,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
         proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
@@ -528,50 +498,17 @@ void compute()
         proceed = proceed0 && proceed1;
     }
 
-    proceed = false;
-
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
     }
 
+    proceed = false;
+
     if (proceed)
-    {
         stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-    }
-
-    ++frame_num;
-
-    if (increment_keypress_count)
-    {
-        if (keypress_count == calibration_points_count)
-        {
-            COUT << "step " << calibration_step << " complete" << endl; 
-
-            // ipc->send_message("menu_plus", "show calibration next", "");//todo
-            ++calibration_step;
-        }
-        else if (keypress_count < calibration_points_count)
-        {
-            float percentage = (keypress_count * 100.0 / calibration_points_count);
-            COUT << percentage << endl;
-
-            pointer_mapper.add_calibration_point(calibration_step);
-        }
-
-        if (calibration_step == 4)
-        {
-            pointer_mapper.compute_calibration_points();
-            calibrating = false;
-            increment_keypress_count = false;
-
-            COUT << "calibration finished" << endl;
-        }
-
-        ++keypress_count;
-    }
 
     if (enable_imshow)
         waitKey(1);
@@ -587,65 +524,6 @@ void pose_estimator_thread_function()
         Sleep(100);
     }
 }
-
-void on_key_down(int code)
-{
-    if (target_pose_name != "")
-    {
-        if (code == 223)
-            record_pose = true;
-        else if (code == 49)
-            record_pose = false;
-    }
-    else if (calibrating)
-    {
-        if (code == calibration_key_codes[calibration_step] && pointer_mapper.active && pose_name == "point")
-            increment_keypress_count = true;
-    }
-    else
-        pose_name = "";
-}
-
-void on_key_up(int code)
-{
-    if (calibrating)
-    {
-        keypress_count = 0;
-        increment_keypress_count = false;
-        pointer_mapper.reset_calibration(calibration_step);
-    }
-}
-
-#ifdef _WIN32
-HHOOK keyboard_hook_handle;
-LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
-{
-    KBDLLHOOKSTRUCT* keyboard_hook_stuct = (KBDLLHOOKSTRUCT*)l_param;
-    const int code = keyboard_hook_stuct->vkCode;
-
-    if (w_param == WM_KEYDOWN)
-        on_key_down(code);
-    else if (w_param == WM_KEYUP)
-        on_key_up(code);
-
-    return CallNextHookEx(keyboard_hook_handle, n_code, w_param, l_param);
-}
-
-void keyboard_hook_thread_function()
-{
-    keyboard_hook_handle = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_handler, NULL, 0);
-
-    MSG msg;
-    while (!GetMessage(&msg, NULL, NULL, NULL))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-        Sleep(100);
-    }
-
-    UnhookWindowsHookEx(keyboard_hook_handle);
-}
-#endif
 
 void input_thread_function()
 {
@@ -769,10 +647,6 @@ int main()
     ipc->send_message("menu_plus", "show notification", "Please wait:Initializing Touch+ Software");
     ipc->send_message("menu_plus", "set status", "initializing tracking core");
     ipc->open_udp_channel("menu_plus");
-
-#ifdef _WIN32
-    thread keyboard_hook_thread(keyboard_hook_thread_function);
-#endif
 
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);

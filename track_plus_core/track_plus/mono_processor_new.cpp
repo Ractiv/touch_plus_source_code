@@ -96,6 +96,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 	}
 
+	imshow("image_active_hand" + name, image_active_hand);
+
 	palm_point_raw.x /= palm_point_raw_count;
 	palm_point_raw.y /= palm_point_raw_count;
 
