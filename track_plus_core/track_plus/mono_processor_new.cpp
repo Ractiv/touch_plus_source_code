@@ -52,6 +52,14 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		algo_name += name;
 	}
 
+	bool algo_name_found = false;
+	for (String& algo_name_current : algo_name_vec_old)
+		if (algo_name_current == algo_name)
+		{
+			algo_name_found = true;
+			break;
+		}
+
 	//------------------------------------------------------------------------------------------------------------------------
 
 	pt_index = Point(-1, -1);
@@ -59,7 +67,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
-	if (value_store.get_bool("reset", true))
+	if (value_store.get_bool("reset", true) || !algo_name_found)
 		low_pass_filter->reset();
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -95,10 +103,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				++palm_point_raw_count;
 			}
 	}
-
-	imshow("image_active_hand" + name, image_active_hand);
-
-	return false;
 
 	palm_point_raw.x /= palm_point_raw_count;
 	palm_point_raw.y /= palm_point_raw_count;

@@ -277,10 +277,26 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 	//------------------------------------------------------------------------------------------------------------------------
 
+	x_min_result = 9999;
+	x_max_result = -1;
+	y_min_result = 9999;
+	y_max_result = -1;
+
 	primary_hand_blobs.clear();
 	for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
 		if (blob.active && blob.x > motion_processor.x_separator_middle)
+		{
+			if (blob.x_min < x_min_result)
+				x_min_result = blob.x_min;
+			if (blob.x_max > x_max_result)
+				x_max_result = blob.x_max;
+			if (blob.y_min < y_min_result)
+				y_min_result = blob.y_min;
+			if (blob.y_max > y_max_result)
+				y_max_result = blob.y_max;
+
 			primary_hand_blobs.push_back(blob);
+		}
 
 	//------------------------------------------------------------------------------------------------------------------------
 
