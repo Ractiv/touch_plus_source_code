@@ -37,6 +37,7 @@
 #include "hand_resolver.h"
 #include "point_resolver.h"
 #include "pointer_mapper.h"
+#include "processes.h"
 
 #ifdef _WIN32
 #include <VersionHelpers.h>
@@ -505,8 +506,8 @@ void compute()
         proceed = proceed0 && proceed1;
     }
 
-    if (proceed)
-        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+    // if (proceed)
+        // stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
 
     if (enable_imshow)
         waitKey(1);

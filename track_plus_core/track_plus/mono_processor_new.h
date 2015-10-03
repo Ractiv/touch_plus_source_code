@@ -19,11 +19,7 @@
 #pragma once
 
 #include "hand_splitter_new.h"
-#include "mat_functions.h"
-#include "contour_functions.h"
-#include "permutation.h"
 #include "value_store.h"
-#include "dtw.h"
 
 class MonoProcessorNew
 {

@@ -18,21 +18,8 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <direct.h>
-#include <windows.h>
-#endif
-
-#include <iostream>
-#include <fstream>
-#include <string.h>
 #include <opencv2/opencv.hpp>
-#include "globals.h"
-#include "math_plus.h"
-#include "curve_fitting.h"
 #include "ipc.h"
-#include "processes.h"
-#include "filesystem.h"
 
 using namespace std;
 using namespace cv;

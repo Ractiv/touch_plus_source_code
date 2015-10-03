@@ -18,17 +18,6 @@
 
 #pragma once
 
-#include <opencv/cv.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-
-#include <iostream>
-
-
-#include "curve_fitting.h"
-
 using namespace std;
 using namespace cv;
 
@@ -38,7 +27,7 @@ enum ScanOrientation
 	VERTICAL = 1
 };
 
-int main(int argc, char* argv[]);
+// int main(int argc, char* argv[]);
 
 class CRectifier
 {
@@ -94,29 +83,4 @@ private:
 	vector<vector<Point2f>> maxExtCorners;
 };
 
-class CWarper
-{
-public: 
-	CWarper(void);
-	void setSource(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3);
-	void setDestination(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3);
-	void warp(double srcX, double srcY, double &dstX, double &dstY);
-
-
-private:
-	double srcX[4];
-	double srcY[4];
-	double dstX[4];
-	double dstY[4];
-	double srcMat[16];
-	double dstMat[16];
-	double warpMat[16];
-	bool   dirty;
-
-	void computeSquareToQuad(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double mat[]);
-	void computeQuadToSquare(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double mat[]);
-	void multMats(double srcMat[], double dstMat[], double resMat[]);
-	void setIdentity(void);
-	void warp(double mat[], double srcX, double srcY, double &dstX, double &dstY);
-	void computeWarp(void);
-};
+void compute_rectification_data(string image_file_name_without_extension);

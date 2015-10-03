@@ -16,7 +16,23 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
+#ifdef _WIN32
+#include <direct.h>
+#include <windows.h>
+#endif
+
+#include <iostream>
+#include <fstream>
+#include <string.h>
+ 
+#include "globals.h"
+#include "math_plus.h"
+#include "curve_fitting.h"
+#include "ipc.h"
+#include "processes.h"
+#include "filesystem.h"
 #include "reprojector.h"
+#include "rectifier.h"
 
 struct compare_point_x
 {
@@ -104,16 +120,6 @@ void Reprojector::load(IPC& ipc, bool flipped)
        	if (!directory_exists(data_path_current_module))
         	create_directory(data_path_current_module);
 
-		copy_file(executable_path + slash + "rectifier_plus" + extension0, data_path_current_module + slash + "rectifier_plus" + extension0);
-#ifdef _WIN32
-		copy_file(executable_path + slash + "opencv_core249.dll", data_path_current_module + slash + "opencv_core249.dll");
-		copy_file(executable_path + slash + "opencv_highgui249.dll", data_path_current_module + slash + "opencv_highgui249.dll");
-		copy_file(executable_path + slash + "opencv_imgproc249.dll", data_path_current_module + slash + "opencv_imgproc249.dll");
-		copy_file(executable_path + slash + "opencv_calib3d249.dll", data_path_current_module + slash + "opencv_calib3d249.dll");
-		copy_file(executable_path + slash + "opencv_flann249.dll", data_path_current_module + slash + "opencv_flann249.dll");
-		copy_file(executable_path + slash + "opencv_features2d249.dll", data_path_current_module + slash + "opencv_features2d249.dll");
-#endif
-
 		//http://s3-us-west-2.amazonaws.com/ractiv.com/data/
 		//http://d2i9bzz66ghms6.cloudfront.net/data/
 
@@ -149,17 +155,8 @@ void Reprojector::load(IPC& ipc, bool flipped)
 								bool has_complete_calib_data = false;
 								while (!has_complete_calib_data)
 								{
-#ifdef _WIN32
-									string command = "cd " + cmd_quote + data_path_current_module + cmd_quote;
-										   command += " && rectifier_plus" + extension0;
-
-#elif __APPLE__
-									string command  = "cd " + data_path_current_module;
-										   command += " && chmod +x ./rectifier_plus" + extension0;
-										   command += " && ./rectifier_plus" + extension0;
-#endif
-										   
-									system(command.c_str());
+									compute_rectification_data(data_path_current_module + slash + "0");
+									compute_rectification_data(data_path_current_module + slash + "1");
 
 									if (directory_exists(data_path_current_module))
 										if (file_exists(data_path_current_module + slash + "0.jpg"))

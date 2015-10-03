@@ -17,6 +17,9 @@
  */
 
 #include "mono_processor_new.h"
+#include "mat_functions.h"
+#include "contour_functions.h"
+#include "dtw.h"
 
 struct compare_point_angle
 {

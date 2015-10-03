@@ -36,6 +36,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\point_resolver.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\rectifier.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\surface_computer.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
@@ -83,6 +84,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\jpeg_decompressor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\rectifier.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\surface_computer.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
