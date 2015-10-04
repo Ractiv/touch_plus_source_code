@@ -29,6 +29,7 @@
 #include "rectifier.h"
 #include "warper.h"
 #include "curve_fitting.h"
+#include "console_log.h"
 
 void CRectifier::SetPatternSize(int width, int height)	{
 	patternSize.width  = width;
@@ -221,7 +222,7 @@ void CRectifier::DrawNew4ParamCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Horizontal", image);
-		cout << "Finished drawing horizontal scanning" << endl;
+		console_log("Finished drawing horizontal scanning");
 	}
 	else               // VERTICAL
 	{
@@ -238,7 +239,7 @@ void CRectifier::DrawNew4ParamCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Vertical", image);
-		cout << "Finished drawing vertical scanning" << endl;
+		console_log("Finished drawing vertical scanning");
 	}
 	cvWaitKey(0);
 }
@@ -260,7 +261,7 @@ void CRectifier::DrawNewQuadCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Horizontal", image);
-		cout << "Finished drawing horizontal scanning" << endl;
+		console_log("Finished drawing horizontal scanning");
 	}
 	else               // VERTICAL
 	{
@@ -277,7 +278,7 @@ void CRectifier::DrawNewQuadCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Vertical", image);
-		cout << "Finished drawing vertical scanning" << endl;
+		console_log("Finished drawing vertical scanning");
 	}
 	cvWaitKey(0);
 }
@@ -336,7 +337,7 @@ void CRectifier::FindChessboardCorners(Mat &image)
 {
 	bool patternfound = findChessboardCorners(image, patternSize, corners, CALIB_CB_ADAPTIVE_THRESH);
 	if (corners.empty())
-		cout << "Unable to detect corners" << endl;
+		console_log("Unable to detect corners");
 
 	cornerSubPix(image, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
 }
@@ -652,8 +653,8 @@ void CRectifier::GetNewCornersWithQuad(int scanOrientation)
 Mat CRectifier::Init( string fileName, int width, int height )
 {
 	Mat image = imread(fileName, CV_LOAD_IMAGE_GRAYSCALE); //source image
-	//cout << (int)(image.at<uchar>(0, 0)) << endl;
-	//cout << (int)(image.at<uchar>(479, 639)) << endl;
+	//console_log((int)(image.at<uchar>(0, 0)));
+	//console_log((int)(image.at<uchar>(479, 639)));
 	
 	//if (image.rows != 480 && image.cols != 640)
 	//{
@@ -1055,7 +1056,7 @@ void CRectifier::Draw_ExtCorners(Mat &image)
 		}
 	}
 //	imshow("Extended checkerboard", image);
-//	cout << "Finished drawing" << endl;
+//	console_log("Finished drawing");
 
 //	cvWaitKey(0);
 }
@@ -1072,7 +1073,7 @@ void CRectifier::Draw_Intermediate(Mat image)
 		}
 	}
 	imshow("Intermediate checkerboard", image);
-	cout << "Finished drawing" << endl;
+	console_log("Finished drawing");
 
 	cvWaitKey(0);
 }

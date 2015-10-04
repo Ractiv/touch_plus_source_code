@@ -14,6 +14,12 @@
     <ResourceCompile Include="res.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\console_log.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\filesystem.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\ipc.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\processes.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\string_functions.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\udp.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\blob_detector_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\blob_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\Camera.h" />
@@ -24,14 +30,12 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\dirent.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\dtw.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\filesystem.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\foreground_extractor_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\globals.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\hand_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\hand_splitter_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\histogram_builder.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\hungarian.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\jpeg_decompressor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h" />
@@ -51,18 +55,21 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\Plane.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\pointer_mapper.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\processes.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\udp.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_accumulator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\warper.h" />
     <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\console_log.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\filesystem.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\ipc.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\processes.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\string_functions.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\udp.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_detector_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\blob_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\Camera.cpp" />
@@ -73,14 +80,12 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\c_tracker.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\dtw.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\exponential.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\filesystem.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\foreground_extractor_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\globals.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\hand_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\hand_splitter_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\histogram_builder.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\jpeg_decompressor.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp" />
@@ -99,13 +104,10 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\Plane.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\pointer_mapper.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\Ray.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_accumulator.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\warper.cpp" />
@@ -187,7 +189,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(LIBJPEG-TURBO_DIR)\include;$(SFML_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(LIBJPEG-TURBO_DIR)\include;$(SFML_DIR)\include;$(SolutionDir)\..\track_plus_core\daemon_plus;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointModel>Precise</FloatingPointModel>
       <MinimalRebuild>false</MinimalRebuild>

@@ -20,13 +20,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\udp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h">
@@ -62,9 +56,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\dirent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\filesystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\foreground_extractor_new.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -81,9 +72,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\hungarian.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h">
@@ -125,9 +113,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\processes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,15 +146,27 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\rectifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\filesystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\processes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\string_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\udp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\ipc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\console_log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp">
@@ -205,9 +202,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\exponential.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\filesystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\foreground_extractor_new.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -224,9 +218,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\hungarian.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp">
@@ -265,9 +256,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\pose_estimator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -302,6 +290,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\rectifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\filesystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\ipc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\processes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\string_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\udp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\console_log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

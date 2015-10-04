@@ -23,16 +23,13 @@
 
 using namespace std;
 
-#define COUT cout
-// #define COUT ostream(0).flush()
-
 #ifdef __APPLE__
 #include <unistd.h>
 #define Sleep(a) usleep(a * 1000)
 #define BYTE unsigned char*
 #endif
 
-#define SHOW_CONSOLE
+// #define SHOW_CONSOLE
 
 extern const double scale_factor;
 extern const int image_width_full;

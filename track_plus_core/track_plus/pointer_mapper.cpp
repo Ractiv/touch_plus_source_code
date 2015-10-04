@@ -17,6 +17,7 @@
  */
 
 #include "pointer_mapper.h"
+#include "console_log.h"
 
 void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojector)
 {
@@ -166,8 +167,6 @@ void PointerMapper::compute_calibration_points()
     	plane = Plane(pt_calib0, pt_calib1, pt_calib2);
 	    direction_plane = plane.normal;
 
-	    COUT << direction_plane << endl;
-
 	    bool b0 = project_to_plane(pt_calib0, pt_calib0_projected, dist_calib0_plane);
 		bool b1 = project_to_plane(pt_calib1, pt_calib1_projected, dist_calib1_plane);
 		bool b2 = project_to_plane(pt_calib2, pt_calib2_projected, dist_calib2_plane);
@@ -184,7 +183,7 @@ void PointerMapper::compute_calibration_points()
 		}
 	}
 	else
-		COUT << "not calibrated" << endl;
+		console_log("not calibrated");
 }
 
 bool PointerMapper::project_to_plane(Point3f& pt, Point3f& result, float& dist_to_plane)

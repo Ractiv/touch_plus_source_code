@@ -17,10 +17,12 @@
  */
 
 #include <thread>
+#include <iostream>
 #include "settings.h"
 #include "globals.h"
 #include "ipc.h"
 #include "processes.h"
+#include "console_log.h"
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
@@ -35,7 +37,6 @@
 using namespace std;
 
 IPC ipc("daemon_plus");
-IPC* ipc_ptr_global = &ipc;
 
 bool block_guardian = false;
 
@@ -59,14 +60,14 @@ void guardian_thread_function()
 
 		if (process_running("menu_plus" + extension1, true) == 0)
 		{
-			COUT << "menu_plus created" << endl;
+			console_log("menu_plus created");
 			string menu_path = executable_path + slash + "menu_plus" + slash + "menu_plus" + extension1;
 			create_process(menu_path, "menu_plus" + extension1, show_console, true, true);
 		}
 
 		if (process_running("track_plus" + extension0) == 0)
 		{
-			COUT << "track_plus created" << endl;
+			console_log("track_plus created");
 			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
 		}
 
@@ -94,7 +95,8 @@ int main()
 #endif
 
 {
-    freopen("C:\\touch_plus_software_log.txt", "w", stdout);
+    // freopen("C:\\touch_plus_software_log.txt", "w", stdout);
+	console_log_ipc = &ipc;	
 	
 #ifdef _WIN32
 	char buffer[MAX_PATH];
@@ -140,14 +142,14 @@ int main()
 		ofstream settings_ofs(settings_file_path, ios::binary);
 		settings_ofs.write((char*)&settings, sizeof(settings));
 
-		COUT << "settings file created" << endl;
+		console_log("settings file created");
 	}
 	else
 	{
 		ifstream ifs(settings_file_path, ios::binary);
 		ifs.read((char*)&settings, sizeof(settings));
 
-		COUT << "settings file loaded" << endl;
+		console_log("settings file loaded");
 	}
 
 	IPC* ipc_ptr = &ipc;
@@ -192,7 +194,7 @@ int main()
 		else if (toggle_name == "click_height")
 		{
 			settings_ptr->click_height = toggle_value;
-			COUT << toggle_value << endl;
+			console_log(toggle_value);
 		}
 
 		ofstream settings_ofs(settings_file_path, ios::binary);

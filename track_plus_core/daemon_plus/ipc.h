@@ -46,7 +46,7 @@ public:
 	IPC(string self_name_in);
 	void update();
 	void clear();
-	void send_message(string recipient, string message_head, string message_body);
+	void send_message(string recipient, string message_head, string message_body, bool do_log = true);
 	void get_response(string recipient, string message_head, string message_body, function<void (string message_body)> callback);
 	void map_function(string message_head, function<void (string message_body)> callback);
 	void open_udp_channel(string recipient, int port_num = -1);

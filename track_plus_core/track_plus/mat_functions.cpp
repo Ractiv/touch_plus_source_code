@@ -17,6 +17,7 @@
  */
 
 #include "mat_functions.h"
+#include "console_log.h"
 
 LowPassFilter mat_functions_low_pass_filter;
 ValueStore mat_functions_value_store;
@@ -370,7 +371,7 @@ void print_mat_type(Mat& image_in)
 	r += "C";
 	r += (chans + '0');
 
-	COUT << r << endl;
+	console_log(r);
 }
 
 void put_text(string text, Mat& img, int x, int y)

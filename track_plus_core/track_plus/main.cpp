@@ -38,6 +38,7 @@
 #include "point_resolver.h"
 #include "pointer_mapper.h"
 #include "processes.h"
+#include "console_log.h"
 
 #ifdef _WIN32
 #include <VersionHelpers.h>
@@ -121,7 +122,7 @@ int wait_count = 0;
 
 void wait_for_device()
 {
-    COUT << "waiting for device " << endl;
+    console_log("waiting for device ");
     ipc->send_message("menu_plus", "reset progress", "");
 
 #ifdef __APPLE__
@@ -141,7 +142,7 @@ void wait_for_device()
             if (camera != NULL)
                 camera->stopVideoStream();
             
-            COUT << "exit 0" << endl;
+            console_log("exit 0");
             exit(0);
         }
 #endif
@@ -168,7 +169,7 @@ void wait_for_device()
             if (camera != NULL)
                 camera->stopVideoStream();
 #endif
-            COUT << "exit 0" << endl;
+            console_log("exit 0");
 
             exit(0);
         }
@@ -189,7 +190,7 @@ void wait_for_device()
                 if (camera != NULL)
                     camera->stopVideoStream();
                 
-                COUT << "exit 0" << endl;
+                console_log("exit 0");
                 exit(0);
             }
 #endif
@@ -241,13 +242,13 @@ void load_settings()
         ifs.read((char*)&settings, sizeof(settings));
         actuate_dist = actuate_dist_raw + atoi(settings.click_height.c_str()) - 5;
 
-        COUT << "settings file loaded" << endl;
+        console_log("settings file loaded");
     }
 }
 
 void on_first_frame()
 {
-    COUT << "on first frame" << endl;
+    console_log("on first frame");
 
     ipc->send_message("menu_plus", "set status", "verifying serial number");
     serial_number = camera->getSerialNumber();
@@ -273,7 +274,7 @@ void on_first_frame()
         wait_for_device();
 
     ipc->send_message("menu_plus", "set loading progress", "10");
-    COUT << "serial number: " << serial_number << endl;
+    console_log("serial number: " + serial_number);
 
     data_path_current_module = data_path + slash + serial_number;
 
@@ -328,7 +329,7 @@ void on_first_frame()
 void left_mouse_cb(int event, int x, int y, int flags, void* userdata)
 {
     if (event == EVENT_LBUTTONDOWN)
-        COUT << x << ", " << y << " " << imu.pitch << endl;
+        console_log(to_string(x) + ", " + to_string(y) + " " + to_string(imu.pitch));
 }
 
 void compute()
@@ -337,7 +338,7 @@ void compute()
 
     if (image_current_frame.cols == 0)
     {
-        COUT << "bad frame" << endl;
+        console_log("bad frame");
         return;
     }
 
@@ -465,7 +466,7 @@ void compute()
 
     if (first_pass && motion_processor0.both_moving)
     {
-        COUT << "readjusting exposure" << endl;
+        console_log("readjusting exposure");
 
         first_pass = false;
         exposure_adjusted = false;
@@ -506,8 +507,8 @@ void compute()
         proceed = proceed0 && proceed1;
     }
 
-    // if (proceed)
-        // stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+    if (proceed)
+        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
 
     if (enable_imshow)
         waitKey(1);
@@ -533,32 +534,32 @@ void input_thread_function()
 
         if (str == "set pose name")
         {
-            COUT << "please enter name of the pose" << endl;
+            console_log("please enter name of the pose");
 
             getline(cin, str);
             target_pose_name = str;
 
-            COUT << "pose name set to: " + target_pose_name << endl;
+            console_log("pose name set to: " + target_pose_name);
         }
         else if (str == "show pose name")
         {
-            COUT << "started showing pose name" << endl;
+            console_log("started showing pose name");
 
             pose_estimator.show = true;
             getline(cin, str);
 
-            COUT << "stopped showing pose name" << endl;
+            console_log("stopped showing pose name");
 
             pose_estimator.show = false;
         }
         else if (str == "set exposure")
         {
-            COUT << "please enter exposure value" << endl;
+            console_log("please enter exposure value");
 
             getline(cin, str);
             camera->setExposureTime(Camera::both, atoi(str.c_str()));
 
-            COUT << "exposure value set to: " + str << endl;
+            console_log("exposure value set to: " + str);
         }
     }
 }
@@ -580,7 +581,7 @@ void guardian_thread_function()
                 kill_process(child_module_name + extension0);
                 while (process_running(child_module_name + extension0) > 0)
                 {
-                    COUT << "wait kill" << endl;
+                    console_log("wait kill");
                     Sleep(100);
                 }
             }
@@ -607,10 +608,11 @@ void ipc_thread_function()
 }
 
 int main()
-{    
+{
     init_paths();
 
     ipc = new IPC("track_plus");
+    console_log_ipc = ipc;
     thread ipc_thread(ipc_thread_function);
 
     ipc->map_function("exit", [](const string message_body)
@@ -625,7 +627,7 @@ int main()
             camera->stopVideoStream();
 #endif
 
-        COUT << "exit 2" << endl;
+        console_log("exit 2");
         exit(0);
     });
 

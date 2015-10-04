@@ -17,6 +17,7 @@
  */
 
 #include "hungarian.h"
+#include "console_log.h"
 
 float AssignmentProblemSolver::Solve(vector<vector<float>>& DistMatrix,vector<int>& Assignment,TMethod Method)
 {
@@ -100,7 +101,7 @@ void AssignmentProblemSolver::assignmentoptimal(int *assignment, float *cost, fl
 		value = distMatrixIn[row];
 		if(value < 0)
 		{
-			COUT << "All matrix elements have to be non-negative." << endl;
+			console_log("All matrix elements have to be non-negative.");
 		}
 		distMatrix[row] = value;
 	}
@@ -772,22 +773,24 @@ void main(void)
 		for(int j=0; j<M; j++)
 		{
 			Cost[i][j] = (float)(rand()%1000)/1000.0;
-			COUT << Cost[i][j] << "\t";
+			console_log_inline(to_string(Cost[i][j]) + "\t");
 		}
-		COUT << endl;
+		console_log_endline();
 	}
 
 	AssignmentProblemSolver APS;
 
 	vector<int> Assignment;
 	
-	COUT << APS.Solve(Cost,Assignment) << endl;
+	console_log(APS.Solve(Cost,Assignment));
 	
 	// Output the result
 	for(int x=0; x<N; x++)
 	{
-		COUT << x << ":" << Assignment[x] << "\t";
+		console_log_inline(x + ":" + Assignment[x] + "\t");
 	}
+
+	console_log_endline();
 
 	getchar();
 }

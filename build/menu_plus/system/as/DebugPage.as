@@ -33,41 +33,44 @@
 		private var target_alpha_progress:int = 0;
 		private var target_alpha_status:int = 0;
 		private var error_screen_is_on:Boolean = false;
+		private var console_text_y:Number = 0;
 
 		public function DebugPage():void
 		{
-			progress_fan0.inner = false;
-			progress_fan1.inner = true;
+			self.progress_fan0.inner = false;
+			self.progress_fan1.inner = true;
 
-			progress_fan0.alpha = 0;
-			progress_fan1.alpha = 0;
-			status_text.alpha = 0;
+			self.progress_fan0.alpha = 0;
+			self.progress_fan1.alpha = 0;
+			self.status_text.alpha = 0;
+
+			console_text_y = self.console_text.y;
 
 			var active_name_old:String = "";
 
 			self.addEventListener(Event.ENTER_FRAME, function(e:Event):void
 			{
-				if (Globals.active_name == "ButtonDebug" && active_name_old != Globals.active_name)
-					read_log();
+				/*if (Globals.active_name == "ButtonDebug" && active_name_old != Globals.active_name)
+					read_log();*/
 
 				active_name_old = Globals.active_name;
 
 				if (Globals.active_name != "ButtonDebug")
 					return;
 
-				if (progress_fan0.alpha < 0.1 && loaded && progress_fan0.visible)
+				if (self.progress_fan0.alpha < 0.1 && loaded && self.progress_fan0.visible)
 				{
-					progress_fan0.visible = false;
-					progress_fan1.visible = false;
-					status_text.visible = false;
+					self.progress_fan0.visible = false;
+					self.progress_fan1.visible = false;
+					self.status_text.visible = false;
 					Globals.menu_bar.activate_index(3);
 				}
 				else
 				{
-					loaded = progress_fan1.progress_percent_current >= 99 &&
-						 progress_fan0.progress_percent_current >= 99 &&
-						 progress_fan1.progress_percent == 100 &&
-						 progress_fan0.progress_percent == 100;
+					loaded = self.progress_fan1.progress_percent_current >= 99 &&
+						 self.progress_fan0.progress_percent_current >= 99 &&
+						 self.progress_fan1.progress_percent == 100 &&
+						 self.progress_fan0.progress_percent == 100;
 
 					if (loaded && !loaded_old)
 					{
@@ -77,14 +80,14 @@
 
 					loaded_old = loaded;
 
-					var current_alpha_progress:Number = progress_fan0.alpha;
+					var current_alpha_progress:Number = self.progress_fan0.alpha;
 					var alpha_diff_progress:Number = (target_alpha_progress - current_alpha_progress) / 10;
-					progress_fan0.alpha += alpha_diff_progress;
-					progress_fan1.alpha += alpha_diff_progress;
+					self.progress_fan0.alpha += alpha_diff_progress;
+					self.progress_fan1.alpha += alpha_diff_progress;
 
-					var current_alpha_status:Number = status_text.alpha;
+					var current_alpha_status:Number = self.status_text.alpha;
 					var alpha_diff_status:Number = (target_alpha_status - current_alpha_status) / 10;
-					status_text.alpha += alpha_diff_status;
+					self.status_text.alpha += alpha_diff_status;
 				}
 
 				if (error_screen_is_on)
@@ -93,17 +96,17 @@
 					self.debug_page_background.prevFrame();
 			});
 
-			setInterval(function():void
+			/*setInterval(function():void
 			{
 				if (Globals.active_name != "ButtonDebug")
 					return;
 
 				read_log();
 
-			}, 1000);
+			}, 1000);*/
 		}
 
-		public function read_log():void
+		/*public function read_log():void
 		{
 			if (!reading)
 			{
@@ -119,21 +122,21 @@
 								continue;
 							
 							if (lines_array[i] != "")
-								console_text.appendText(lines_array[i] + "\n");
+								self.console_text.appendText(lines_array[i] + "\n");
 						}
 						
-						console_text.scrollV = console_text.maxScrollV;
+						self.console_text.scrollV = self.console_text.maxScrollV;
 						lines_array_old = lines_array;
 					}
 					reading = false;
 				});
 			}
 		}
-
+*/
 		private function show_progress():void
 		{
-			progress_fan0.visible = true;
-			progress_fan1.visible = true;
+			self.progress_fan0.visible = true;
+			self.progress_fan1.visible = true;
 			target_alpha_progress = 1;
 		}
 
@@ -144,7 +147,7 @@
 
 		private function show_status():void
 		{
-			status_text.visible = true;
+			self.status_text.visible = true;
 			target_alpha_status = 1;
 		}
 
@@ -155,31 +158,31 @@
 
 		public function reset_progress():void
 		{
-			progress_fan0.progress_percent = 0;
-			progress_fan1.progress_percent = 0;
+			self.progress_fan0.progress_percent = 0;
+			self.progress_fan1.progress_percent = 0;
 		}
 
 		public function set_downloading_progress(percent:int):void
 		{
-			if (percent <= progress_fan1.progress_percent)
+			if (percent <= self.progress_fan1.progress_percent)
 				return;
 
-			progress_fan1.progress_percent = percent;
+			self.progress_fan1.progress_percent = percent;
 			show_progress();
 		}
 
 		public function set_loading_progress(percent:int):void
 		{
-			if (percent <= progress_fan0.progress_percent)
+			if (percent <= self.progress_fan0.progress_percent)
 				return;
 
-			progress_fan0.progress_percent = percent;
+			self.progress_fan0.progress_percent = percent;
 			show_progress();
 		}
 
 		public function set_status(_status:String):void
 		{
-			status_text.text = _status;
+			self.status_text.text = _status;
 			show_status();
 		}
 
@@ -191,6 +194,17 @@
 		public function error_screen_off():void
 		{
 			error_screen_is_on = false;
+		}
+
+		public function console_log(str:String):void
+		{
+			str = str.replace("~@#~", "\n");
+			self.console_text.appendText(str);
+
+			// if (self.console_text.textHeight < self.console_text.height)
+			// 	self.console_text.y = (Globals.stage_height / 2) - (self.console_text.textHeight / 2);
+			// else
+			// 	self.console_text.y = console_text_y;
 		}
 	}
 }

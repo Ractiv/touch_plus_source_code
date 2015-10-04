@@ -33,6 +33,7 @@
 #include "filesystem.h"
 #include "reprojector.h"
 #include "rectifier.h"
+#include "console_log.h"
 
 struct compare_point_x
 {
@@ -107,7 +108,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
    	 	ipc.send_message("menu_plus", "set status", "downloading calibration data");
 		ipc.get_response("menu_plus", "show download page", "", [](const string message_body)
 		{
-			COUT << "unblock" << endl;
+			console_log("unblock");
 			block_thread = false;
 		});
 

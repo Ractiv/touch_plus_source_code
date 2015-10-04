@@ -27,7 +27,7 @@ class MotionProcessorNew
 public:
 	string algo_name = "motion_processor";
 
-	const int entropy_threshold = 200;
+	const int entropy_threshold = 300;
 
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
@@ -52,7 +52,7 @@ public:
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 
-	ValueStore value_store;
+	ValueStore* value_store = new ValueStore();
 
 	ValueAccumulator value_accumulator;
 

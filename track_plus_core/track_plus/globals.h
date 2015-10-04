@@ -38,9 +38,6 @@ using namespace std;
 #define HEIGHT_MIN         60
 #define SIZE_MULTIPLIER    4
 
-#define COUT cout
-// #define COUT ostream(0).flush()
-
 #ifdef __APPLE__
 #include <unistd.h>
 #define Sleep(a) usleep(a * 1000)

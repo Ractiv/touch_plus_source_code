@@ -17,6 +17,7 @@
  */
 
 #include "value_store.h"
+#include "console_log.h"
 
 void ValueStore::set_bool(string name, bool value)
 {
@@ -57,8 +58,8 @@ vector<int>* ValueStore::push_int(string name, int value)
 		int_vec_map[name] = &int_vec_pool[int_vec_pool_index];
 		++int_vec_pool_index;
 
-		if (int_vec_pool_index == 10)
-			COUT << "overflow int_vec_pool_index" << endl;
+		if (int_vec_pool_index == pool_size)
+			console_log("overflow int_vec_pool_index");
 	}
 
 	vector<int>* vec_ptr = int_vec_map[name];
@@ -74,8 +75,8 @@ vector<float>* ValueStore::push_float(string name, float value)
 		float_vec_map[name] = &float_vec_pool[float_vec_pool_index];
 		++float_vec_pool_index;
 
-		if (float_vec_pool_index == 10)
-			COUT << "overflow float_vec_pool_index" << endl;
+		if (float_vec_pool_index == pool_size)
+			console_log("overflow float_vec_pool_index");
 	}
 
 	vector<float>* vec_ptr = float_vec_map[name];
@@ -91,8 +92,8 @@ vector<Point>* ValueStore::push_point(string name, Point value)
 		point_vec_map[name] = &point_vec_pool[point_vec_pool_index];
 		++point_vec_pool_index;
 
-		if (point_vec_pool_index == 10)
-			COUT << "overflow point_vec_pool_index" << endl;
+		if (point_vec_pool_index == pool_size)
+			console_log("overflow point_vec_pool_index");
 	}
 
 	vector<Point>* vec_ptr = point_vec_map[name];
@@ -108,8 +109,8 @@ vector<BlobNew>* ValueStore::push_blob(string name, BlobNew value)
 		blob_vec_map[name] = &blob_vec_pool[blob_vec_pool_index];
 		++blob_vec_pool_index;
 
-		if (blob_vec_pool_index == 10)
-			COUT << "overflow blob_vec_pool_index" << endl;
+		if (blob_vec_pool_index == pool_size)
+			console_log("overflow blob_vec_pool_index");
 	}
 
 	vector<BlobNew>* vec_ptr = blob_vec_map[name];
@@ -125,8 +126,8 @@ vector<Mat>* ValueStore::push_mat(string name, Mat value)
 		mat_vec_map[name] = &mat_vec_pool[mat_vec_pool_index];
 		++mat_vec_pool_index;
 
-		if (mat_vec_pool_index == 10)
-			COUT << "overflow mat_vec_pool_index" << endl;
+		if (mat_vec_pool_index == pool_size)
+			console_log("overflow mat_vec_pool_index");
 	}
 
 	vector<Mat>* vec_ptr = mat_vec_map[name];
@@ -201,8 +202,8 @@ vector<int>* ValueStore::get_int_vec(string name)
 		int_vec_map[name] = &int_vec_pool[int_vec_pool_index];
 		++int_vec_pool_index;
 
-		if (int_vec_pool_index == 10)
-			COUT << "overflow int_vec_pool_index" << endl;
+		if (int_vec_pool_index == pool_size)
+			console_log("overflow int_vec_pool_index");
 	}
 
 	return int_vec_map[name];
@@ -215,8 +216,8 @@ vector<float>* ValueStore::get_float_vec(string name)
 		float_vec_map[name] = &float_vec_pool[float_vec_pool_index];
 		++float_vec_pool_index;
 
-		if (float_vec_pool_index == 10)
-			COUT << "overflow float_vec_pool_index" << endl;
+		if (float_vec_pool_index == pool_size)
+			console_log("overflow float_vec_pool_index");
 	}
 
 	return float_vec_map[name];
@@ -229,8 +230,8 @@ vector<Point>* ValueStore::get_point_vec(string name)
 		point_vec_map[name] = &point_vec_pool[point_vec_pool_index];
 		++point_vec_pool_index;
 
-		if (point_vec_pool_index == 10)
-			COUT << "overflow point_vec_pool_index" << endl;
+		if (point_vec_pool_index == pool_size)
+			console_log("overflow point_vec_pool_index");
 	}
 
 	return point_vec_map[name];
@@ -243,8 +244,8 @@ vector<BlobNew>* ValueStore::get_blob_vec(string name)
 		blob_vec_map[name] = &blob_vec_pool[blob_vec_pool_index];
 		++blob_vec_pool_index;
 
-		if (blob_vec_pool_index == 10)
-			COUT << "overflow blob_vec_pool_index" << endl;
+		if (blob_vec_pool_index == pool_size)
+			console_log("overflow blob_vec_pool_index");
 	}
 
 	return blob_vec_map[name];
@@ -257,8 +258,8 @@ vector<Mat>* ValueStore::get_mat_vec(string name)
 		mat_vec_map[name] = &mat_vec_pool[mat_vec_pool_index];
 		++mat_vec_pool_index;
 
-		if (mat_vec_pool_index == 10)
-			COUT << "overflow mat_vec_pool_index" << endl;
+		if (mat_vec_pool_index == pool_size)
+			console_log("overflow mat_vec_pool_index");
 	}
 
 	return mat_vec_map[name];
@@ -271,8 +272,8 @@ BlobDetectorNew* ValueStore::get_blob_detector(string name)
 		blob_detector_map[name] = &blob_detector_pool[blob_detector_pool_index];
 		++blob_detector_pool_index;
 
-		if (blob_detector_pool_index == 10)
-			COUT << "overflow blob_detector_pool_index" << endl;
+		if (blob_detector_pool_index == pool_size)
+			console_log("overflow blob_detector_pool_index");
 	}
 
 	return blob_detector_map[name];
@@ -285,8 +286,8 @@ HistogramBuilder* ValueStore::get_histogram_builder(string name)
 		histogram_builder_map[name] = &histogram_builder_pool[histogram_builder_pool_index];
 		++histogram_builder_pool_index;
 
-		if (histogram_builder_pool_index == 10)
-			COUT << "overflow histogram_builder_pool_index" << endl;
+		if (histogram_builder_pool_index == pool_size)
+			console_log("overflow histogram_builder_pool_index");
 	}
 
 	return histogram_builder_map[name];
@@ -299,8 +300,8 @@ LowPassFilter* ValueStore::get_low_pass_filter(string name)
 		low_pass_filter_map[name] = &low_pass_filter_pool[low_pass_filter_pool_index];
 		++low_pass_filter_pool_index;
 
-		if (low_pass_filter_pool_index == 10)
-			COUT << "overflow low_pass_filter_pool_index" << endl;
+		if (low_pass_filter_pool_index == pool_size)
+			console_log("overflow low_pass_filter_pool_index");
 	}
 
 	return low_pass_filter_map[name];

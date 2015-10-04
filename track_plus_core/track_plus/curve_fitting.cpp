@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "curve_fitting.h"
+#include "console_log.h"
 
 using namespace std;
 
@@ -118,7 +119,7 @@ int CCurveFitting::curve_fitting4(double* t, int t_len, double* y, double* a_out
 	lmcurve(4, par, m, t, y, f, &control, &status);
 	
 	// WD, 9 Sep 2014: to show the result for curvefitting4
-	COUT << endl << "a: " << par[0] << " b: " << par[1] << " c: " << par[2] << " d: " << par[3] << endl;
+	console_log("a: "+to_string(par[0])+" b: "+to_string(par[1])+" c: "+to_string(par[2])+" d: "+to_string(par[3]));
     *a_out = par[0];
     *b_out = par[1];
     *c_out = par[2];
@@ -185,7 +186,7 @@ int CCurveFitting::curve_fitting5(double* t, int t_len, double* y, double* a_out
 	lmcurve(5, par, m, t, y, f5, &control, &status);
         
 	// WD, 9 Sep 2014: to show the result for curvefitting5
-	COUT << endl << "a: " << par[0] << " b: " << par[1] << " c: " << par[2] << " d: " << par[3] << " e: " << par[4] << endl;
+	console_log("a: "+to_string(par[0])+" b: "+to_string(par[1])+" c: "+to_string(par[2])+" d: "+to_string(par[3])+" e: "+to_string(par[4]));
     *a_out = par[0];
     *b_out = par[1];
     *c_out = par[2];

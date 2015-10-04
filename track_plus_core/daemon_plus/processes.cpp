@@ -17,6 +17,7 @@
  */
 
 #include "processes.h"
+#include "console_log.h"
 
 int check_process_running(string name, bool partial)
 {
@@ -88,7 +89,7 @@ int process_running(string name, bool partial)
     int result = check_process_running(name, partial);
     
     if (result == 0)
-        COUT << "process not running " << name << endl;
+        console_log("process not running " + name);
 
     return result;
 }
@@ -117,7 +118,7 @@ void create_process(string path, string name, bool show_window, bool is_app, boo
     else
         command = "open " + path;
 
-    COUT << command << endl;
+    console_log(command);
 
     system(command.c_str());
 #endif

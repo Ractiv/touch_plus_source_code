@@ -139,6 +139,7 @@
 			ExternalInterface.addCallback("set_status", debug_page.set_status);
 			ExternalInterface.addCallback("error_screen_on", debug_page.error_screen_on);
 			ExternalInterface.addCallback("error_screen_off", debug_page.error_screen_off);
+			ExternalInterface.addCallback("console_log", debug_page.console_log);
 
 			ExternalInterface.call("set_gui_ready");
 		}
