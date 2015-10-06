@@ -37,6 +37,8 @@
 #include "hand_resolver.h"
 #include "point_resolver.h"
 #include "pointer_mapper.h"
+#include "processes.h"
+#include "console_log.h"
 
 #ifdef _WIN32
 #include <VersionHelpers.h>
@@ -111,16 +113,16 @@ int point_vec_pool_count = 0;
 vector<Point>* point_vec_ptr = NULL;
 
 bool serial_verified = false;
-bool exposure_adjusted = false;
 bool initialized = false;
 bool updated = false;
 
 int wait_count = 0;
+int frame_count = 0;
 //
 
 void wait_for_device()
 {
-    COUT << "waiting for device " << endl;
+    console_log("waiting for device ");
     ipc->send_message("menu_plus", "reset progress", "");
 
 #ifdef __APPLE__
@@ -140,7 +142,7 @@ void wait_for_device()
             if (camera != NULL)
                 camera->stopVideoStream();
             
-            COUT << "exit 0" << endl;
+            console_log("exit 0");
             exit(0);
         }
 #endif
@@ -167,7 +169,7 @@ void wait_for_device()
             if (camera != NULL)
                 camera->stopVideoStream();
 #endif
-            COUT << "exit 0" << endl;
+            console_log("exit 0");
 
             exit(0);
         }
@@ -188,7 +190,7 @@ void wait_for_device()
                 if (camera != NULL)
                     camera->stopVideoStream();
                 
-                COUT << "exit 0" << endl;
+                console_log("exit 0");
                 exit(0);
             }
 #endif
@@ -240,13 +242,13 @@ void load_settings()
         ifs.read((char*)&settings, sizeof(settings));
         actuate_dist = actuate_dist_raw + atoi(settings.click_height.c_str()) - 5;
 
-        COUT << "settings file loaded" << endl;
+        console_log("settings file loaded");
     }
 }
 
-void on_first_frame()
+void setup_on_first_frame()
 {
-    COUT << "on first frame" << endl;
+    console_log("on first frame");
 
     ipc->send_message("menu_plus", "set status", "verifying serial number");
     serial_number = camera->getSerialNumber();
@@ -272,7 +274,7 @@ void on_first_frame()
         wait_for_device();
 
     ipc->send_message("menu_plus", "set loading progress", "10");
-    COUT << "serial number: " << serial_number << endl;
+    console_log("serial number: " + serial_number);
 
     data_path_current_module = data_path + slash + serial_number;
 
@@ -327,16 +329,17 @@ void on_first_frame()
 void left_mouse_cb(int event, int x, int y, int flags, void* userdata)
 {
     if (event == EVENT_LBUTTONDOWN)
-        COUT << x << ", " << y << " " << imu.pitch << endl;
+        console_log(to_string(x) + ", " + to_string(y) + " " + to_string(imu.pitch));
 }
 
 void compute()
 {
+    ++frame_count;
     updated = false;
 
     if (image_current_frame.cols == 0)
     {
-        COUT << "bad frame" << endl;
+        console_log("bad frame");
         return;
     }
 
@@ -346,12 +349,8 @@ void compute()
     Mat image0 = image_flipped(Rect(0, 0, 640, 480));
     Mat image1 = image_flipped(Rect(640, 0, 640, 480));
 
-    static bool first_frame = true;
-    if (first_frame)
-    {
-        on_first_frame();
-        first_frame = false;
-    }
+    if (frame_count == 1)
+        setup_on_first_frame();
 
     if (!play || settings.touch_control != "1")
     {
@@ -377,8 +376,10 @@ void compute()
     Mat image_preprocessed0;
     Mat image_preprocessed1;
 
-    bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
-                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", false);
+    static bool exposure_set = false;
+
+    bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_set, "image_preprocessed0", true, exposure_set);
+                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_set, "image_preprocessed1");
 
     GaussianBlur(image_preprocessed0, image_preprocessed0, Size(3, 9), 0, 0);
     GaussianBlur(image_preprocessed1, image_preprocessed1, Size(3, 9), 0, 0);
@@ -387,16 +388,15 @@ void compute()
     {
         static int step_count = 0;
         if (step_count == 3)
-        {
             surface_computer.init(image0);
-        }
+
         ++step_count;
         return;
     }
 
-    exposure_adjusted = true;
+    exposure_set = true;
 
-#ifdef false
+#if 0
     {
         Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
         Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);
@@ -462,12 +462,14 @@ void compute()
                                              construct_background, "1",          false);
     }
 
-    if (first_pass && motion_processor0.both_moving)
+    if (first_pass && motion_processor0.both_moving && motion_processor1.both_moving)
     {
-        COUT << "readjusting exposure" << endl;
+        console_log("readjusting exposure");
 
         first_pass = false;
-        exposure_adjusted = false;
+        exposure_set = false;
+        mat_functions_low_pass_filter.reset();
+
         CameraInitializerNew::adjust_exposure(camera, image_preprocessed0, true);
     }
     else if (!first_pass)
@@ -483,6 +485,13 @@ void compute()
         motion_processor_proceed = true;
 
     bool proceed = motion_processor_proceed;
+
+    static bool menu_plus_signal0 = false;
+    if (!menu_plus_signal0)
+    {
+        menu_plus_signal0 = true;
+        // ipc->send_message("menu_plus", "hide window", "");
+    }
 
     if (proceed)
     {
@@ -504,6 +513,8 @@ void compute()
         proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
     }
+
+    proceed = false;
 
     if (proceed)
         stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
@@ -532,32 +543,32 @@ void input_thread_function()
 
         if (str == "set pose name")
         {
-            COUT << "please enter name of the pose" << endl;
+            console_log("please enter name of the pose");
 
             getline(cin, str);
             target_pose_name = str;
 
-            COUT << "pose name set to: " + target_pose_name << endl;
+            console_log("pose name set to: " + target_pose_name);
         }
         else if (str == "show pose name")
         {
-            COUT << "started showing pose name" << endl;
+            console_log("started showing pose name");
 
             pose_estimator.show = true;
             getline(cin, str);
 
-            COUT << "stopped showing pose name" << endl;
+            console_log("stopped showing pose name");
 
             pose_estimator.show = false;
         }
         else if (str == "set exposure")
         {
-            COUT << "please enter exposure value" << endl;
+            console_log("please enter exposure value");
 
             getline(cin, str);
             camera->setExposureTime(Camera::both, atoi(str.c_str()));
 
-            COUT << "exposure value set to: " + str << endl;
+            console_log("exposure value set to: " + str);
         }
     }
 }
@@ -579,7 +590,7 @@ void guardian_thread_function()
                 kill_process(child_module_name + extension0);
                 while (process_running(child_module_name + extension0) > 0)
                 {
-                    COUT << "wait kill" << endl;
+                    console_log("wait kill");
                     Sleep(100);
                 }
             }
@@ -606,10 +617,11 @@ void ipc_thread_function()
 }
 
 int main()
-{    
+{
     init_paths();
 
     ipc = new IPC("track_plus");
+    console_log_ipc = ipc;
     thread ipc_thread(ipc_thread_function);
 
     ipc->map_function("exit", [](const string message_body)
@@ -624,7 +636,7 @@ int main()
             camera->stopVideoStream();
 #endif
 
-        COUT << "exit 2" << endl;
+        console_log("exit 2");
         exit(0);
     });
 

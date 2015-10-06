@@ -36,12 +36,18 @@ public:
 	ValueStore value_store;
 	ValueAccumulator value_accumulator;
 
-	vector<BlobNew> primary_hand_blobs;
+	vector<BlobNew> blobs_right;
+	vector<BlobNew> blobs_left;
 
-	int x_min_result = 0;
-	int x_max_result = 0;
-	int y_min_result = 0;
-	int y_max_result = 0;
+	int x_min_result_right = 0;
+	int x_max_result_right = 0;
+	int y_min_result_right = 0;
+	int y_max_result_right = 0;
+
+	int x_min_result_left = 0;
+	int x_max_result_left = 0;
+	int y_min_result_left = 0;
+	int y_max_result_left = 0;
 
 	bool compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name);
 };

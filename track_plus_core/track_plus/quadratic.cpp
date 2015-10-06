@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include "curve_fitting.h"
+#include "console_log.h"
 
 using namespace std;
  
@@ -112,7 +113,7 @@ int CCurveFitting::quadratic_fitting(double* t, int t_len, double* y, double* a_
                 a[i] /= det;
         }
  
-//        COUT << endl << "a: " << a[0] << " b: " << a[1] << " c: " << a[2] << endl;
+       // console_log("a: " + a[0] + " b: " + a[1] + " c: " + a[2]);
         *a_out = a[0];
         *b_out = a[1];
         *c_out = a[2];

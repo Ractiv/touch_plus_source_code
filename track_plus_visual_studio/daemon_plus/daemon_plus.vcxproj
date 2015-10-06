@@ -14,22 +14,24 @@
     <ResourceCompile Include="res.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\console_log.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\filesystem.cpp" />
     <ClCompile Include="..\..\track_plus_core\daemon_plus\globals.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\ipc.cpp" />
     <ClCompile Include="..\..\track_plus_core\daemon_plus\main.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\filesystem.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\ipc.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\processes.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\string_functions.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\udp.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\processes.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\string_functions.cpp" />
+    <ClCompile Include="..\..\track_plus_core\daemon_plus\udp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\console_log.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\filesystem.h" />
     <ClInclude Include="..\..\track_plus_core\daemon_plus\globals.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\ipc.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\processes.h" />
     <ClInclude Include="..\..\track_plus_core\daemon_plus\settings.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\filesystem.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\ipc.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\processes.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\string_functions.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\udp.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\string_functions.h" />
+    <ClInclude Include="..\..\track_plus_core\daemon_plus\udp.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9D6F620-7D14-4744-B1B9-183DECA792A0}</ProjectGuid>

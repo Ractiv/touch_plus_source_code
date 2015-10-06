@@ -17,6 +17,7 @@
  */
 
 #include "ipc.h"
+// #include "console_log.h"
 
 IPC::IPC(string self_name_in)
 {
@@ -80,7 +81,7 @@ void IPC::update()
 				string message_head = message_vec[0];
 				string message_body = message_vec[1];
 
-				COUT << "message_received " << message_head << " " << message_body << " " << file_name_current << endl;
+				// console_log("message_received " + message_head + " " + message_body + " " + file_name_current, false);
 
 				if (response_map.count(message_head) == 0)
 				{
@@ -127,7 +128,7 @@ void IPC::clear()
 	}
 }
 
-void IPC::send_message(string recipient, string message_head, string message_body)
+void IPC::send_message(string recipient, string message_head, string message_body, bool do_log)
 {
 	static int lock_file_count = 0;
 	string lock_file_name = "lock_" + self_name + to_string(lock_file_count);
@@ -159,7 +160,8 @@ void IPC::send_message(string recipient, string message_head, string message_bod
 	++sent_count;
 	delete_file(ipc_path + slash + lock_file_name);
 	
-	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
+	// if (do_log)
+		// console_log("message sent: " + recipient + " " + message_head + " " + message_body, false);
 }
 
 void IPC::get_response(string recipient, string message_head, string message_body,
@@ -201,7 +203,7 @@ void IPC::open_udp_channel(string recipient, int port_num)
 				udp_ptr->set_port(port);
 				*port_new_ptr = port;
 
-				COUT << "udp port is " << port << endl;
+				// console_log("udp port is " + to_string(port), false);
 			});
 
 			while (port_old == port_new)
@@ -216,7 +218,7 @@ void IPC::open_udp_channel(string recipient, int port_num)
 			int port = port_num;
 			udp_ptr->set_port(port);
 
-			COUT << "udp port is " << port << endl;
+			// console_log("udp port is " + to_string(port), false);
 		}
 	}
 	else
@@ -224,7 +226,7 @@ void IPC::open_udp_channel(string recipient, int port_num)
 		int port = atoi(read_text_file(ipc_path + slash + "udp_port")[0].c_str());
 		udp_ptr->set_port(port);
 
-		COUT << "udp port is " << port << endl;
+		// console_log("udp port is " + to_string(port), false);
 	}
 }
 
@@ -274,5 +276,5 @@ void IPC::run_js(vector<string> lines)
 	++sent_count;
 	delete_file(ipc_path + slash + lock_file_name);
 	
-	COUT << "message sent: " << recipient << " " << message_head << " " << message_body << endl;
+	// console_log("message sent: " + recipient + " " + message_head + " " + message_body, false);
 }

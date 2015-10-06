@@ -17,6 +17,10 @@
  */
 
 #include "mono_processor_new.h"
+#include "mat_functions.h"
+#include "contour_functions.h"
+#include "dtw.h"
+#include "thinning_computer_new.h"
 
 struct compare_point_angle
 {
@@ -41,6 +45,66 @@ struct compare_point_z
 	bool operator() (const Point3f& pt0, const Point3f& pt1)
 	{
 		return (pt0.z < pt1.z);
+	}
+};
+
+void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)
+{
+	float dist_min = 9999;
+	int index_dist_min;
+
+	int index = 0;
+	for (Point& pt : points)
+	{
+		float dist = get_distance(pt, pivot);
+		if (dist < dist_min /*&& pt.x < pivot.x*/)
+		{
+			dist_min = dist;
+			index_dist_min = index;
+		}
+		++index;
+	}
+
+	if (dist_min == 9999)
+		return;
+
+	const int points_size = points.size();
+	for (int i = index_dist_min; i < points_size + index_dist_min; ++i)
+	{
+		int index_current = i;
+		if (index_current >= points_size)
+			index_current -= points_size;
+
+		Point pt_current = points[index_current];
+		points_sorted.push_back(pt_current);
+	}
+}
+
+BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
+{
+	float dist_min = 9999;
+	BlobNew* blob_dist_min = NULL;
+	for (BlobNew& blob : *blob_vec)
+	{
+		float dist = blob.compute_min_dist(pt);
+		if (dist < dist_min)
+		{
+			dist_min = dist;
+			blob_dist_min = &blob;
+		}
+	}
+	return blob_dist_min;
+}
+
+struct Line
+{
+	Point pt0;
+	Point pt1;
+
+	Line(Point _pt0, Point _pt1)
+	{
+		pt0 = _pt0;
+		pt1 = _pt1;
 	}
 };
 
@@ -72,7 +136,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	if (hand_splitter.primary_hand_blobs.size() == 0)
+	if (hand_splitter.blobs_right.size() == 0)
 	{
 		value_store.set_bool("reset", true);
 		return false;
@@ -89,7 +153,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	int palm_point_raw_count = 0;
 	const int y_threshold = palm_point.y - palm_radius;
 
-	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
+	for (BlobNew& blob : hand_splitter.blobs_right)
 	{
 		blob.fill(image_find_contours, 254);
 		blob.fill(image_active_hand, 254);
@@ -130,7 +194,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 
 		image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-		for (BlobNew& blob : hand_splitter.primary_hand_blobs)
+		for (BlobNew& blob : hand_splitter.blobs_right)
 			blob.fill(image_find_contours, 254);
 
 		for (int i = 0; i < contours_reduced.size(); ++i)
@@ -350,7 +414,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			Point anchor_min_dist;
 			float min_dist = 9999;
 
-			Point seek_anchor = Point(hand_splitter.x_min_result, hand_splitter.y_max_result * 3);
+			Point seek_anchor = Point(hand_splitter.x_min_result_right, hand_splitter.y_max_result_right * 3);
 
 			const int i_max = convex_points_indexed.size();
 			for (int i = 0; i < i_max; ++i)
@@ -711,9 +775,196 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	Mat image_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	for (BlobNew& blob : hand_splitter.blobs_right)
+		blob.fill(image_skeleton, 254);
+
+	vector<Point> subject_points;
+	for (BlobNew& blob : hand_splitter.blobs_right)
+		for (Point& pt : blob.data)
+			subject_points.push_back(pt);
+
+	{
+		Point attach_pivot = Point(pt_palm.x, 0);
+
+		BlobNew blob0;
+		int count_max = 0;
+
+		for (BlobNew& blob : hand_splitter.blobs_right)
+			if (blob.count > count_max)
+			{
+				count_max = blob.count;
+				blob0 = blob;
+			}
+
+		Point pt_attach0;
+		float dist0 = blob0.compute_min_dist(attach_pivot, &pt_attach0);
+		for (BlobNew& blob1 : hand_splitter.blobs_right)
+			if (blob0.atlas_id != blob1.atlas_id)
+			{
+				Point pt_attach1;
+				float dist1 = blob1.compute_min_dist(attach_pivot, &pt_attach1);
+
+				Point pt_attach;
+				Point pt_base;
+				if (dist0 < dist1)
+				{
+					pt_attach = pt_attach1;
+					blob0.compute_min_dist(pt_attach, &pt_base);
+				}
+				else
+				{
+					pt_attach = pt_attach0;
+					blob1.compute_min_dist(pt_attach, &pt_base);
+				}
+
+				vector<Point> line_vec;
+				bresenham_line(pt_attach.x, pt_attach.y, pt_base.x, pt_base.y, line_vec, 1000);
+
+				for (Point& pt : line_vec)
+				{
+					subject_points.push_back(pt);
+					image_skeleton.ptr<uchar>(pt.y, pt.x)[0] = 254;
+				}
+			}
+	}
+
+	vector<Point> skeleton_points = compute_thinning(image_skeleton, subject_points);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	Mat image_skeleton_segmented = Mat::zeros(image_skeleton.size(), CV_8UC1);
+	for (Point& pt : skeleton_points)
+		image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 254;
+
+	vector<Point> skeleton_branch_centers;
+
+	for (Point& pt : skeleton_points)
+	{
+		const bool a = image_skeleton.ptr<uchar>(pt.y - 1, pt.x)[0] > 0;
+		const bool b = image_skeleton.ptr<uchar>(pt.y + 1, pt.x)[0] > 0;
+		const bool c = image_skeleton.ptr<uchar>(pt.y, pt.x - 1)[0] > 0;
+		const bool d = image_skeleton.ptr<uchar>(pt.y, pt.x + 1)[0] > 0;
+
+		const bool e = image_skeleton.ptr<uchar>(pt.y - 1, pt.x - 1)[0] > 0;
+		const bool f = image_skeleton.ptr<uchar>(pt.y - 1, pt.x + 1)[0] > 0;
+		const bool g = image_skeleton.ptr<uchar>(pt.y + 1, pt.x - 1)[0] > 0;
+		const bool h = image_skeleton.ptr<uchar>(pt.y + 1, pt.x + 1)[0] > 0;
+
+		const bool b0 = c && f && h;
+		const bool b1 = e && d && g;
+		const bool b2 = a && g && h;
+		const bool b3 = e && f && b;
+		const bool b4 = a && d && g;
+		const bool b5 = e && d && b;
+		const bool b6 = f && b && c;
+		const bool b7 = c && a && h;
+
+		if ((a + b + c + d) >= 3 || (e + f + g + h) >= 3 || b0 || b1 || b2 || b3 || b4 || b5 || b6 || b7)
+		{
+			circle(image_skeleton_segmented, pt, 3, Scalar(127), -1);
+			skeleton_branch_centers.push_back(pt);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
+	blob_detector_image_skeleton_segmented->compute(image_skeleton_segmented, 254,
+													hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
+										            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, false, true);
+
+	BlobDetectorNew* blob_detector_image_skeleton_parts = value_store.get_blob_detector("blob_detector_image_skeleton_parts");
+
+	for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
+	{
+		Point pt_origin = Point(-1, -1);
+		for (Point& pt : blob.data)
+		{
+			bool to_break = false;
+			for (int a = -1; a <= 1; ++a)
+			{
+				int x = pt.x + a;
+				if (x < 0)
+					x = 0;
+				if (x >= WIDTH_SMALL)
+					x = WIDTH_SMALL - 1;
+
+				for (int b = -1; b <= 1; ++b)
+				{
+					int y = pt.y + b;
+					if (y < 0)
+						y = 0;
+					if (y >= HEIGHT_SMALL)
+						y = HEIGHT_SMALL - 1;
+
+					if (image_skeleton_segmented.ptr<uchar>(y, x)[0] == 127)
+					{
+						pt_origin = pt;
+						a = 9999;
+						to_break = true;
+						break;
+					}
+				}
+			}
+			if (to_break)
+				break;
+		}
+		if (pt_origin.x != -1)
+		{
+			blob_detector_image_skeleton_parts->compute_location(image_skeleton_segmented, 254, pt_origin.x, pt_origin.y, true, false, true);
+
+			bool caught_between_2_centers = false;
+
+			const int i_max = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
+			for (int i = /*blob_detector_image_skeleton_parts->blob_max_size->count / 2*/ i_max; i <= i_max; ++i)
+			{
+				Point pt = 	blob_detector_image_skeleton_parts->blob_max_size->data[i];
+				for (int a = -1; a <= 1; ++a)
+				{
+					int x = pt.x + a;
+					if (x < 0)
+						x = 0;
+					if (x >= WIDTH_SMALL)
+						x = WIDTH_SMALL - 1;
+
+					for (int b = -1; b <= 1; ++b)
+					{
+						int y = pt.y + b;
+						if (y < 0)
+							y = 0;
+						if (y >= HEIGHT_SMALL)
+							y = HEIGHT_SMALL - 1;
+
+						if (image_skeleton_segmented.ptr<uchar>(y, x)[0] == 127)
+						{
+							caught_between_2_centers = true;
+							i = 9999;
+							a = 9999;
+							break;
+						}
+					}
+				}
+			}
+			if (!caught_between_2_centers)
+			{
+				const int index_start = blob_detector_image_skeleton_parts->blob_max_size->count * 0.7;
+				const int index_end = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
+				Point pt_start = blob_detector_image_skeleton_parts->blob_max_size->data[index_start];
+				Point pt_end = blob_detector_image_skeleton_parts->blob_max_size->data[index_end];
+				
+			}
+		}
+	}
+
+	imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	BlobDetectorNew* blob_detector_image_palm_segmented = value_store.get_blob_detector("blob_detector_image_palm_segmented");
-	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254, hand_splitter.x_min_result, hand_splitter.x_max_result,
-									                  					   hand_splitter.y_min_result, hand_splitter.y_max_result, true);
+	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254,
+												hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
+									            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, true);
 
 	for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
 	{
@@ -730,6 +981,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	fingertip_points.clear();
 	fingertip_blobs.clear();
+
+	vector<Point> checker_vec;
 	for (Point3f& pt : convex_points_indexed)
 	{
 		BlobNew* blob_min_dist = NULL;
@@ -748,7 +1001,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			blob_min_dist->fill(image_palm_segmented, 127);
 
 			bool found = false;
-			for (Point& pt_fingertip : fingertip_points)
+			for (Point& pt_fingertip : checker_vec)
 				if (pt_fingertip == blob_min_dist->pt_y_max)
 				{
 					found = true;
@@ -756,8 +1009,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			if (!found)
 			{
+				blob_min_dist->index = fingertip_blobs.size();
 				fingertip_blobs.push_back(*blob_min_dist);
-				fingertip_points.push_back(blob_min_dist->pt_y_max);
+				checker_vec.push_back(blob_min_dist->pt_y_max);
 			}
 		}
 	}
@@ -867,8 +1121,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		for (Point& pt : fingertip_points)
 			circle(image_palm_segmented, pt, 3, Scalar(64), -1);
 
-		// imshow("image_palm_segmented" + name, image_palm_segmented);
-		imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
+		imshow("image_palm_segmented" + name, image_palm_segmented);
+		// imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -876,52 +1130,4 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	value_store.set_bool("reset", false);
 	algo_name_vec.push_back(algo_name);
 	return true;
-}
-
-void MonoProcessorNew::sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)
-{
-	float dist_min = 9999;
-	int index_dist_min;
-
-	int index = 0;
-	for (Point& pt : points)
-	{
-		float dist = get_distance(pt, pivot);
-		if (dist < dist_min /*&& pt.x < pivot.x*/)
-		{
-			dist_min = dist;
-			index_dist_min = index;
-		}
-		++index;
-	}
-
-	if (dist_min == 9999)
-		return;
-
-	const int points_size = points.size();
-	for (int i = index_dist_min; i < points_size + index_dist_min; ++i)
-	{
-		int index_current = i;
-		if (index_current >= points_size)
-			index_current -= points_size;
-
-		Point pt_current = points[index_current];
-		points_sorted.push_back(pt_current);
-	}
-}
-
-BlobNew* MonoProcessorNew::find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
-{
-	float dist_min = 9999;
-	BlobNew* blob_dist_min = NULL;
-	for (BlobNew& blob : *blob_vec)
-	{
-		float dist = blob.compute_min_dist(pt);
-		if (dist < dist_min)
-		{
-			dist_min = dist;
-			blob_dist_min = &blob;
-		}
-	}
-	return blob_dist_min;
 }

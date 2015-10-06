@@ -19,7 +19,17 @@
 // Rectifier.cpp : Defines the entry point for the console application.
 //
 
-#include "Rectifier.h"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv/cv.h>
+#include <iostream>
+
+#include "rectifier.h"
+#include "warper.h"
+#include "curve_fitting.h"
+#include "console_log.h"
 
 void CRectifier::SetPatternSize(int width, int height)	{
 	patternSize.width  = width;
@@ -212,7 +222,7 @@ void CRectifier::DrawNew4ParamCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Horizontal", image);
-		cout << "Finished drawing horizontal scanning" << endl;
+		console_log("Finished drawing horizontal scanning");
 	}
 	else               // VERTICAL
 	{
@@ -229,7 +239,7 @@ void CRectifier::DrawNew4ParamCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Vertical", image);
-		cout << "Finished drawing vertical scanning" << endl;
+		console_log("Finished drawing vertical scanning");
 	}
 	cvWaitKey(0);
 }
@@ -251,7 +261,7 @@ void CRectifier::DrawNewQuadCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Horizontal", image);
-		cout << "Finished drawing horizontal scanning" << endl;
+		console_log("Finished drawing horizontal scanning");
 	}
 	else               // VERTICAL
 	{
@@ -268,7 +278,7 @@ void CRectifier::DrawNewQuadCircles(int scanOrientation, Mat image)
 			}
 		}
 		imshow("Image Scan Vertical", image);
-		cout << "Finished drawing vertical scanning" << endl;
+		console_log("Finished drawing vertical scanning");
 	}
 	cvWaitKey(0);
 }
@@ -327,7 +337,7 @@ void CRectifier::FindChessboardCorners(Mat &image)
 {
 	bool patternfound = findChessboardCorners(image, patternSize, corners, CALIB_CB_ADAPTIVE_THRESH);
 	if (corners.empty())
-		cout << "Unable to detect corners" << endl;
+		console_log("Unable to detect corners");
 
 	cornerSubPix(image, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 30, 0.1));
 }
@@ -643,8 +653,8 @@ void CRectifier::GetNewCornersWithQuad(int scanOrientation)
 Mat CRectifier::Init( string fileName, int width, int height )
 {
 	Mat image = imread(fileName, CV_LOAD_IMAGE_GRAYSCALE); //source image
-	//cout << (int)(image.at<uchar>(0, 0)) << endl;
-	//cout << (int)(image.at<uchar>(479, 639)) << endl;
+	//console_log((int)(image.at<uchar>(0, 0)));
+	//console_log((int)(image.at<uchar>(479, 639)));
 	
 	//if (image.rows != 480 && image.cols != 640)
 	//{
@@ -1046,7 +1056,7 @@ void CRectifier::Draw_ExtCorners(Mat &image)
 		}
 	}
 //	imshow("Extended checkerboard", image);
-//	cout << "Finished drawing" << endl;
+//	console_log("Finished drawing");
 
 //	cvWaitKey(0);
 }
@@ -1063,7 +1073,7 @@ void CRectifier::Draw_Intermediate(Mat image)
 		}
 	}
 	imshow("Intermediate checkerboard", image);
-	cout << "Finished drawing" << endl;
+	console_log("Finished drawing");
 
 	cvWaitKey(0);
 }
@@ -1212,7 +1222,7 @@ void CRectifier::Transform2(Mat image, int extLCol, int extRCol, int extTRow, in
 
 	double c1x, c1y, c2x, c2y, c3x, c3y, c4x, c4y;			//c1 c2 c3 c4 are distorted corners
 	double cf1x, cf1y, cf2x, cf2y, cf3x, cf3y, cf4x, cf4y;  //cf1 cf2 cf3 cf4 are rectified corners
-	double resultx, resulty;								// warped points
+	float  resultx, resulty;								// warped points
 	Mat matWarped(image.rows, image.cols, CV_8UC1);
 	matWarped = Mat(image.rows, image.cols, CV_8UC1, Scalar(255));
 
@@ -1261,10 +1271,12 @@ void CRectifier::Transform2(Mat image, int extLCol, int extRCol, int extTRow, in
 			{
 				if (y0 < 0 || y0 >= image.rows)
 					continue;
+
 				for (int x0 = int(round(c1x)); x0 < int(round(c2x)); x0++)
 				{
 					if (x0 < 0 || x0 >= image.cols)
 						continue;
+
 					warper.warp(double(x0), double(y0), resultx, resulty);
 					resultx <= 0.0 ? resultx = 0.0 : resultx = resultx;
 					resulty <= 0.0 ? resulty = 0.0 : resulty = resulty;
@@ -1442,193 +1454,7 @@ void CRectifier::CleanUp()
 	maxExtCorners.clear();
 }
 
-CWarper::CWarper()
-{
-	setIdentity();
-}
-
-void CWarper::setIdentity()
-{
-	setSource(0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f);
-	setDestination(0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f);
-	computeWarp();
-}
-
-void CWarper::setSource(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3)
-{
-	srcX[0] = x0;
-	srcY[0] = y0;
-	srcX[1] = x1;
-	srcY[1] = y1;
-	srcX[2] = x2;
-	srcY[2] = y2;
-	srcX[3] = x3;
-	srcY[3] = y3;
-	dirty = true;
-}
-
-void CWarper::setDestination(double x0,	double y0, double x1, double y1, double x2,	double y2, double x3, double y3)
-{
-	dstX[0] = x0;
-	dstY[0] = y0;
-	dstX[1] = x1;
-	dstY[1] = y1;
-	dstX[2] = x2;
-	dstY[2] = y2;
-	dstX[3] = x3;
-	dstY[3] = y3;
-	dirty = true;
-}
-
-void CWarper::computeSquareToQuad(double x0, double y0, double x1, double y1, double x2,double y2, double x3, double y3, double mat[])
-{
-	double dx1 = x1 - x2, dy1 = y1 - y2;
-	double dx2 = x3 - x2, dy2 = y3 - y2;
-	double sx = x0 - x1 + x2 - x3;
-	double sy = y0 - y1 + y2 - y3;
-	double g = (sx * dy2 - dx2 * sy) / (dx1 * dy2 - dx2 * dy1);
-	double h = (dx1 * sy - sx * dy1) / (dx1 * dy2 - dx2 * dy1);
-	double a = x1 - x0 + g * x1;
-	double b = x3 - x0 + h * x3;
-	double c = x0;
-	double d = y1 - y0 + g * y1;
-	double e = y3 - y0 + h * y3;
-	double f = y0;
-
-	mat[0] = a; mat[1] = d; mat[2] = 0; mat[3] = g;
-	mat[4] = b; mat[5] = e; mat[6] = 0; mat[7] = h;
-	mat[8] = 0; mat[9] = 0; mat[10] = 1; mat[11] = 0;
-	mat[12] = c; mat[13] = f; mat[14] = 0; mat[15] = 1;
-}
-
-void CWarper::computeQuadToSquare(double x0, double y0,	double x1, double y1, double x2, double y2, double x3, double y3, double mat[])
-{
-	computeSquareToQuad(x0, y0, x1, y1, x2, y2, x3, y3, mat);
-
-	// invert through adjoint
-
-	double a = mat[0], d = mat[1],	/* ignore */		g = mat[3];
-	double b = mat[4], e = mat[5],	/* 3rd col*/		h = mat[7];
-	/* ignore 3rd row */
-	double c = mat[12], f = mat[13];
-
-	double A = e - f * h;
-	double B = c * h - b;
-	double C = b * f - c * e;
-	double D = f * g - d;
-	double E = a - c * g;
-	double F = c * d - a * f;
-	double G = d * h - e * g;
-	double H = b * g - a * h;
-	double I = a * e - b * d;
-
-	// Probably unnecessary since 'I' is also scaled by the determinant,
-	//   and 'I' scales the homogeneous coordinate, which, in turn,
-	//   scales the X,Y coordinates.
-	// Determinant  =   a * (e - f * h) + b * (f * g - d) + c * (d * h - e * g);
-	double idet = 1.0f / (a * A + b * D + c * G);
-
-	mat[0] = A * idet; mat[1] = D * idet; mat[2] = 0; mat[3] = G * idet;
-	mat[4] = B * idet; mat[5] = E * idet; mat[6] = 0; mat[7] = H * idet;
-	mat[8] = 0; mat[9] = 0; mat[10] = 1; mat[11] = 0;
-	mat[12] = C * idet; mat[13] = F * idet; mat[14] = 0; mat[15] = I * idet;
-}
-
-void CWarper::multMats(double srcMat[], double dstMat[], double resMat[])
-{
-	// DSTDO/CBB: could be faster, but not called often enough to matter
-	for (int r = 0; r < 4; r++)
-	{
-		int ri = r * 4;
-		for (int c = 0; c < 4; c++)
-		{
-			resMat[ri + c] = (srcMat[ri] * dstMat[c] +
-				srcMat[ri + 1] * dstMat[c + 4] +
-				srcMat[ri + 2] * dstMat[c + 8] +
-				srcMat[ri + 3] * dstMat[c + 12]);
-		}
-	}
-}
-
-void CWarper::computeWarp()
-{
-	computeQuadToSquare(srcX[0], srcY[0],
-		srcX[1], srcY[1],
-		srcX[2], srcY[2],
-		srcX[3], srcY[3],
-		srcMat);
-	computeSquareToQuad(dstX[0], dstY[0],
-		dstX[1], dstY[1],
-		dstX[2], dstY[2],
-		dstX[3], dstY[3],
-		dstMat);
-	multMats(srcMat, dstMat, warpMat);
-	dirty = false;
-}
-
-void CWarper::warp(double mat[], double srcX, double srcY, double &dstX, double &dstY)
-{
-	double result[4];
-	double z = 0;
-	result[0] = (double)(srcX * mat[0] + srcY * mat[4] + z * mat[8] + 1 * mat[12]);
-	result[1] = (double)(srcX * mat[1] + srcY * mat[5] + z * mat[9] + 1 * mat[13]);
-	result[2] = (double)(srcX * mat[2] + srcY * mat[6] + z * mat[10] + 1 * mat[14]);
-	result[3] = (double)(srcX * mat[3] + srcY * mat[7] + z * mat[11] + 1 * mat[15]);
-	dstX = result[0] / result[3];
-	dstY = result[1] / result[3];
-}
-
-void CWarper::warp(double srcX, double srcY, double &dstX, double &dstY)
-{
-	if (dirty)
-		computeWarp();
-	warp(warpMat, srcX, srcY, dstX, dstY);
-}
-
-//Mat CWarper::LookupTable()
-//{
-//	int i;
-//	Mat table(1, 256, CV_8U);
-//	uchar *p = table.data;  //uchar *p = table.data;
-//
-//	for (i = 0; i < 255; ++i)
-//		p[i] = i;
-//	p[255] = 254;
-//
-//	return table;
-//}
-//
-//Mat CWarper::PerformLUT(const Mat &image) {
-//	Mat table = LookupTable();
-//
-//	vector<Mat> c;
-//	split(image, c);
-//	for (vector<Mat>::iterator i = c.begin(), n = c.end(); i != n; ++i) {
-//		Mat &channel = *i;
-//		LUT(channel.clone(), table, channel);
-//	}
-//
-//	//		for (int c = 0; c < 3; c++)
-//	//			printf("image(100,100)[%d] = %d\n", c, image.at<Vec3b>(100, 100)[c]);
-//
-//	Mat result;
-//	merge(c, result);
-//
-//	//		for (int c = 0; c < 3; c++)
-//	//			printf("result(100,100)[%d] = %d\n", c, result.at<Vec3b>(100, 100)[c]);
-//
-//	return result;
-//}
-
-
-
-int main(int argc, char* argv[])
+/*int main(int argc, char* argv[])
 {
 	CRectifier Rect1;
 //	Mat imageWithoutCircles;
@@ -1693,5 +1519,27 @@ int main(int argc, char* argv[])
 	}
 
 	return 0;
-}
+}*/
 
+CRectifier Rect1;
+
+int orgRow = 13, orgCol = 21;
+int extTRow, extBRow, extLCol, extRCol;
+
+void compute_rectification_data(string image_file_name_without_extension)
+{
+	Rect1.CleanUp();
+
+	Mat image = Rect1.Init(image_file_name_without_extension + ".jpg", orgCol, orgRow);
+	Rect1.FindChessboardCorners(image);
+
+	extTRow = 5; extBRow = 5; extLCol = 5; extRCol = 5;
+	Rect1.extCorners = Rect1.InitExtendedCorners(orgCol, orgRow, extLCol, extRCol, extTRow, extBRow);
+	Rect1.FindCornersPointsSets(extLCol, extTRow);
+	Rect1.GetNewCornersWithQuad(extLCol, extTRow, extBRow);
+	Rect1.FindCornersPointsSets2(extLCol, extTRow, extBRow);
+	Rect1.GetNewCornersWithQuad2(extLCol, extRCol);
+
+	Rect1.GetMaxExtendedCorners(image, extLCol, extRCol, extTRow, extBRow);
+	Rect1.Transform2(image, extLCol, extRCol, extTRow, extBRow, image_file_name_without_extension);
+}

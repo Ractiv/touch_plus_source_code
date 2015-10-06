@@ -32,6 +32,7 @@ class CameraInitializerNew
 public:
 	static float exposure_val;
 	static float exposure_max;
+	static float gray_diff;
 
 	static uchar l_exposure_old;
 

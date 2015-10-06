@@ -17,6 +17,7 @@
  */
 
 #include "pose_estimator.h"
+#include "console_log.h"
 
 void PoseEstimator::init()
 {
@@ -25,7 +26,7 @@ void PoseEstimator::init()
 
 	load();
 
-	COUT << "pose estimator initialized" << endl;
+	console_log("pose estimator initialized");
 }
 
 void PoseEstimator::compute(vector<Point>& points_in)
@@ -56,7 +57,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	if (record_pose && target_pose_name != "" && (pose_name_dist_min != target_pose_name))
 	{
 		save(target_pose_name);
-		COUT << pose_name_dist_min << "->" << target_pose_name << " " << dist_min << endl;
+		console_log(pose_name_dist_min + "->" + target_pose_name + " " + to_string(dist_min));
 	}
 
 	if (dist_min != FLT_MAX)
@@ -82,7 +83,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		pose_name = pose_name_temp;
 
 	if (show)
-		COUT << pose_name_temp << endl;
+		console_log(pose_name_temp);
 
 	Mat image_current = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
@@ -183,7 +184,7 @@ void PoseEstimator::save(const string name)
 	points_collection.push_back(points_current);
 	names_collection.push_back(name);
 
-	COUT << "pose data saved: " << name << endl;
+	console_log("pose data saved: " + name);
 }
 
 void PoseEstimator::load()

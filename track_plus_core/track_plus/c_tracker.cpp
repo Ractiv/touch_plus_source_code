@@ -17,6 +17,7 @@
  */
 
 #include "c_tracker.h"
+#include "console_log.h"
 
 size_t CTrack::NextTrackID = 0;
 
@@ -76,7 +77,7 @@ void CTracker::Update(vector<Point2f>& detections)
 	for (int i = 0; i < tracks.size(); ++i)
 	{	
 		// Point2f prediction=tracks[i]->prediction;
-		// COUT << prediction << endl;
+		// console_log(prediction);
 		for (int j = 0; j < detections.size(); ++j)
 		{
 			Point2f diff = (tracks[i]->prediction - detections[j]);

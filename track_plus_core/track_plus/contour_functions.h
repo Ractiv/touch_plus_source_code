@@ -37,9 +37,6 @@ void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_u
 
 void midpoint_circle(int x_in, int y_in, int radius_in, vector<Point>& result_out);
 
-void midpoint_circle_push_pixel(int x, int y, int x_c, int y_c, vector<PointIndex>& result_out,
-								int& c00, int& c01, int& c10, int& c11, int& c20, int& c21, int& c30, int& c31);
-
 void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_threshold);
 
 Point get_y_min_point(vector<Point>& pt_vec);

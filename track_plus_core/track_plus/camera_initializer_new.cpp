@@ -17,15 +17,17 @@
  */
 
 #include "camera_initializer_new.h"
+#include "console_log.h"
 
 float CameraInitializerNew::exposure_val;
 float CameraInitializerNew::exposure_max;
+float CameraInitializerNew::gray_diff = 0;
 
 LowPassFilter CameraInitializerNew::low_pass_filter;
 
 void CameraInitializerNew::init(Camera* camera)
 {
-	COUT << "initializing camera" << endl;
+	console_log("initializing camera");
 
 	exposure_max = 15;
 	exposure_val = exposure_max;
@@ -73,7 +75,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		{
 			step0 = true;
 
-			COUT << "setting exposure step 0 complete" << endl;
+			console_log("setting exposure step 0 complete");
 		}
 	}
 	else if (step1 == false)
@@ -83,7 +85,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		camera->turnLEDsOn();
 		step1 = true;
 		
-		COUT << "setting exposure step 1 complete" << endl;
+		console_log("setting exposure step 1 complete");
 	}
 
 	if (step0 == true && step1 == true)
@@ -118,8 +120,8 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		gray_mean_on /= gray_mean_count;
 		gray_mean_off /= gray_mean_count;
 
-		float gray_diff = gray_mean_on - gray_mean_off;
-		COUT << "gray_diff is " << gray_diff << endl;
+		gray_diff = gray_mean_on - gray_mean_off;
+		console_log("gray_diff is " + to_string(gray_diff));
 
 		if (gray_diff > 50)
 			gray_diff = 50;
@@ -129,15 +131,16 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		float r_val = exponential(gray_diff, 0.9967884, 0.001570977, -0.1430162);// + 0.25;    //todo: figure out a better meter for graydiff
 		if (r_val > 3)
 			r_val = 3;
-		COUT << "r_val is " << r_val << endl;
+		console_log("r_val is " + to_string(r_val));
 
 		camera->setColorGains(0, r_val, 1.0, 2.0);
 		camera->setColorGains(1, r_val, 1.0, 2.0);
 
-		exposure_val = 4;
+		exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
+		console_log("exposure_val is " + to_string(exposure_val));
 
-		// exposure_val = linear(gray_diff, 0.31111111, -0.55555556);
-		// COUT << "exposure_val is " << exposure_val << endl;
+		if (exposure_val < 4)
+			exposure_val = 4;
 
 		camera->setExposureTime(Camera::both, exposure_val);
 

@@ -17,6 +17,7 @@
  */
 
 #include "mat_functions.h"
+#include "console_log.h"
 
 LowPassFilter mat_functions_low_pass_filter;
 ValueStore mat_functions_value_store;
@@ -164,7 +165,7 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 			}
 }
 
-bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range)
+bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range, bool low_pass)
 {
 	bool result = true;
 
@@ -204,8 +205,11 @@ bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 		uchar gray_min_new = gray_vec[0];
 		uchar gray_max_new = gray_vec[gray_vec.size() - 1];
 
-		mat_functions_low_pass_filter.compute(gray_min_new, 0.5, "gray_min_new");
-		mat_functions_low_pass_filter.compute(gray_max_new, 0.5, "gray_max_new");
+		if (low_pass)
+		{
+			mat_functions_low_pass_filter.compute(gray_min_new, 0.5, "gray_min_new");
+			mat_functions_low_pass_filter.compute(gray_max_new, 0.5, "gray_max_new");
+		}
 
 		if (abs(gray_min_new - gray_min) + abs(gray_max_new - gray_max) > 2)
 			result = false;
@@ -370,7 +374,7 @@ void print_mat_type(Mat& image_in)
 	r += "C";
 	r += (chans + '0');
 
-	COUT << r << endl;
+	console_log(r);
 }
 
 void put_text(string text, Mat& img, int x, int y)

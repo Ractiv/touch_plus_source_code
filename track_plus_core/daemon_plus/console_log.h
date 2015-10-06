@@ -18,25 +18,11 @@
 
 #pragma once
 
-#include "hand_splitter_new.h"
-#include "value_store.h"
+#include <string>
+#include "ipc.h"
 
-class MonoProcessorNew
-{
-public:
-	string algo_name = "mono_processor";
+extern IPC* console_log_ipc;
 
-	ValueStore value_store;
-
-	Point pt_index;
-	Point pt_thumb;
-	Point pt_palm;
-
-	vector<Point> fingertip_points;
-	vector<BlobNew> fingertip_blobs;
-
-	vector<Point> pose_estimation_points;
-	vector<Point> stereo_matching_points;
-
-	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize);
-};
+void console_log(std::string str, bool do_log = true);
+void console_log_inline(std::string str);
+void console_log_endline();

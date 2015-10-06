@@ -291,6 +291,14 @@ ipc.MapFunction("show debug page", function(messageBody)
 	show_page(4);
 });
 
+ipc.MapFunction("console log", function(messageBody)
+{
+	call_as(function()
+	{
+		gui.console_log(messageBody);
+	});
+});
+
 //----------------------------------------------------------------------------------------------------
 
 setInterval(ipc_loop, 100);

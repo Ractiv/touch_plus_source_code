@@ -277,30 +277,53 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	x_min_result = 9999;
-	x_max_result = -1;
-	y_min_result = 9999;
-	y_max_result = -1;
+	x_min_result_right = 9999;
+	x_max_result_right = -1;
+	y_min_result_right = 9999;
+	y_max_result_right = -1;
 
-	primary_hand_blobs.clear();
+	x_min_result_left = 9999;
+	x_max_result_left = -1;
+	y_min_result_left = 9999;
+	y_max_result_left = -1;
+
+	blobs_right.clear();
+	blobs_left.clear();
+
 	for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
-		if (blob.active && blob.x > motion_processor.x_separator_middle)
+		if (blob.active)
 		{
-			if (blob.x_min < x_min_result)
-				x_min_result = blob.x_min;
-			if (blob.x_max > x_max_result)
-				x_max_result = blob.x_max;
-			if (blob.y_min < y_min_result)
-				y_min_result = blob.y_min;
-			if (blob.y_max > y_max_result)
-				y_max_result = blob.y_max;
+			if (blob.x > motion_processor.x_separator_middle)
+			{
+				if (blob.x_min < x_min_result_right)
+					x_min_result_right = blob.x_min;
+				if (blob.x_max > x_max_result_right)
+					x_max_result_right = blob.x_max;
+				if (blob.y_min < y_min_result_right)
+					y_min_result_right = blob.y_min;
+				if (blob.y_max > y_max_result_right)
+					y_max_result_right = blob.y_max;
 
-			primary_hand_blobs.push_back(blob);
+				blobs_right.push_back(blob);
+			}
+			else
+			{
+				if (blob.x_min < x_min_result_left)
+					x_min_result_left = blob.x_min;
+				if (blob.x_max > x_max_result_left)
+					x_max_result_left = blob.x_max;
+				if (blob.y_min < y_min_result_left)
+					y_min_result_left = blob.y_min;
+				if (blob.y_max > y_max_result_left)
+					y_max_result_left = blob.y_max;
+
+				blobs_left.push_back(blob);
+			}
 		}
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	if (primary_hand_blobs.size() > 0)
+	if (blobs_right.size() > 0 || blobs_left.size() > 0)
 	{
 		algo_name_vec.push_back(algo_name);
 		return true;

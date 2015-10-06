@@ -35,6 +35,7 @@
 */
 
 #include "filesystem.h"
+#include "console_log.h"
 
 bool directory_exists(const string path)
 {
@@ -171,7 +172,7 @@ int create_shortcut(string src_path, string dst_path, string working_directory)
 	HRESULT hres;
 	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_ALL,
 		IID_IShellLink, (void**)&pShellLink);
-	COUT << hex << hres << endl;
+
 	if (SUCCEEDED(hres))
 	{
 		pShellLink->SetPath(src_path.c_str());
@@ -189,14 +190,14 @@ int create_shortcut(string src_path, string dst_path, string working_directory)
 		}
 		else
 		{
-			COUT << "Error 2" << endl;
+			console_log("Error 2");
 			return 2;
 		}
 		pShellLink->Release();
 	}
 	else
 	{
-		COUT << "Error 1" << endl;
+		console_log("Error 1");
 		return 1;
 	}
 	

@@ -17,6 +17,7 @@
  */
 
 #include "Camera.h"
+#include "console_log.h"
 
 #define TP_CAMERA_VID   "1e4e"
 #define TP_CAMERA_PID   "0107"
@@ -186,7 +187,7 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
     uvc_print_stream_ctrl(&ctrl, stderr);
     if (res < 0)
     {
-        COUT << "error 0" << endl;
+        console_log("error 0");
         uvc_perror(res, "get_mode"); /* device doesn't provide a matching stream */
     }
     else
@@ -202,7 +203,7 @@ int Camera::startVideoStream(int width, int height, int framerate, int format)
         res = uvc_start_streaming(devh, &ctrl, cb, (void*)(&value), 0);
         if (res < 0)
         {
-            COUT << "error 1" << endl;
+            console_log("error 1");
             uvc_perror(res, "start_streaming"); /* unable to start stream */
         }
         else
@@ -230,7 +231,7 @@ static void frameCallback(BYTE* pBuffer, long lBufferSize)
     if (jpeg_decompressor.compute(pBuffer, lBufferSize, myBuffer, 1280, 480))
         Camera::callback(image_out);
     // else
-        // COUT << "bad image caught" << endl;
+        // console_log("bad image caught");
 }
 #endif
 
@@ -266,7 +267,7 @@ int Camera::isCameraPresent()
     
     WCHAR name[100];
     if (!EtronDI_FindDevice(pHandle)) {
-        COUT << "Device not found!" << endl;
+        console_log("Device not found!");
         return 0;
     }
     int code = eSPAEAWB_EnumDevice(&devCount);
@@ -280,7 +281,7 @@ int Camera::isCameraPresent()
         
         wstring ws(myName);
         string str(ws.begin(), ws.end());
-        COUT << str << endl;
+        console_log(str);
         
         myName[14] = 0;
         bool found = true;
@@ -294,13 +295,13 @@ int Camera::isCameraPresent()
             eSPAEAWB_SelectDevice(i);
             eSPAEAWB_SetSensorType(1);
             deviceWasSelected = 1;
-            COUT << "Touch+ Camera found" << endl;
+            console_log("Touch+ Camera found");
         }
         
     }
     if (!deviceWasSelected){
         device_not_detected = true;
-        COUT << "Did not find a Touch+ Camera" << endl;
+        console_log("Did not find a Touch+ Camera");
         return 0;
     }
 #endif
@@ -329,38 +330,38 @@ int Camera::do_software_unlock()
     r = libusb_init(&ctx); //initialize the library for the session we just declared
     if(r < 0)
     {
-        COUT << "Init Error " << r << endl; //there was an error
+        console_log("Init Error " + r); //there was an error
         return 1;
     }
     
     dev_handle = libusb_open_device_with_vid_pid(ctx, 0x1e4e, 0x0107); //vendorID and productID for usb device
     if (dev_handle == NULL)
     {
-        COUT << "Cannot open device" << endl;
+        console_log("Cannot open device");
         return 0;
     }
     else
-        COUT << "Device Opened" << endl;
+        console_log("Device Opened");
     
     //libusb_free_device_list(devs, 1); //free the list, unref the devices in it
     
     //release the driver from the kernel
     if(libusb_kernel_driver_active(dev_handle, 0) == 1)
     { //find out if kernel driver is attached
-        COUT << "Kernel Driver Active" << endl;
+        console_log("Kernel Driver Active");
         
         if (libusb_detach_kernel_driver(dev_handle, 0) == 0) //detach it
-            COUT << "Kernel Driver Detached!" << endl;
+            console_log("Kernel Driver Detached!");
     }
     
     r = libusb_claim_interface(dev_handle, 0); //claim interface 0 (the first) of device (mine had jsut 1)
     if (r < 0)
     {
-        COUT << "Cannot Claim Interface" << endl;
+        console_log("Cannot Claim Interface");
         return 0;
     }
     
-    COUT << "Claimed Interface" << endl;
+    console_log("Claimed Interface");
     
     device = libusb_get_device(dev_handle);
     int configuration = -1;
@@ -368,7 +369,7 @@ int Camera::do_software_unlock()
     r = libusb_get_configuration(dev_handle,&configuration);
     if (r == 0)
     {
-        COUT << "GET CONFIGURATION SUCCESS -- Value is " << configuration << endl;
+        console_log("GET CONFIGURATION SUCCESS -- Value is " + configuration);
     }
     
     //libusb_transfer transfer ={0};
@@ -430,7 +431,7 @@ int Camera::do_software_unlock()
     r = libusb_release_interface(dev_handle, 0); //release the claimed interface
     if (r != 0)
     {
-        COUT << "Cannot Release Interface" << endl;
+        console_log("Cannot Release Interface");
         return 0;
     }
     
@@ -477,7 +478,7 @@ int Camera::doSetup(const int & format)
     image_out.data = myBuffer;
     bool retV = ds_camera_->OpenCamera(touchCameraId, format, 1280, 480, 60, frameCallback);
 
-    COUT << "camera opened = " << retV << endl;
+    console_log("camera opened = " + retV);
     return retV;
 
 #elif __APPLE__
@@ -502,7 +503,7 @@ int Camera::doSetup(const int & format)
         puts("Device found");
         res = uvc_open(dev, &devh);
         
-        cout<<"devh "<<devh<<endl;
+        console_log("devh " + devh);
         uvc_print_diag(devh, stderr);
     }
     
@@ -1358,7 +1359,7 @@ int Camera::enableAutoExposure(int whichSide)
     data[3] = 0x00;
     
     r = libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1367,25 +1368,25 @@ int Camera::enableAutoExposure(int whichSide)
     data[2] = 0x00;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    COUT <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1395,24 +1396,24 @@ int Camera::enableAutoExposure(int whichSide)
     data[2] = 0x23;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    COUT <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1421,19 +1422,19 @@ int Camera::enableAutoExposure(int whichSide)
     data[2] = 0x01;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    COUT <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    COUT <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1464,7 +1465,7 @@ int Camera::disableAutoExposure(int whichSide)
     data[3] = 0x00;
     
     int r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1473,25 +1474,25 @@ int Camera::disableAutoExposure(int whichSide)
     data[2] = 0x00;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1501,24 +1502,24 @@ int Camera::disableAutoExposure(int whichSide)
     data[2] = 0x23;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1527,19 +1528,19 @@ int Camera::disableAutoExposure(int whichSide)
     data[2] = 0x00;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1570,7 +1571,7 @@ int Camera::enableAutoWhiteBalance(int whichSide)
     data[3] = 0x00;
     
     int r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1579,25 +1580,25 @@ int Camera::enableAutoWhiteBalance(int whichSide)
     data[2] = 0x00;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1607,24 +1608,24 @@ int Camera::enableAutoWhiteBalance(int whichSide)
     data[2] = 0x0C;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1633,19 +1634,19 @@ int Camera::enableAutoWhiteBalance(int whichSide)
     data[2] = 0x01;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1676,7 +1677,7 @@ int Camera::disableAutoWhiteBalance(int whichSide)
     data[3] = 0x00;
     
     int r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1685,25 +1686,25 @@ int Camera::disableAutoWhiteBalance(int whichSide)
     data[2] = 0x00;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1713,24 +1714,24 @@ int Camera::disableAutoWhiteBalance(int whichSide)
     data[2] = 0x0C;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
@@ -1739,19 +1740,19 @@ int Camera::disableAutoWhiteBalance(int whichSide)
     data[2] = 0x00;
     data[3] = 0x00;
     r= libusb_control_transfer(dev_handle,bmRequestType_set,SET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"set returned "<<r<<endl;
+    console_log("set returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x85;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,2,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<2; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }
     GET_CUR = 0x81;
     r= libusb_control_transfer(dev_handle,bmRequestType_get,GET_CUR,wValue,wIndex,data,4,10000 );
-    cout <<"get returned "<<r<<endl;
+    console_log("get returned " + to_string(r));
     for (int i = 0;i<4; i++){
         printf("data[%d] = %x\n",i,data[i]);
     }

@@ -31,6 +31,8 @@ using namespace cv;
 class ValueStore
 {
 public:
+	const int pool_size = 100;
+
 	unordered_map<string, float> float_map;
 	unordered_map<string, int> int_map;
 	unordered_map<string, bool> bool_map;
@@ -44,14 +46,14 @@ public:
 	unordered_map<string, HistogramBuilder*> histogram_builder_map;
 	unordered_map<string, LowPassFilter*> low_pass_filter_map;
 
-	vector<int>* int_vec_pool = new vector<int>[10];
-	vector<float>* float_vec_pool = new vector<float>[10];
-	vector<Point>* point_vec_pool = new vector<Point>[10];
-	vector<BlobNew>* blob_vec_pool = new vector<BlobNew>[10];
-	vector<Mat>* mat_vec_pool = new vector<Mat>[10];
-	BlobDetectorNew* blob_detector_pool = new BlobDetectorNew[10];
-	HistogramBuilder* histogram_builder_pool = new HistogramBuilder[10];
-	LowPassFilter* low_pass_filter_pool = new LowPassFilter[10];
+	vector<int>* int_vec_pool = new vector<int>[pool_size];
+	vector<float>* float_vec_pool = new vector<float>[pool_size];
+	vector<Point>* point_vec_pool = new vector<Point>[pool_size];
+	vector<BlobNew>* blob_vec_pool = new vector<BlobNew>[pool_size];
+	vector<Mat>* mat_vec_pool = new vector<Mat>[pool_size];
+	BlobDetectorNew* blob_detector_pool = new BlobDetectorNew[pool_size];
+	HistogramBuilder* histogram_builder_pool = new HistogramBuilder[pool_size];
+	LowPassFilter* low_pass_filter_pool = new LowPassFilter[pool_size];
 
 	int int_vec_pool_index = 0;
 	int float_vec_pool_index = 0;

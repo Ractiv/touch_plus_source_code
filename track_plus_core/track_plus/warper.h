@@ -33,7 +33,7 @@ private:
 	float srcMat[16];
 	float dstMat[16];
 	float warpMat[16];
-	bool   dirty;
+	bool  dirty;
 
 	void computeSquareToQuad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float mat[]);
 	void computeQuadToSquare(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float mat[]);

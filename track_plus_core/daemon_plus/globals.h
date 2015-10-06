@@ -23,9 +23,6 @@
 
 using namespace std;
 
-#define COUT cout
-// #define COUT ostream(0).flush()
-
 #ifdef __APPLE__
 #include <unistd.h>
 #define Sleep(a) usleep(a * 1000)
