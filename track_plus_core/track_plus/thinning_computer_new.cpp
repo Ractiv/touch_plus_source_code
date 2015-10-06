@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
+#include "globals.h"
 #include "thinning_computer_new.h"
 
-void ThinningComputerNew::thinning_iteration(Mat& image_in, const int iter, vector<Point>& points, int& iterations)
+void thinning_iteration(Mat& image_in, const int iter, vector<Point>& points, int& iterations)
 {
     Mat marker = Mat::zeros(image_in.size(), CV_8UC1);
 
@@ -51,29 +52,8 @@ void ThinningComputerNew::thinning_iteration(Mat& image_in, const int iter, vect
     ++iterations;
 }
 
-vector<Point> ThinningComputerNew::compute(Mat& image_in, BlobNew* blob_in,
-                                           int x_min_in, int x_max_in, int y_min_in, int y_max_in,
-                                           const int max_iter)
+vector<Point> compute_thinning(Mat& image_in, vector<Point>& points, const int max_iter)
 {
-	vector<Point> points;
-    if (blob_in == NULL)
-    {
-    	Mat image_dilated = image_in;
-    	// dilate(image_in, image_dilated, Mat(), Point(-1, -1), 1);
-
-        const int w0 = x_min_in == -1 ? 0 : x_min_in;
-        const int h0 = x_max_in == -1 ? 0 : x_max_in;
-        const int w1 = x_max_in == -1 ? image_in.cols : x_max_in + 1;
-        const int h1 = y_max_in == -1 ? image_in.rows : y_max_in + 1;
-
-    	for (int i = w0; i < w1; ++i)
-        	for (int j = h0; j < h1; ++j)
-        		if (image_dilated.ptr<uchar>(j, i)[0] > 0)
-        			points.push_back(Point(i, j));
-    }
-    else
-        points = blob_in->data;
-
     Mat prev = Mat::zeros(image_in.size(), CV_8UC1);
     Mat diff = Mat::zeros(image_in.size(), CV_8UC1);
     int iterations = 0;

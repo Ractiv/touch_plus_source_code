@@ -22,7 +22,7 @@
 #include "console_log.h"
 #include "camera_initializer_new.h"
 
-const float subtraction_threshold_ratio = 0.10;
+const float subtraction_threshold_ratio = 0.20;
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)

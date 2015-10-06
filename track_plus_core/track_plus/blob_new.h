@@ -44,7 +44,7 @@ public:
 	int count = 0;
 	int x;
 	int y;
-	int index;
+	int index = -1;
 
 	bool active = true;
 

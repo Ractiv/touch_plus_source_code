@@ -488,8 +488,8 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
-        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
 
@@ -502,10 +502,12 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
         proceed = proceed0 && proceed1;
     }
+
+    proceed = false;
 
     if (proceed)
         stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);

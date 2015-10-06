@@ -20,6 +20,7 @@
 #include "mat_functions.h"
 #include "contour_functions.h"
 #include "dtw.h"
+#include "thinning_computer_new.h"
 
 struct compare_point_angle
 {
@@ -44,6 +45,66 @@ struct compare_point_z
 	bool operator() (const Point3f& pt0, const Point3f& pt1)
 	{
 		return (pt0.z < pt1.z);
+	}
+};
+
+void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)
+{
+	float dist_min = 9999;
+	int index_dist_min;
+
+	int index = 0;
+	for (Point& pt : points)
+	{
+		float dist = get_distance(pt, pivot);
+		if (dist < dist_min /*&& pt.x < pivot.x*/)
+		{
+			dist_min = dist;
+			index_dist_min = index;
+		}
+		++index;
+	}
+
+	if (dist_min == 9999)
+		return;
+
+	const int points_size = points.size();
+	for (int i = index_dist_min; i < points_size + index_dist_min; ++i)
+	{
+		int index_current = i;
+		if (index_current >= points_size)
+			index_current -= points_size;
+
+		Point pt_current = points[index_current];
+		points_sorted.push_back(pt_current);
+	}
+}
+
+BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
+{
+	float dist_min = 9999;
+	BlobNew* blob_dist_min = NULL;
+	for (BlobNew& blob : *blob_vec)
+	{
+		float dist = blob.compute_min_dist(pt);
+		if (dist < dist_min)
+		{
+			dist_min = dist;
+			blob_dist_min = &blob;
+		}
+	}
+	return blob_dist_min;
+}
+
+struct Line
+{
+	Point pt0;
+	Point pt1;
+
+	Line(Point _pt0, Point _pt1)
+	{
+		pt0 = _pt0;
+		pt1 = _pt1;
 	}
 };
 
@@ -714,6 +775,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	vector<Point> skeleton_points = compute_thinning(image_active_hand, hand_splitter.primary_hand_blobs);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	BlobDetectorNew* blob_detector_image_palm_segmented = value_store.get_blob_detector("blob_detector_image_palm_segmented");
 	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254, hand_splitter.x_min_result, hand_splitter.x_max_result,
 									                  					   hand_splitter.y_min_result, hand_splitter.y_max_result, true);
@@ -733,6 +798,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	fingertip_points.clear();
 	fingertip_blobs.clear();
+
+	vector<Point> checker_vec;
 	for (Point3f& pt : convex_points_indexed)
 	{
 		BlobNew* blob_min_dist = NULL;
@@ -751,7 +818,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			blob_min_dist->fill(image_palm_segmented, 127);
 
 			bool found = false;
-			for (Point& pt_fingertip : fingertip_points)
+			for (Point& pt_fingertip : checker_vec)
 				if (pt_fingertip == blob_min_dist->pt_y_max)
 				{
 					found = true;
@@ -759,8 +826,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			if (!found)
 			{
+				blob_min_dist->index = fingertip_blobs.size();
 				fingertip_blobs.push_back(*blob_min_dist);
-				fingertip_points.push_back(blob_min_dist->pt_y_max);
+				checker_vec.push_back(blob_min_dist->pt_y_max);
 			}
 		}
 	}
@@ -870,8 +938,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		for (Point& pt : fingertip_points)
 			circle(image_palm_segmented, pt, 3, Scalar(64), -1);
 
-		// imshow("image_palm_segmented" + name, image_palm_segmented);
-		imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
+		imshow("image_palm_segmented" + name, image_palm_segmented);
+		// imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -879,52 +947,4 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	value_store.set_bool("reset", false);
 	algo_name_vec.push_back(algo_name);
 	return true;
-}
-
-void MonoProcessorNew::sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)
-{
-	float dist_min = 9999;
-	int index_dist_min;
-
-	int index = 0;
-	for (Point& pt : points)
-	{
-		float dist = get_distance(pt, pivot);
-		if (dist < dist_min /*&& pt.x < pivot.x*/)
-		{
-			dist_min = dist;
-			index_dist_min = index;
-		}
-		++index;
-	}
-
-	if (dist_min == 9999)
-		return;
-
-	const int points_size = points.size();
-	for (int i = index_dist_min; i < points_size + index_dist_min; ++i)
-	{
-		int index_current = i;
-		if (index_current >= points_size)
-			index_current -= points_size;
-
-		Point pt_current = points[index_current];
-		points_sorted.push_back(pt_current);
-	}
-}
-
-BlobNew* MonoProcessorNew::find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
-{
-	float dist_min = 9999;
-	BlobNew* blob_dist_min = NULL;
-	for (BlobNew& blob : *blob_vec)
-	{
-		float dist = blob.compute_min_dist(pt);
-		if (dist < dist_min)
-		{
-			dist_min = dist;
-			blob_dist_min = &blob;
-		}
-	}
-	return blob_dist_min;
 }
