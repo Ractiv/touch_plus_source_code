@@ -22,7 +22,7 @@
 #include "console_log.h"
 #include "camera_initializer_new.h"
 
-const float subtraction_threshold_ratio = 0.25;
+const float subtraction_threshold_ratio = 0.10;
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
@@ -393,7 +393,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-			const int x_separator_offset = 10;
+			const int x_separator_offset = 5;
 			if ((left_moving || right_moving) && value_store->get_bool("x_min_max_set"))
 			{
 				if (both_moving)
@@ -703,24 +703,112 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					//------------------------------------------------------------------------------------------------------------------------
 
-					if (both_moving)
+					if (both_moving && !value_store->get_bool("result", false))
 					{
 						float hole_count_left = 0;
 						float hole_count_right = 0;
+
+						int hole_x_min_left = 9999;
+						int hole_x_max_left = -1;
+						int hole_y_min_left = 9999;
+						int hole_y_max_left = -1;
+
+						int hole_x_min_right = 9999;
+						int hole_x_max_right = -1;
+						int hole_y_min_right = 9999;
+						int hole_y_max_right = -1;
 
 						for (int i = 0; i < WIDTH_SMALL; ++i)
 							for (int j = 0; j < HEIGHT_SMALL; ++j)
 								if (image_background_static.ptr<uchar>(j, i)[0] == 255)
 								{
 									if (i < x_separator_middle)
+									{
 										++hole_count_left;
+										if (i < hole_x_min_left)
+											hole_x_min_left = i;
+										if (i > hole_x_max_left)
+											hole_x_max_left = i;
+										if (j < hole_y_min_left)
+											hole_y_min_left = j;
+										if (j > hole_y_max_left)
+											hole_y_max_left = j;
+									}
 									else
+									{
 										++hole_count_right;
+										if (i < hole_x_min_right)
+											hole_x_min_right = i;
+										if (i > hole_x_max_right)
+											hole_x_max_right = i;
+										if (j < hole_y_min_right)
+											hole_y_min_right = j;
+										if (j > hole_y_max_right)
+											hole_y_max_right = j;
+									}
 								}
+
+						float hole_width_left = hole_x_max_left - hole_x_min_left;
+						float hole_height_left = hole_y_max_left - hole_y_min_left;
+
+						float hole_width_right = hole_x_max_right - hole_x_min_right;
+						float hole_height_right = hole_y_max_right - hole_y_min_right;
+
+						int entropy_x_min_left = 9999;
+						int entropy_x_max_left = -1;
+						int entropy_y_min_left = 9999;
+						int entropy_y_max_left = -1;
+
+						int entropy_x_min_right = 9999;
+						int entropy_x_max_right = -1;
+						int entropy_y_min_right = 9999;
+						int entropy_y_max_right = -1;
+
+						for (BlobNew& blob : *blob_detector_image_subtraction_unbiased->blobs)
+							for (Point& pt : blob.data)
+							{
+								int i = pt.x;
+								int j = pt.y;
+
+								if (i < x_separator_middle)
+								{
+									++hole_count_left;
+									if (i < entropy_x_min_left)
+										entropy_x_min_left = i;
+									if (i > entropy_x_max_left)
+										entropy_x_max_left = i;
+									if (j < entropy_y_min_left)
+										entropy_y_min_left = j;
+									if (j > entropy_y_max_left)
+										entropy_y_max_left = j;
+								}
+								else
+								{
+									++hole_count_right;
+									if (i < entropy_x_min_right)
+										entropy_x_min_right = i;
+									if (i > entropy_x_max_right)
+										entropy_x_max_right = i;
+									if (j < entropy_y_min_right)
+										entropy_y_min_right = j;
+									if (j > entropy_y_max_right)
+										entropy_y_max_right = j;
+								}
+							}
+
+						float entropy_width_left = entropy_x_max_left - entropy_x_min_left;
+						float entropy_height_left = entropy_y_max_left - entropy_y_min_left;
+
+						float entropy_width_right = entropy_x_max_right - entropy_x_min_right;
+						float entropy_height_right = entropy_y_max_right - entropy_y_min_right;
 
 						float ratio0 = hole_count_right / (entropy_right + 0.1);
 						float ratio1 = hole_count_left / (entropy_left + 0.1);
-						float ratio_max = max(ratio0, ratio1);
+						float ratio2 = hole_width_right / (entropy_width_right + 0.1);
+						float ratio3 = hole_width_left / (entropy_width_left + 0.1);
+						float ratio4 = hole_height_right / (entropy_height_right + 0.1);
+						float ratio5 = hole_height_left / (entropy_height_left + 0.1);
+						float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
 
 						if (ratio_max < 2)
 						{

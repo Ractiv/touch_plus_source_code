@@ -396,7 +396,7 @@ void compute()
 
     exposure_set = true;
 
-#ifdef false
+#if 0
     {
         Mat image_remapped0 = reprojector.remap(&image_small0, 0, true);
         Mat image_remapped1 = reprojector.remap(&image_small1, 1, true);

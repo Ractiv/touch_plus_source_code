@@ -62,7 +62,7 @@ public:
 	void compute();
 	int compute_overlap(BlobNew& blob_in);
 	int compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_diff_in, const int dilate_num);
-	float compute_min_dist(Point pt_in);
+	float compute_min_dist(Point pt_in, Point* pt_out = NULL);
 	Point compute_median_point();
 	void fill(Mat& image_in, const uchar gray_in, bool check_bounds = false);
 };

@@ -18,7 +18,7 @@
 
 #include "blob_detector_new.h"
 
-void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_max_in, int y_min_in, int y_max_in, bool shallow_copy)
+void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_max_in, int y_min_in, int y_max_in, bool shallow, bool octal)
 {
 	x_min_result = 9999;
 	x_max_result = 0;
@@ -96,30 +96,33 @@ void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_
 					*pix_ptr = 255;
 				}
 
-				// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
-				// if (*pix_ptr == gray_in)
-				// {
-				// 	blob->add(pt_x0, pt_y0);
-				// 	*pix_ptr = 255;
-				// }
-				// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
-				// if (*pix_ptr == gray_in)
-				// {
-				// 	blob->add(pt_x1, pt_y1);
-				// 	*pix_ptr = 255;
-				// }
-				// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
-				// if (*pix_ptr == gray_in)
-				// {
-				// 	blob->add(pt_x1, pt_y0);
-				// 	*pix_ptr = 255;
-				// }
-				// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
-				// if (*pix_ptr == gray_in)
-				// {
-				// 	blob->add(pt_x0, pt_y1);
-				// 	*pix_ptr = 255;
-				// }
+				if (octal)
+				{
+					pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
+					if (*pix_ptr == gray_in)
+					{
+						blob->add(pt_x0, pt_y0);
+						*pix_ptr = 255;
+					}
+					pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
+					if (*pix_ptr == gray_in)
+					{
+						blob->add(pt_x1, pt_y1);
+						*pix_ptr = 255;
+					}
+					pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
+					if (*pix_ptr == gray_in)
+					{
+						blob->add(pt_x1, pt_y0);
+						*pix_ptr = 255;
+					}
+					pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
+					if (*pix_ptr == gray_in)
+					{
+						blob->add(pt_x0, pt_y1);
+						*pix_ptr = 255;
+					}
+				}
 			}
 
 			blob->compute();
@@ -143,12 +146,12 @@ void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_
 			}
 		}
 
-	if (!shallow_copy)
+	if (!shallow)
 		for (BlobNew& blob : *blobs)
 			blob.fill(image_clone, gray_in);
 }
 
-void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const int i, const int j, bool shallow_copy, bool in_process)
+void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process, bool octal)
 {
 	if (in_process == false)
 	{
@@ -220,30 +223,33 @@ void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const
 			*pix_ptr = 255;
 		}
 
-		// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
-		// if (*pix_ptr == gray_in)
-		// {
-		// 	blob->add(pt_x0, pt_y0);
-		// 	*pix_ptr = 255;
-		// }
-		// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
-		// if (*pix_ptr == gray_in)
-		// {
-		// 	blob->add(pt_x1, pt_y1);
-		// 	*pix_ptr = 255;
-		// }
-		// pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
-		// if (*pix_ptr == gray_in)
-		// {
-		// 	blob->add(pt_x1, pt_y0);
-		// 	*pix_ptr = 255;
-		// }
-		// pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
-		// if (*pix_ptr == gray_in)
-		// {
-		// 	blob->add(pt_x0, pt_y1);
-		// 	*pix_ptr = 255;
-		// }
+		if (octal)
+		{
+			pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x0, pt_y0);
+				*pix_ptr = 255;
+			}
+			pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x1, pt_y1);
+				*pix_ptr = 255;
+			}
+			pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x1, pt_y0);
+				*pix_ptr = 255;
+			}
+			pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x0, pt_y1);
+				*pix_ptr = 255;
+			}
+		}
 	}
 
 	blob->compute();
@@ -266,12 +272,12 @@ void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const
 		pt_y_max_result = blob->pt_y_max;
 	}
 
-	if (!shallow_copy)
+	if (!shallow)
 		for (BlobNew& blob : *blobs)
 			blob.fill(image_clone, gray_in);
 }
 
-void BlobDetectorNew::compute_all(Mat& image_in)
+void BlobDetectorNew::compute_all(Mat& image_in, bool octal)
 {
 	x_min_result = 9999;
 	x_max_result = 0;
@@ -293,7 +299,7 @@ void BlobDetectorNew::compute_all(Mat& image_in)
 		{
 			const uchar gray = image_in.ptr<uchar>(j, i)[0];
 			if (gray < 255)
-				compute_location(image_in, gray, i, j, true, true);
+				compute_location(image_in, gray, i, j, true, true, octal);
 		}
 }
 

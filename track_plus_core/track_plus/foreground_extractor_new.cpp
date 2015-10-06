@@ -99,9 +99,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		count_result = count_result_temp;
 	}
 
-	if (motion_processor.will_compute_next_frame/* && !value_store.get_bool("pass", false)*/)
+	if (motion_processor.will_compute_next_frame && !value_store.get_bool("pass", false))
 	{
-		// value_store.set_bool("pass", true);
+		value_store.set_bool("pass", true);
 
 		Mat image_foreground_processed;
 		GaussianBlur(image_foreground, image_foreground_processed, Size(1, 29), 0, 0);
