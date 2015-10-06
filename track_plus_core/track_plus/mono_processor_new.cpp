@@ -136,7 +136,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	if (hand_splitter.primary_hand_blobs.size() == 0)
+	if (hand_splitter.blobs_right.size() == 0)
 	{
 		value_store.set_bool("reset", true);
 		return false;
@@ -153,7 +153,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	int palm_point_raw_count = 0;
 	const int y_threshold = palm_point.y - palm_radius;
 
-	for (BlobNew& blob : hand_splitter.primary_hand_blobs)
+	for (BlobNew& blob : hand_splitter.blobs_right)
 	{
 		blob.fill(image_find_contours, 254);
 		blob.fill(image_active_hand, 254);
@@ -194,7 +194,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 
 		image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-		for (BlobNew& blob : hand_splitter.primary_hand_blobs)
+		for (BlobNew& blob : hand_splitter.blobs_right)
 			blob.fill(image_find_contours, 254);
 
 		for (int i = 0; i < contours_reduced.size(); ++i)
@@ -414,7 +414,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			Point anchor_min_dist;
 			float min_dist = 9999;
 
-			Point seek_anchor = Point(hand_splitter.x_min_result, hand_splitter.y_max_result * 3);
+			Point seek_anchor = Point(hand_splitter.x_min_result_right, hand_splitter.y_max_result_right * 3);
 
 			const int i_max = convex_points_indexed.size();
 			for (int i = 0; i < i_max; ++i)
@@ -775,13 +775,69 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	vector<Point> skeleton_points = compute_thinning(image_active_hand, hand_splitter.primary_hand_blobs);
+	Mat image_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	for (BlobNew& blob : hand_splitter.blobs_right)
+		blob.fill(image_skeleton, 254);
+
+	vector<Point> subject_points;
+	for (BlobNew& blob : hand_splitter.blobs_right)
+		for (Point& pt : blob.data)
+			subject_points.push_back(pt);
+
+	vector<Point> skeleton_points = compute_thinning(image_skeleton, subject_points);
+
+	Mat image_skeleton_partitioned = Mat::zeros(image_skeleton.size(), CV_8UC1);
+	for (Point& pt : skeleton_points)
+		image_skeleton_partitioned.ptr<uchar>(pt.y, pt.x)[0] = 254;
+
+	vector<Point> skeleton_branch_centers;
+
+	for (Point& pt : skeleton_points)
+	{
+		const bool a = image_skeleton.ptr<uchar>(pt.y - 1, pt.x)[0] > 0;
+		const bool b = image_skeleton.ptr<uchar>(pt.y + 1, pt.x)[0] > 0;
+		const bool c = image_skeleton.ptr<uchar>(pt.y, pt.x - 1)[0] > 0;
+		const bool d = image_skeleton.ptr<uchar>(pt.y, pt.x + 1)[0] > 0;
+
+		const bool e = image_skeleton.ptr<uchar>(pt.y - 1, pt.x - 1)[0] > 0;
+		const bool f = image_skeleton.ptr<uchar>(pt.y - 1, pt.x + 1)[0] > 0;
+		const bool g = image_skeleton.ptr<uchar>(pt.y + 1, pt.x - 1)[0] > 0;
+		const bool h = image_skeleton.ptr<uchar>(pt.y + 1, pt.x + 1)[0] > 0;
+
+		const bool b0 = c && f && h;
+		const bool b1 = e && d && g;
+		const bool b2 = a && g && h;
+		const bool b3 = e && f && b;
+		const bool b4 = a && d && g;
+		const bool b5 = e && d && b;
+		const bool b6 = f && b && c;
+		const bool b7 = c && a && h;
+
+		if ((a + b + c + d) >= 3 || (e + f + g + h) >= 3 || b0 || b1 || b2 || b3 || b4 || b5 || b6 || b7)
+		{
+			circle(image_skeleton_partitioned, pt, 3, Scalar(127), -1);
+			skeleton_branch_centers.push_back(pt);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
+	// blob_detector_image_skeleton_segmented->compute(blob_detector_image_skeleton_segmented, 254, );
+
+	// circle(image_skeleton_partitioned, pt_palm, palm_radius, Scalar(64), -1);
+	// skeleton_branch_centers.push_back(pt_palm);
+
+	// for (Point& pt : skeleton_points)
+		// if (image_palm.ptr<uchar>(pt.y, pt.x)[0] != 127)
+			// image_skeleton_partitioned.ptr<uchar>(pt.y, pt.x)[0] = 127;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	BlobDetectorNew* blob_detector_image_palm_segmented = value_store.get_blob_detector("blob_detector_image_palm_segmented");
-	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254, hand_splitter.x_min_result, hand_splitter.x_max_result,
-									                  					   hand_splitter.y_min_result, hand_splitter.y_max_result, true);
+	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254,
+												hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
+									            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, true);
 
 	for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
 	{

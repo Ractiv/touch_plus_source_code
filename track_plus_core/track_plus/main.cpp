@@ -113,11 +113,11 @@ int point_vec_pool_count = 0;
 vector<Point>* point_vec_ptr = NULL;
 
 bool serial_verified = false;
-bool exposure_adjusted = false;
 bool initialized = false;
 bool updated = false;
 
 int wait_count = 0;
+int frame_count = 0;
 //
 
 void wait_for_device()
@@ -246,7 +246,7 @@ void load_settings()
     }
 }
 
-void on_first_frame()
+void setup_on_first_frame()
 {
     console_log("on first frame");
 
@@ -334,6 +334,7 @@ void left_mouse_cb(int event, int x, int y, int flags, void* userdata)
 
 void compute()
 {
+    ++frame_count;
     updated = false;
 
     if (image_current_frame.cols == 0)
@@ -348,12 +349,8 @@ void compute()
     Mat image0 = image_flipped(Rect(0, 0, 640, 480));
     Mat image1 = image_flipped(Rect(640, 0, 640, 480));
 
-    static bool first_frame = true;
-    if (first_frame)
-    {
-        on_first_frame();
-        first_frame = false;
-    }
+    if (frame_count == 1)
+        setup_on_first_frame();
 
     if (!play || settings.touch_control != "1")
     {
@@ -379,8 +376,10 @@ void compute()
     Mat image_preprocessed0;
     Mat image_preprocessed1;
 
-    bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_adjusted, "image_preprocessed0", true);
-                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_adjusted, "image_preprocessed1", false);
+    static bool exposure_set = false;
+
+    bool normalized = compute_channel_diff_image(image_small0, image_preprocessed0, exposure_set, "image_preprocessed0", true, exposure_set);
+                      compute_channel_diff_image(image_small1, image_preprocessed1, exposure_set, "image_preprocessed1");
 
     GaussianBlur(image_preprocessed0, image_preprocessed0, Size(3, 9), 0, 0);
     GaussianBlur(image_preprocessed1, image_preprocessed1, Size(3, 9), 0, 0);
@@ -389,14 +388,13 @@ void compute()
     {
         static int step_count = 0;
         if (step_count == 3)
-        {
             surface_computer.init(image0);
-        }
+
         ++step_count;
         return;
     }
 
-    exposure_adjusted = true;
+    exposure_set = true;
 
 #ifdef false
     {
@@ -464,12 +462,14 @@ void compute()
                                              construct_background, "1",          false);
     }
 
-    if (first_pass && motion_processor0.both_moving)
+    if (first_pass && motion_processor0.both_moving && motion_processor1.both_moving)
     {
         console_log("readjusting exposure");
 
         first_pass = false;
-        exposure_adjusted = false;
+        exposure_set = false;
+        mat_functions_low_pass_filter.reset();
+
         CameraInitializerNew::adjust_exposure(camera, image_preprocessed0, true);
     }
     else if (!first_pass)
@@ -486,10 +486,17 @@ void compute()
 
     bool proceed = motion_processor_proceed;
 
+    static bool menu_plus_signal0 = false;
+    if (!menu_plus_signal0)
+    {
+        menu_plus_signal0 = true;
+        // ipc->send_message("menu_plus", "hide window", "");
+    }
+
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
-        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
+        proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", true);
         proceed = proceed0 && proceed1;
     }
 
@@ -502,8 +509,8 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
     }
 

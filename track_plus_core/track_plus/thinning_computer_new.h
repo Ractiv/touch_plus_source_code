@@ -20,4 +20,4 @@
 
 #include "blob_new.h"
 
-vector<Point> compute_thinning(Mat& image_in, vector<Point>& points);
+vector<Point> compute_thinning(Mat& image_in, vector<Point>& points, const int max_iter = -1);

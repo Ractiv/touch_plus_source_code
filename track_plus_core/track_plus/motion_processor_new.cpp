@@ -22,7 +22,7 @@
 #include "console_log.h"
 #include "camera_initializer_new.h"
 
-const float subtraction_threshold_ratio = 0.20;
+const float subtraction_threshold_ratio = 0.25;
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
@@ -102,6 +102,16 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			image_subtraction_unbiased.ptr<uchar>(j, i)[0] = diff;
 		}
+
+	if (diff_max_unbiased < 32)
+	{
+		bool ret_val = value_store->get_bool("result", false);
+		if (ret_val)
+			algo_name_vec.push_back(algo_name);
+
+		return ret_val;
+	}
+
 	threshold(image_subtraction_unbiased, image_subtraction_unbiased, diff_max_unbiased * subtraction_threshold_ratio, 254, THRESH_BINARY);
 
 	value_store->set_mat("image_background_unbiased", image_in);
@@ -132,7 +142,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	if (entropy_left + entropy_right < (entropy_threshold * 8))
+	if (entropy_left + entropy_right < (entropy_threshold * 8) && blob_detector_image_subtraction_unbiased->blobs->size() < 50)
 	{
 		int x_min = blob_detector_image_subtraction_unbiased->x_min_result;
 		int x_max = blob_detector_image_subtraction_unbiased->x_max_result;
@@ -250,11 +260,23 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			float total_width = x_max - x_min;
 			float gap_ratio = gap_width / subject_width_max;
 
+			float gap_size = x_seed_vec1_min - x_seed_vec0_max;
+			low_pass_filter->compute_if_larger(gap_size, 0.1, "gap_size");
+
+			int width0 = x_seed_vec0_max - x_min;
+			int width1 = x_max - x_seed_vec1_min;
+			int width_min = min(width0, width1);
+
 			int entropy_min = min(entropy_left, entropy_right) + 1;
 			int entropy_max = max(entropy_left, entropy_right) + 1;
 
 			if (entropy_max / entropy_min == 1)
-				both_moving_temp = (/*total_width > 80 && */((float)(x_max - x_min) / (y_max - y_min)) > 1.5 && gap_ratio > 0.3);
+				both_moving_temp = //total_width > 80 && 
+								   ((float)(x_max - x_min) / (y_max - y_min)) > 1.5 &&
+								   gap_ratio > 0.3 &&
+								   width_min >= 20 &&
+								   gap_size >= 5 &&
+								   x_seed_vec0_max < x_seed_vec1_min;
 
 			if (both_moving_temp)
 			{
@@ -266,10 +288,10 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			}
 		}
 
-		static int both_moving0 = -1;
-		static int both_moving1 = -1;
-		static int both_moving_old0 = -1;
-		static int both_moving_old1 = -1;
+		static bool both_moving0 = false;
+		static bool both_moving1 = false;
+		static bool both_moving_old0 = false;
+		static bool both_moving_old1 = false;
 
 		if (name == "0")
 		{

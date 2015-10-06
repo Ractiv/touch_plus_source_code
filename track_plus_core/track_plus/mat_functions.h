@@ -27,12 +27,14 @@
 
 using namespace cv;
 
+extern LowPassFilter mat_functions_low_pass_filter;
+
 void threshold_get_bounds(Mat& image_in, Mat& image_out, const int threshold_val, int& x_min, int& x_max, int& y_min, int& y_max);
 Mat rotate_image(const Mat& image_in, const float angle, const Point origin, const int border);
 Mat translate_image(Mat& image_in, const int x_diff, const int y_diff);
 Mat resize_image(Mat& image_in, const float scale);
 void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& pt_dist_min, Point& pt_dist_max);
-bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range = false);
+bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range = false, bool low_pass = false);
 void compute_max_image(Mat& image_in, Mat& image_out);
 void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out);
 void compute_color_segmented_image(Mat& image_in, Mat& image_out);
