@@ -420,6 +420,45 @@ void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vect
     }
 }
 
+void extension_line(Point pt_start, Point pt_end, const uchar length, vector<Point>& line_points, const bool reverse)
+{
+	if (pt_start.y > pt_end.y)
+	{
+		Point pt_intersection;
+		if (get_intersection_at_y(pt_end, pt_start, HEIGHT_SMALL, pt_intersection))
+		{
+			if (!reverse)
+				bresenham_line(pt_start.x, pt_start.y, pt_intersection.x, pt_intersection.y, line_points, length);
+			else
+				bresenham_line(pt_end.x, pt_end.y, pt_intersection.x, pt_intersection.y, line_points, length);
+		}
+	}
+	else if (pt_start.y < pt_end.y)
+	{
+		Point pt_intersection;
+		if (get_intersection_at_y(pt_end, pt_start, 0, pt_intersection))
+		{
+			if (!reverse)
+				bresenham_line(pt_start.x, pt_start.y, pt_intersection.x, pt_intersection.y, line_points, length);
+			else
+				bresenham_line(pt_end.x, pt_end.y, pt_intersection.x, pt_intersection.y, line_points, length);
+		}
+	}
+	else if (pt_start.y == pt_end.y)
+	{
+		Point pt_intersection = Point(0, pt_start.y);
+		if (pt_start.x < pt_end.x)
+			pt_intersection.x = pt_start.x - length;
+		else
+			pt_intersection.x = pt_start.x + length;
+
+		if (!reverse)
+			bresenham_line(pt_start.x, pt_start.y, pt_intersection.x, pt_intersection.y, line_points, length);
+		else
+			bresenham_line(pt_end.x, pt_end.y, pt_intersection.x, pt_intersection.y, line_points, length);
+	}
+}
+
 Point get_y_min_point(vector<Point>& pt_vec)
 {
 	Point pt_y_min = Point(0, 9999);

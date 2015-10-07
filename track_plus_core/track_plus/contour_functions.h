@@ -39,6 +39,8 @@ void midpoint_circle(int x_in, int y_in, int radius_in, vector<Point>& result_ou
 
 void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_threshold);
 
+void extension_line(Point pt_start, Point pt_end, const uchar length, vector<Point>& line_points, const bool reverse);
+
 Point get_y_min_point(vector<Point>& pt_vec);
 
 Point get_y_max_point(vector<Point>& pt_vec);

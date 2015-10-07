@@ -775,6 +775,63 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	BlobDetectorNew* blob_detector_image_palm_segmented = value_store.get_blob_detector("blob_detector_image_palm_segmented");
+	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254,
+												hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
+									            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, true);
+
+	for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
+	{
+		bool hit = false;
+		for (Point& pt : blob.data)
+			if (image_palm.ptr<uchar>(pt.y, pt.x)[0] != 127)
+			{
+				hit = true;
+				break;
+			}
+		if (hit)
+			blob.active = false;
+	}
+
+	fingertip_points.clear();
+	fingertip_blobs.clear();
+
+	vector<Point> checker_vec;
+	for (Point3f& pt : convex_points_indexed)
+	{
+		BlobNew* blob_min_dist = NULL;
+		float min_dist = 9999;
+		for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
+		{
+			float dist = blob.compute_min_dist(Point(pt.x, pt.y));
+			if (dist < min_dist)
+			{
+				min_dist = dist;
+				blob_min_dist = &blob;
+			}
+		}
+		if (blob_min_dist != NULL && blob_min_dist->active && blob_min_dist->count >= 10)
+		{
+			blob_min_dist->fill(image_palm_segmented, 127);
+
+			bool found = false;
+			for (Point& pt_fingertip : checker_vec)
+				if (pt_fingertip == blob_min_dist->pt_y_max)
+				{
+					found = true;
+					break;
+				}
+			if (!found)
+			{
+				blob_min_dist->index = fingertip_blobs.size();
+				fingertip_blobs.push_back(*blob_min_dist);
+				checker_vec.push_back(blob_min_dist->pt_y_max);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	Mat image_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	for (BlobNew& blob : hand_splitter.blobs_right)
 		blob.fill(image_skeleton, 254);
@@ -867,6 +924,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 	}
 
+	for (BlobNew& blob : hand_splitter.blobs_right)
+		for (Point& pt : blob.data)
+			if (image_palm.ptr<uchar>(pt.y, pt.x)[0] != 127)
+				image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 127;
+
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
@@ -878,6 +940,16 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
 	{
+		bool overlap_found = false;
+		for (BlobNew& blob_fingertip : fingertip_blobs)
+			if (blob.compute_overlap(blob_fingertip) > 0)
+			{
+				overlap_found = true;
+				break;
+			}
+		if (!overlap_found)
+			continue;
+
 		Point pt_origin = Point(-1, -1);
 		for (Point& pt : blob.data)
 		{
@@ -948,73 +1020,33 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 			if (!caught_between_2_centers)
 			{
-				const int index_start = blob_detector_image_skeleton_parts->blob_max_size->count * 0.7;
+				const int index_start = blob_detector_image_skeleton_parts->blob_max_size->count >= 10 ? 
+											blob_detector_image_skeleton_parts->blob_max_size->count * 0.7 : 0;
+
 				const int index_end = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
-				Point pt_start = blob_detector_image_skeleton_parts->blob_max_size->data[index_start];
-				Point pt_end = blob_detector_image_skeleton_parts->blob_max_size->data[index_end];
-				
+
+				if (index_start != index_end)
+				{
+					Point pt_start = blob_detector_image_skeleton_parts->blob_max_size->data[index_start];
+					Point pt_end = blob_detector_image_skeleton_parts->blob_max_size->data[index_end];
+
+					vector<Point> extension_line_vec;
+					extension_line(pt_end, pt_start, 20, extension_line_vec, false);
+
+					for (Point& pt : extension_line_vec)
+					{
+						if (pt.x < 0 || pt.x >= WIDTH_SMALL || pt.y < 0 || pt.y >= HEIGHT_SMALL)
+							continue;
+
+						image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 128;
+					}
+				}
 			}
 		}
 	}
 
 	imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	BlobDetectorNew* blob_detector_image_palm_segmented = value_store.get_blob_detector("blob_detector_image_palm_segmented");
-	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254,
-												hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
-									            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, true);
-
-	for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
-	{
-		bool hit = false;
-		for (Point& pt : blob.data)
-			if (image_palm.ptr<uchar>(pt.y, pt.x)[0] != 127)
-			{
-				hit = true;
-				break;
-			}
-		if (hit)
-			blob.active = false;
-	}
-
-	fingertip_points.clear();
-	fingertip_blobs.clear();
-
-	vector<Point> checker_vec;
-	for (Point3f& pt : convex_points_indexed)
-	{
-		BlobNew* blob_min_dist = NULL;
-		float min_dist = 9999;
-		for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
-		{
-			float dist = blob.compute_min_dist(Point(pt.x, pt.y));
-			if (dist < min_dist)
-			{
-				min_dist = dist;
-				blob_min_dist = &blob;
-			}
-		}
-		if (blob_min_dist != NULL && blob_min_dist->active && blob_min_dist->count >= 10)
-		{
-			blob_min_dist->fill(image_palm_segmented, 127);
-
-			bool found = false;
-			for (Point& pt_fingertip : checker_vec)
-				if (pt_fingertip == blob_min_dist->pt_y_max)
-				{
-					found = true;
-					break;
-				}
-			if (!found)
-			{
-				blob_min_dist->index = fingertip_blobs.size();
-				fingertip_blobs.push_back(*blob_min_dist);
-				checker_vec.push_back(blob_min_dist->pt_y_max);
-			}
-		}
-	}
+	imshow("image_palm_segmented" + name, image_palm_segmented);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
