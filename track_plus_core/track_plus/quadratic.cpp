@@ -113,7 +113,7 @@ int CCurveFitting::quadratic_fitting(double* t, int t_len, double* y, double* a_
                 a[i] /= det;
         }
  
-       // console_log("a: " + a[0] + " b: " + a[1] + " c: " + a[2]);
+       // console_log("a: " + to_string(a[0]) + " b: " + to_string(a[1]) + " c: " + to_string(a[2]));
         *a_out = a[0];
         *b_out = a[1];
         *c_out = a[2];

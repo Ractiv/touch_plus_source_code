@@ -77,7 +77,7 @@ void CTracker::Update(vector<Point2f>& detections)
 	for (int i = 0; i < tracks.size(); ++i)
 	{	
 		// Point2f prediction=tracks[i]->prediction;
-		// console_log(prediction);
+		// console_log(to_string(prediction.x) + to_string(prediction.y));
 		for (int j = 0; j < detections.size(); ++j)
 		{
 			Point2f diff = (tracks[i]->prediction - detections[j]);

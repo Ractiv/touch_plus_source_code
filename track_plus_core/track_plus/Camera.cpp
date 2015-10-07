@@ -330,7 +330,7 @@ int Camera::do_software_unlock()
     r = libusb_init(&ctx); //initialize the library for the session we just declared
     if(r < 0)
     {
-        console_log("Init Error " + r); //there was an error
+        console_log("Init Error " + to_string(r)); //there was an error
         return 1;
     }
     
@@ -369,7 +369,7 @@ int Camera::do_software_unlock()
     r = libusb_get_configuration(dev_handle,&configuration);
     if (r == 0)
     {
-        console_log("GET CONFIGURATION SUCCESS -- Value is " + configuration);
+        console_log("GET CONFIGURATION SUCCESS -- Value is " + to_string(configuration));
     }
     
     //libusb_transfer transfer ={0};
@@ -478,7 +478,7 @@ int Camera::doSetup(const int & format)
     image_out.data = myBuffer;
     bool retV = ds_camera_->OpenCamera(touchCameraId, format, 1280, 480, 60, frameCallback);
 
-    console_log("camera opened = " + retV);
+    console_log("camera opened = " + to_string(retV));
     return retV;
 
 #elif __APPLE__
@@ -503,7 +503,7 @@ int Camera::doSetup(const int & format)
         puts("Device found");
         res = uvc_open(dev, &devh);
         
-        console_log("devh " + devh);
+        console_log("devh " + to_string(devh));
         uvc_print_diag(devh, stderr);
     }
     

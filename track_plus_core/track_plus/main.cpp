@@ -518,7 +518,7 @@ void compute()
     if (proceed)
     {
         // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        stereo_processor_permutation_compute(mono_processor0, mono_processor1);
+        stereo_processor_permutation_compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
     }
 
     if (enable_imshow)

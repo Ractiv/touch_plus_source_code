@@ -653,8 +653,8 @@ void CRectifier::GetNewCornersWithQuad(int scanOrientation)
 Mat CRectifier::Init( string fileName, int width, int height )
 {
 	Mat image = imread(fileName, CV_LOAD_IMAGE_GRAYSCALE); //source image
-	//console_log((int)(image.at<uchar>(0, 0)));
-	//console_log((int)(image.at<uchar>(479, 639)));
+	//console_log((int)(to_string(image.at<uchar>(0, 0))));
+	//console_log((int)(to_string(image.at<uchar>(479, 639))));
 	
 	//if (image.rows != 480 && image.cols != 640)
 	//{

@@ -782,7 +782,7 @@ void main(void)
 
 	vector<int> Assignment;
 	
-	console_log(APS.Solve(Cost,Assignment));
+	console_log(to_string(APS.Solve(Cost,Assignment)));
 	
 	// Output the result
 	for(int x=0; x<N; x++)
