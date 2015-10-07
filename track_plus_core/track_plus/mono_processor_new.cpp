@@ -938,13 +938,18 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	BlobDetectorNew* blob_detector_image_skeleton_parts = value_store.get_blob_detector("blob_detector_image_skeleton_parts");
 
+	unordered_map<ushort, vector<Point>> skeleton_parts_map;
+	unordered_map<ushort, vector<Point>> skeleton_extensions_map;
+
 	for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
 	{
 		bool overlap_found = false;
+		BlobNew* overlap_blob = NULL;
 		for (BlobNew& blob_fingertip : fingertip_blobs)
 			if (blob.compute_overlap(blob_fingertip) > 0)
 			{
 				overlap_found = true;
+				overlap_blob = &blob_fingertip;
 				break;
 			}
 		if (!overlap_found)
@@ -1033,20 +1038,39 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					vector<Point> extension_line_vec;
 					extension_line(pt_end, pt_start, 20, extension_line_vec, false);
 
-					for (Point& pt : extension_line_vec)
-					{
-						if (pt.x < 0 || pt.x >= WIDTH_SMALL || pt.y < 0 || pt.y >= HEIGHT_SMALL)
-							continue;
-
-						image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 128;
-					}
+					skeleton_parts_map[overlap_blob->atlas_id] = blob.data;
+					skeleton_extensions_map[overlap_blob->atlas_id] = extension_line_vec;
 				}
 			}
 		}
 	}
+	{
+		int index = 0;
+		for (BlobNew& blob : fingertip_blobs)
+		{
+			bool fingertip_point_pushed = false;
+			if (skeleton_extensions_map.count(blob.atlas_id) > 0)
+			{
+				vector<Point> extension_line_vec = skeleton_extensions_map[blob.atlas_id];
+				for (Point& pt : extension_line_vec)
+				{
+					if (pt.x < 0 || pt.x >= WIDTH_SMALL || pt.y < 0 || pt.y >= HEIGHT_SMALL)
+						continue;
 
-	imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
-	imshow("image_palm_segmented" + name, image_palm_segmented);
+					if (image_active_hand.ptr<uchar>(pt.y, pt.x)[0] == 0)
+					{
+						fingertip_point_pushed = true;
+						fingertip_points.push_back(pt);
+						break;					
+					}
+				}
+			}
+			if (!fingertip_point_pushed)
+				fingertip_points.push_back(checker_vec[index]);
+
+			++index;
+		}
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
