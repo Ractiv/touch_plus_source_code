@@ -22,7 +22,7 @@
 BlobDetectorNew blob_detector_point_resolver;
 
 const int window_width = 50;
-const int window_height = 30;
+const int window_height = 20;
 const int window_width_half = window_width / 2;
 const int window_height_half = window_height / 2;
 
@@ -35,9 +35,9 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 	Point pt_large = pt_in * 4;
 
 	int x0 = pt_large.x - window_width_half;
-	int y0 = pt_large.y - window_height_half;
+	int y0 = pt_large.y - window_height;
 	int x1 = pt_large.x + window_width_half;
-	int y1 = pt_large.y + window_height_half;
+	int y1 = pt_large.y;
 
 	if (x0 < 0)
 		x0 = 0;
@@ -61,7 +61,7 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 	Rect crop_rect_small = Rect(x0 / 4, y0 / 4, crop_rect_small_width, crop_rect_small_height);
 
 	Mat image_cropped = image_in(crop_rect);
-	GaussianBlur(image_cropped, image_cropped, Size(21, 21), 0, 0);
+	// GaussianBlur(image_cropped, image_cropped, Size(21, 21), 0, 0);
 
 	Mat image_cropped_preprocessed;
 	compute_channel_diff_image(image_cropped, image_cropped_preprocessed, true, "image_cropped_preprocessed");
@@ -101,22 +101,10 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 
 	Mat image_subtraction = Mat::zeros(image_height, image_width, CV_8UC1);
 	for (int i = 0; i < image_width; ++i)
-	{
-		if (i <= x_separator_middle)
-		{
-			for (int j = 0; j < image_height; ++j)
-				if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold_left)
-					image_subtraction.ptr<uchar>(j, i)[0] = abs(image_cropped_preprocessed.ptr<uchar>(j, i)[0] - 
-															    image_background_cropped_scaled.ptr<uchar>(j, i)[0]);
-		}
-		else
-		{
-			for (int j = 0; j < image_height; ++j)
-				if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold_right)
-					image_subtraction.ptr<uchar>(j, i)[0] = abs(image_cropped_preprocessed.ptr<uchar>(j, i)[0] - 
-															    image_background_cropped_scaled.ptr<uchar>(j, i)[0]);
-		}
-	}
+		for (int j = 0; j < image_height; ++j)
+			if (image_cropped_preprocessed.ptr<uchar>(j, i)[0] > gray_threshold_right)
+				image_subtraction.ptr<uchar>(j, i)[0] = abs(image_cropped_preprocessed.ptr<uchar>(j, i)[0] - 
+														    image_background_cropped_scaled.ptr<uchar>(j, i)[0]);
 
 	threshold(image_subtraction, image_subtraction, diff_threshold, 254, THRESH_BINARY);
 	GaussianBlur(image_subtraction, image_subtraction, Size(5, 5), 0, 0);
@@ -145,7 +133,7 @@ Point2f do_resolve(Point& pt_in,                    Mat& image_in,
 
 		for (BlobNew& blob : *blob_detector_point_resolver.blobs)
 		{
-			int x_diff = abs(blob.x - x_middle);
+			int x_diff = abs(blob.pt_y_min.x - x_middle);
 			if (x_diff < x_diff_min)
 			{
 				blob_x_diff_min = &blob;

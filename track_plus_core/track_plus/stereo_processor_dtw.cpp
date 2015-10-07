@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-#include "stereo_processor.h"
+#include "stereo_processor_dtw.h"
 #include "dtw.h"
 
 struct Point4f
@@ -57,7 +57,7 @@ struct compare_blob_pair_angle_diff
 	}
 };
 
-bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1, PointResolver& point_resolver,
+bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1, PointResolver& point_resolver,
 							  PointerMapper& pointer_mapper,     Mat& image0,                       Mat& image1)
 {
 	vector<Point>* vec0 = &mono_processor0.stereo_matching_points;
@@ -135,7 +135,7 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 	index = 0;
 	for (BlobNew& blob : *blob_vec0)
 	{
-		int score_board[10] { 0 };
+		int score_board[100] { 0 };
 		for (Point4f& pt0 : points0)
 			if (pt0.w == index)
 			{
@@ -144,7 +144,7 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 			}
 		int max_score = -1;
 		int max_score_index;
-		for (int a = 0; a < 10; ++a)
+		for (int a = 0; a < 100; ++a)
 			if (score_board[a] > max_score)
 			{
 				max_score = score_board[a];
@@ -161,10 +161,7 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 				angle = 360 - angle;
 
 			float angle_diff = abs(angle - angle_median);
-			int overlap_count = blob0->compute_overlap(*blob1, -x_diff_median, -y_diff_median, 4);
-
-			if (angle_diff < 20 && overlap_count > 0)
-				blob_pair_vec.push_back(BlobPair(blob0, blob1, angle_diff));
+			blob_pair_vec.push_back(BlobPair(blob0, blob1, angle_diff));
 		}
 
 		++index;
@@ -200,24 +197,23 @@ bool StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		BlobNew* blob0 = pair.blob0;
 		BlobNew* blob1 = pair.blob1;
 
-		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_y_max, image0, 0);
-		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_y_max, image1, 1);
+		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip, image0, 0);
+		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip, image1, 1);
+
+#if 0
 		circle(image_visualization, pt_resolved0, 5, Scalar(127), 2);
 		circle(image_visualization, pt_resolved1, 5, Scalar(254), 2);
 		circle(image_visualization, pt_resolved_pivot0, 10, Scalar(127), 2);
 		circle(image_visualization, pt_resolved_pivot1, 10, Scalar(254), 2);
+#endif
 
-		// Point pt_resolved0 = point_resolver.reprojector->remap_point(blob0->pt_y_max, 0, 4);
-		// Point pt_resolved1 = point_resolver.reprojector->remap_point(blob1->pt_y_max, 1, 4);
-
-		// if (pt_resolved0.x != 9999 && pt_resolved1.x != 9999)
-		// {
-		// 	// circle(image_visualization, Point(pt_resolved0.x, pt_resolved0.y), 5, Scalar(254), 2);
-		// 	// circle(image_visualization, Point(pt_resolved1.x, pt_resolved1.y), 5, Scalar(127), 2);
-
-		// 	Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
-		// 	circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
-		// }
+#if 1
+		if (pt_resolved0.x != 9999 && pt_resolved1.x != 9999)
+		{
+			Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
+			circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
+		}
+#endif
 	}
 
 	imshow("image_visualizationadsfasdfasdf", image_visualization);

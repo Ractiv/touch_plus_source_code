@@ -31,6 +31,7 @@ public:
 	Point pt_index;
 	Point pt_thumb;
 	Point pt_palm;
+	Point pt_alignment;
 
 	vector<Point> fingertip_points;
 	vector<BlobNew> fingertip_blobs;

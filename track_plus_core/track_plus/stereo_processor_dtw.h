@@ -22,7 +22,7 @@
 #include "pointer_mapper.h"
 #include "point_resolver.h"
 
-class StereoProcessor
+class StereoProcessorDTW
 {
 public:
 	string algo_name = "stereo_processor";

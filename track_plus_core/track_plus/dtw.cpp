@@ -50,7 +50,7 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool stereo)
 			for (int j = 0; j < vec1_size_minus; ++j)
 			{
 				Point pt1_raw = vec1_adjusted[j];
-				float dist = abs(pt1_raw.y - pt0_raw.y) * 10 + abs(pt1_raw.x - pt0_raw.x);
+				float dist = pow(abs(pt1_raw.y - pt0_raw.y), 2) + abs(pt1_raw.x - pt0_raw.x);
 				cost_mat.ptr<float>(j, i)[0] = dist;
 			}
 		}

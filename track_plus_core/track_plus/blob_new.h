@@ -52,6 +52,7 @@ public:
 	Point pt_y_max = Point(0, 0);
 	Point pt_x_min = Point(9999, 0);
 	Point pt_x_max = Point(0, 0);
+	Point pt_tip;
 
 	string name = "";
 

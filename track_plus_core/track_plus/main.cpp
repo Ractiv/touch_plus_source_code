@@ -31,7 +31,8 @@
 #include "foreground_extractor_new.h"
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
-#include "stereo_processor.h"
+#include "stereo_processor_dtw.h"
+#include "stereo_processor_permutation.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -89,7 +90,7 @@ HandSplitterNew hand_splitter1;
 MonoProcessorNew mono_processor0;
 MonoProcessorNew mono_processor1;
 
-StereoProcessor stereo_processor;
+StereoProcessorDTW stereo_processor_dtw;
 
 PoseEstimator pose_estimator;
 
@@ -510,14 +511,15 @@ void compute()
     if (proceed)
     {
         proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        // proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
-        // proceed = proceed0 && proceed1;
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        proceed = proceed0 && proceed1;
     }
 
-    proceed = false;
-
     if (proceed)
-        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+    {
+        // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+        stereo_processor_permutation_compute(mono_processor0, mono_processor1);
+    }
 
     if (enable_imshow)
         waitKey(1);
@@ -582,7 +584,7 @@ void guardian_thread_function()
 
         ++wait_count;
 
-        if (child_module_name != "" && child_module_path != "")
+        /*if (child_module_name != "" && child_module_path != "")
         {
             static bool first = true;
             if (first && (process_running(child_module_name + extension0) > 0))
@@ -595,13 +597,13 @@ void guardian_thread_function()
                 }
             }
             first = false;
-        }
+        }*/
 
-        if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
-            create_process(child_module_path, child_module_name + extension0, true);
+        // if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
+            // create_process(child_module_path, child_module_name + extension0, true);
 
-        // if (process_running("daemon_plus" + extension0) == 0)
-            // ipc->send_message("everyone", "exit", "");
+        if (process_running("daemon_plus" + extension0) == 0)
+            ipc->send_message("everyone", "exit", "");
 
         Sleep(500);
     }

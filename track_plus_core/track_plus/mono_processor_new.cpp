@@ -474,11 +474,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	sort_contour(contour_approximated_unsorted, contour_approximated, pivot);
 
 	{
+		pt_alignment = Point(palm_point.x - palm_radius, palm_point.y);
+
 		pose_estimation_points = contour_approximated;
-		pose_estimation_points.push_back(pivot);
+		pose_estimation_points.push_back(pt_alignment);
 
 		stereo_matching_points = contour_sorted;
-		stereo_matching_points.push_back(pivot);
+		stereo_matching_points.push_back(pt_alignment);
 	}
 
 	contour_approximated.insert(contour_approximated.begin(), contour_sorted[0]);
@@ -796,7 +798,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	fingertip_points.clear();
 	fingertip_blobs.clear();
 
-	vector<Point> checker_vec;
+	vector<Point> fingertip_convexities;
 	for (Point3f& pt : convex_points_indexed)
 	{
 		BlobNew* blob_min_dist = NULL;
@@ -815,7 +817,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			blob_min_dist->fill(image_palm_segmented, 127);
 
 			bool found = false;
-			for (Point& pt_fingertip : checker_vec)
+			for (Point& pt_fingertip : fingertip_convexities)
 				if (pt_fingertip == blob_min_dist->pt_y_max)
 				{
 					found = true;
@@ -825,7 +827,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			{
 				blob_min_dist->index = fingertip_blobs.size();
 				fingertip_blobs.push_back(*blob_min_dist);
-				checker_vec.push_back(blob_min_dist->pt_y_max);
+				fingertip_convexities.push_back(blob_min_dist->pt_y_max);
 			}
 		}
 	}
@@ -1061,13 +1063,16 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					{
 						fingertip_point_pushed = true;
 						fingertip_points.push_back(pt);
+						blob.pt_tip = pt;
 						break;					
 					}
 				}
 			}
 			if (!fingertip_point_pushed)
-				fingertip_points.push_back(checker_vec[index]);
-
+			{
+				fingertip_points.push_back(fingertip_convexities[index]);
+				blob.pt_tip = fingertip_convexities[index];
+			}
 			++index;
 		}
 	}

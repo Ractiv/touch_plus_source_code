@@ -122,9 +122,6 @@
     <ClInclude Include="C:\External Storage\Dropbox\projects\touch_plus_source_code\track_plus_core\track_plus\imu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -162,6 +159,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\daemon_plus\console_log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -265,9 +268,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -308,6 +308,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\daemon_plus\console_log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
