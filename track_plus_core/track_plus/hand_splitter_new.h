@@ -49,5 +49,5 @@ public:
 	int y_min_result_left = 0;
 	int y_max_result_left = 0;
 
-	bool compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name);
+	bool compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, string name, bool visualize);
 };

@@ -18,19 +18,19 @@
 
 #include "value_accumulator.h"
 
-void ValueAccumulator::compute(float val, string name, int size_limit, float val_default, float ratio)
-{
-	const int size_threshold = 20;
+const int value_accumulator_size_threshold = 20;
 
+void ValueAccumulator::compute(float& val, string name, int size_limit, float val_default, float ratio, bool stop_when_ready)
+{
 	vector<float>* float_vec = value_store.get_float_vec(name);
-	if (float_vec->size() < size_limit)
+	if (float_vec->size() < size_limit && !(stop_when_ready && ready))
 	{
 		if (float_vec->size() == 0)
 			ready_map[name] = false;
 
 		float_vec->push_back(val);
 
-		if (float_vec->size() > size_threshold)
+		if (float_vec->size() > value_accumulator_size_threshold)
 			ready_map[name] = true;
 
 		bool all_ready = true;
@@ -54,7 +54,7 @@ void ValueAccumulator::compute(float val, string name, int size_limit, float val
 		val = val_default;
 }
 
-float ValueAccumulator::compute_max(float val, string name)
+float ValueAccumulator::compute_max(float& val, string name)
 {
 	float val_max = FLT_MIN;
 	if (max_val_map.count(name) > 0)
@@ -67,7 +67,7 @@ float ValueAccumulator::compute_max(float val, string name)
 	return val_max;
 }
 
-float ValueAccumulator::compute_min(float val, string name)
+float ValueAccumulator::compute_min(float& val, string name)
 {
 	float val_min = FLT_MAX;
 	if (min_val_map.count(name) > 0)

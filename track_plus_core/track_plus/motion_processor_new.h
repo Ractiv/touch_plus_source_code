@@ -27,13 +27,19 @@ class MotionProcessorNew
 public:
 	string algo_name = "motion_processor";
 
-	const int entropy_threshold = 300;
+	int entropy_threshold = 300;
 
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
 	float x_separator_middle = WIDTH_SMALL_HALF;
 	float x_separator_left = 0;
 	float x_separator_right = WIDTH_SMALL;
+
+	float y_separator_down_median = HEIGHT_SMALL_MINUS;
+	float y_separator_up_median = 0;
+	float x_separator_middle_median = WIDTH_SMALL_HALF;
+	float x_separator_left_median = 0;
+	float x_separator_right_median = WIDTH_SMALL;
 
 	float gray_threshold_left = 9999;
 	float gray_threshold_right = 9999;

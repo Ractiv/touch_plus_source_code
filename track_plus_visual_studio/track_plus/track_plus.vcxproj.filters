@@ -164,6 +164,9 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_overlap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -311,6 +314,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_overlap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.cpp">

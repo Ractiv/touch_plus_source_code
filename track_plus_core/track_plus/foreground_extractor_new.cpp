@@ -30,10 +30,22 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	//------------------------------------------------------------------------------------------------------------------------
 
 	const int x_separator_middle = motion_processor.x_separator_middle;
-	const uchar gray_threshold_left = motion_processor.gray_threshold_left;
-	const uchar gray_threshold_right = motion_processor.gray_threshold_right;
-	const uchar diff_threshold = motion_processor.diff_threshold;
-	const Mat image_background_static = motion_processor.image_background_static;
+	const int x_separator_left = motion_processor.x_separator_left;
+	const int x_separator_right = motion_processor.x_separator_right;
+	const int y_separator_down = motion_processor.y_separator_down;
+	const int y_separator_up = motion_processor.y_separator_up;
+
+	const int x_separator_middle_median = motion_processor.x_separator_middle_median;
+	const int x_separator_left_median = motion_processor.x_separator_left_median;
+	const int x_separator_right_median = motion_processor.x_separator_right_median;
+	const int y_separator_down_median = motion_processor.y_separator_down_median;
+	const int y_separator_up_median = motion_processor.y_separator_up_median;
+
+	const int gray_threshold_left = motion_processor.gray_threshold_left;
+	const int gray_threshold_right = motion_processor.gray_threshold_right;
+
+	const int diff_threshold = motion_processor.diff_threshold;
+	Mat image_background_static = motion_processor.image_background_static;
 
 	Mat image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
@@ -63,15 +75,13 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 
 	int active_count = 0;
 	for (BlobNew& blob : *blob_detector.blobs)
-		if (blob.y > motion_processor.y_separator_down ||
-			blob.x_max < motion_processor.x_separator_left ||
-			blob.x_min > motion_processor.x_separator_right)
+		if (blob.y > y_separator_down || blob.y_min > y_separator_down_median || /*blob.y_max < y_separator_up_median ||*/
+			blob.x_max < x_separator_left || blob.x_max < x_separator_left_median ||
+			blob.x_min > x_separator_right || blob.x_min > x_separator_right_median)
 		{
 			blob.active = false;
 			blob.fill(image_foreground, 0);
 		}
-		else if (blob.width <= 1 || blob.height <= 1)
-			blob.active = false;
 		else
 		{
 			if (blob.x_min < x_min_result_temp)
@@ -108,15 +118,25 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		threshold(image_foreground_processed, image_foreground_processed, 1, 254, THRESH_BINARY);
 		erode(image_foreground_processed, image_foreground_processed, Mat(), Point(-1, -1), 5);
 
-		const int j_max = (motion_processor.y_separator_down - motion_processor.y_separator_up) / 5 + motion_processor.y_separator_up;
+		const int j_max = (y_separator_down - y_separator_up) / 5 + y_separator_up;
 		for (int i = 0; i < WIDTH_SMALL; ++i)
 			for (int j = j_max; j >= 0; --j)
 				if (image_foreground_processed.ptr<uchar>(j, i)[0] > 0)
-					motion_processor.image_background_static.ptr<uchar>(j, i)[0] = 255;
+					image_background_static.ptr<uchar>(j, i)[0] = 255;
 	}
 
 	if (visualize && enable_imshow)
-		imshow("image_foreground" + name, image_foreground);
+	{
+		Mat image_visualization = image_foreground.clone();
+		line(image_visualization, Point(x_separator_left_median, 0), Point(x_separator_left_median, 999), Scalar(254), 1);
+		line(image_visualization, Point(x_separator_right_median, 0), Point(x_separator_right_median, 999), Scalar(254), 1);
+		line(image_visualization, Point(x_separator_middle_median, 0), Point(x_separator_middle_median, 999), Scalar(254), 1);
+		line(image_visualization, Point(0, y_separator_down_median), Point(999, y_separator_down_median), Scalar(254), 1);
+		line(image_visualization, Point(0, y_separator_up_median), Point(999, y_separator_up_median), Scalar(254), 1);
+		// line(image_visualization, Point(0, y_ref), Point(999, y_ref), Scalar(254), 1);
+
+		imshow("image_visualizationadfasdfdff" + name, image_visualization);
+	}
 
 	algo_name_vec.push_back(algo_name);
 	return true;

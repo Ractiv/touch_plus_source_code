@@ -35,13 +35,13 @@ struct Point4f
 	};
 };
 
-struct BlobPair
+struct BlobPairAngleDiff
 {
 	BlobNew* blob0;
 	BlobNew* blob1;
 	float angle_diff;
 
-	BlobPair(BlobNew* _blob0, BlobNew* _blob1, float _angle_diff)
+	BlobPairAngleDiff(BlobNew* _blob0, BlobNew* _blob1, float _angle_diff)
 	{
 		blob0 = _blob0;
 		blob1 = _blob1;
@@ -51,7 +51,7 @@ struct BlobPair
 
 struct compare_blob_pair_angle_diff
 {
-	bool operator() (const BlobPair& blob_pair0, const BlobPair& blob_pair1)
+	bool operator() (const BlobPairAngleDiff& blob_pair0, const BlobPairAngleDiff& blob_pair1)
 	{
 		return (blob_pair0.angle_diff < blob_pair1.angle_diff);
 	}
@@ -130,7 +130,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	vector<BlobPair> blob_pair_vec;
+	vector<BlobPairAngleDiff> blob_pair_vec;
 
 	index = 0;
 	for (BlobNew& blob : *blob_vec0)
@@ -161,7 +161,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 				angle = 360 - angle;
 
 			float angle_diff = abs(angle - angle_median);
-			blob_pair_vec.push_back(BlobPair(blob0, blob1, angle_diff));
+			blob_pair_vec.push_back(BlobPairAngleDiff(blob0, blob1, angle_diff));
 		}
 
 		++index;
@@ -174,8 +174,8 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 	unordered_map<string, uchar> checker0;
 	unordered_map<string, uchar> checker1;
 
-	vector<BlobPair> blob_pair_vec_filtered;
-	for (BlobPair& pair : blob_pair_vec)
+	vector<BlobPairAngleDiff> blob_pair_vec_filtered;
+	for (BlobPairAngleDiff& pair : blob_pair_vec)
 	{
 		string key0 = to_string(pair.blob0->pt_y_max.x) + "," + to_string(pair.blob0->pt_y_max.y);
 		string key1 = to_string(pair.blob1->pt_y_max.x) + "," + to_string(pair.blob1->pt_y_max.y);
@@ -192,7 +192,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_processor0.pt_palm, 0, 4);
 	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_processor1.pt_palm, 1, 4);
 
-	for (BlobPair& pair : blob_pair_vec_filtered)
+	for (BlobPairAngleDiff& pair : blob_pair_vec_filtered)
 	{
 		BlobNew* blob0 = pair.blob0;
 		BlobNew* blob1 = pair.blob1;

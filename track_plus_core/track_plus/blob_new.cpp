@@ -74,15 +74,25 @@ int BlobNew::compute_overlap(BlobNew& blob_in)
 	return overlap_count;
 }
 
+Mat image_blob_dilated0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+Mat image_blob_dilated1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+uchar blob_fill_gray = 0;
+
 int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_diff_in, const int dilate_num)
 {
-	Mat image_dilated0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	fill(image_dilated0, 254);
-	dilate(image_dilated0, image_dilated0, Mat(), Point(-1, -1), dilate_num);
+	++blob_fill_gray;
+	if (blob_fill_gray == 255)
+	{
+		image_blob_dilated0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+		image_blob_dilated1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+		blob_fill_gray = 1;
+	}
 
-	Mat image_dilated1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	blob_in.fill(image_dilated1, 254);
-	dilate(image_dilated1, image_dilated1, Mat(), Point(-1, -1), dilate_num);
+	fill(image_blob_dilated0, blob_fill_gray);
+	dilate(image_blob_dilated0, image_blob_dilated0, Mat(), Point(-1, -1), dilate_num);
+
+	blob_in.fill(image_blob_dilated1, blob_fill_gray);
+	dilate(image_blob_dilated1, image_blob_dilated1, Mat(), Point(-1, -1), dilate_num);
 
 	int i_min = x_min - dilate_num;
 	if (i_min < 0)
@@ -106,7 +116,7 @@ int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_
 	int overlap_count = 0;
 	for (int i = i_min; i <= i_max_const; ++i)
 		for (int j = j_min; j <= j_max_const; ++j)
-			if (image_dilated0.ptr<uchar>(j, i)[0] == 254)
+			if (image_blob_dilated0.ptr<uchar>(j, i)[0] == blob_fill_gray)
 			{
 				const int j_shifted = j + y_diff_in;
 				const int i_shifted = i + x_diff_in;
@@ -114,10 +124,10 @@ int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_
 				if (j_shifted > HEIGHT_SMALL_MINUS || i_shifted > WIDTH_SMALL_MINUS || j_shifted < 0 || i_shifted < 0)
 					continue;
 
-				if (image_dilated1.ptr<uchar>(j_shifted, i_shifted)[0] == 254)
+				if (image_blob_dilated1.ptr<uchar>(j_shifted, i_shifted)[0] == blob_fill_gray)
 					++overlap_count;
 			}
-
+			
 	return overlap_count;
 }
 

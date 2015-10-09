@@ -22,7 +22,7 @@
 #include "console_log.h"
 #include "camera_initializer_new.h"
 
-const float subtraction_threshold_ratio = 0.10;
+const float subtraction_threshold_ratio = 0.20;
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
@@ -283,7 +283,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				float entropy_max = max(entropy_left, entropy_right);
 				float entropy_min = min(entropy_left, entropy_right);
 
-				if (entropy_max / entropy_min > 2 || entropy_min < entropy_threshold)
+				if (entropy_max / entropy_min > 2/* || entropy_min < entropy_threshold*/)
 					both_moving_temp = false;
 			}
 		}
@@ -312,6 +312,9 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 		if (both_moving)
 		{
+			left_moving = true;
+			right_moving = true;
+
 			//------------------------------------------------------------------------------------------------------------------------
 
 			if (compute_x_separator_middle)
@@ -323,6 +326,9 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					sort(x_separator_middle_vec->begin(), x_separator_middle_vec->end());
 				}
 				x_separator_middle = (*x_separator_middle_vec)[x_separator_middle_vec->size() / 2];
+
+				x_separator_middle_median = x_separator_middle;
+				value_accumulator.compute(x_separator_middle_median, "x_separator_middle_median", 1000, WIDTH_SMALL_HALF, 0.5, true);
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -333,13 +339,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					both_moving_0_set = true;
 				if (name == "1")
 					both_moving_1_set = true;
-
-				both_moving = false;
-			}
-			else
-			{
-				left_moving = true;
-				right_moving = true;
 			}
 		}
 		else if (entropy_left > entropy_threshold || entropy_right > entropy_threshold)
@@ -393,18 +392,22 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-			const int x_separator_offset = 5;
 			if ((left_moving || right_moving) && value_store->get_bool("x_min_max_set"))
 			{
 				if (both_moving)
 				{
-					x_separator_left = blob_detector_image_subtraction->x_min_result - x_separator_offset;
-					x_separator_right = blob_detector_image_subtraction->x_max_result + x_separator_offset;
+					x_separator_left = blob_detector_image_subtraction->x_min_result;
+					x_separator_right = blob_detector_image_subtraction->x_max_result;
+
+					x_separator_left_median = x_separator_left;
+					x_separator_right_median = x_separator_right;
+					value_accumulator.compute(x_separator_left_median, "x_separator_left_median", 1000, 0, 0.9, true);
+					value_accumulator.compute(x_separator_right_median, "x_separator_right_median", 1000, WIDTH_SMALL, 0.1, true);
 				}
 				else if (left_moving)
-					x_separator_left = blob_detector_image_subtraction->x_min_result - x_separator_offset;
+					x_separator_left = blob_detector_image_subtraction->x_min_result;
 				else if (right_moving)
-					x_separator_right = blob_detector_image_subtraction->x_max_result + x_separator_offset;
+					x_separator_right = blob_detector_image_subtraction->x_max_result;
 			}
 
 			//------------------------------------------------------------------------------------------------------------------------
@@ -446,6 +449,9 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			{
 				y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
 				value_store->set_int("y_separator_down", y_separator_down);
+
+				y_separator_down_median = y_separator_down;
+				value_accumulator.compute(y_separator_down_median, "y_separator_down_median", 1000, HEIGHT_SMALL_MINUS, 0.1, true);
 			}
 			else if (left_moving || right_moving)
 			{
@@ -459,7 +465,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			if ((((left_moving || right_moving) && value_store->get_bool("result", true)) || both_moving))
 			{
-				if (left_moving || right_moving)
+				if (both_moving)
 				{
 					int blobs_y_min = 9999;
 					for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
@@ -467,7 +473,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 							blobs_y_min = blob.y_min;
 
 					y_separator_up = blobs_y_min + 10;
-					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9);
+
+					y_separator_up_median = y_separator_up;
+					value_accumulator.compute(y_separator_up_median, "y_separator_up_median", 1000, 0, 0.9, true);
+
+					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9, true);
 				}
 
 				//------------------------------------------------------------------------------------------------------------------------
@@ -607,18 +617,28 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					Mat image_borders = value_store->get_mat("image_borders", true);
 					bool image_borders_set = false;
 
-					if (both_moving)
+					while (both_moving && value_accumulator.ready)
 					{
+						int x_separator_left_temp = x_separator_left - 20;
+						int x_separator_right_temp = x_separator_right + 20;
+
+						if (!value_store->get_bool("border_first_pass", false))
+						{
+							x_separator_left_temp = x_separator_left_median;
+							x_separator_right_temp = x_separator_right_median;
+							value_store->set_bool("border_first_pass", true);
+						}
+
 						float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664) * 3 / 4;
 						//float width_diff = quadratic(pitch, 7.755859, 0.5430825, -0.002945822);
 
-						float width_diff_left = map_val(x_separator_left, 0, WIDTH_SMALL / 2, -width_diff, 0);
-						Point pt_left_up = Point(x_separator_left - width_diff_left, y_separator_up);
-						Point pt_left_down = Point(x_separator_left, y_separator_down);
+						float width_diff_left = map_val(x_separator_left_temp, 0, WIDTH_SMALL / 2, -width_diff, 0);
+						Point pt_left_up = Point(x_separator_left_temp - width_diff_left, y_separator_up);
+						Point pt_left_down = Point(x_separator_left_temp, y_separator_down);
 
-						float width_diff_right = map_val(x_separator_right, WIDTH_SMALL_MINUS / 2, WIDTH_SMALL_MINUS, 0, width_diff);
-						Point pt_right_up = Point(x_separator_right - width_diff_right, y_separator_up);
-						Point pt_right_down = Point(x_separator_right, y_separator_down);
+						float width_diff_right = map_val(x_separator_right_temp, WIDTH_SMALL_MINUS / 2, WIDTH_SMALL_MINUS, 0, width_diff);
+						Point pt_right_up = Point(x_separator_right_temp - width_diff_right, y_separator_up);
+						Point pt_right_down = Point(x_separator_right_temp, y_separator_down);
 
 						Point pt_intersection_up_left;
 						bool b0 = get_intersection_at_y(pt_left_up.x, pt_left_up.y, 
@@ -655,6 +675,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 							value_store->set_mat("image_borders", image_borders);
 							image_borders_set = true;
 						}
+
+						break;
 					}
 
 					//------------------------------------------------------------------------------------------------------------------------
@@ -808,9 +830,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						float ratio3 = hole_width_left / (entropy_width_left + 0.1);
 						float ratio4 = hole_height_right / (entropy_height_right + 0.1);
 						float ratio5 = hole_height_left / (entropy_height_left + 0.1);
-						float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
 
-						if (ratio_max < 2)
+						// float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
+						float ratio_max = max(max(max(ratio2, ratio3), ratio4), ratio5);
+
+						if (ratio_max < 1)
 						{
 							alpha = 0.10;
 							value_store->set_bool("result", true);

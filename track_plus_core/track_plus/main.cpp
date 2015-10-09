@@ -33,6 +33,7 @@
 #include "mono_processor_new.h"
 #include "stereo_processor_dtw.h"
 #include "stereo_processor_permutation.h"
+#include "stereo_processor_overlap.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -121,6 +122,22 @@ int wait_count = 0;
 int frame_count = 0;
 //
 
+void do_exit(bool kill_child)
+{
+    if (child_module_name != "" && kill_child)
+        ipc->send_message(child_module_name, "exit", "");
+
+    ipc->clear();
+        
+#ifdef __APPLE__
+    if (camera != NULL)
+        camera->stopVideoStream();
+#endif
+
+    console_log("exit");
+    exit(0);
+}
+
 void wait_for_device()
 {
     console_log("waiting for device ");
@@ -138,13 +155,8 @@ void wait_for_device()
         {
             ipc->send_message("menu_plus", "set status", "communicating");
             ipc->send_message("menu_plus", "show notification", "Please wait:Attempting to communicate with Touch+");
-            
-            ipc->clear();
-            if (camera != NULL)
-                camera->stopVideoStream();
-            
-            console_log("exit 0");
-            exit(0);
+
+            do_exit(false);
         }
 #endif
 
@@ -165,14 +177,7 @@ void wait_for_device()
         if (camera_count_new > camera_count_old)
         {
             ipc->send_message("menu_plus", "set status", "restarting tracking core");
-            ipc->clear();
-#ifdef __APPLE__
-            if (camera != NULL)
-                camera->stopVideoStream();
-#endif
-            console_log("exit 0");
-
-            exit(0);
+            do_exit(false);
         }
         camera_count_old = camera_count_new;
 
@@ -187,12 +192,7 @@ void wait_for_device()
             if (str == "Touch+ Camera")
             {
                 ipc->send_message("menu_plus", "set status", "restarting tracking core");
-                ipc->clear();
-                if (camera != NULL)
-                    camera->stopVideoStream();
-                
-                console_log("exit 0");
-                exit(0);
+                do_exit(false);
             }
 #endif
 
@@ -503,22 +503,25 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = hand_splitter0.compute(foreground_extractor0, motion_processor0, "0");
-        proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1");
-        proceed = proceed0 && proceed1;
+        proceed0 = hand_splitter0.compute(foreground_extractor0, motion_processor0, "0", true);
+        // proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1", true);
+        // proceed = proceed0 && proceed1;
     }
+
+    proceed = false;
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
         proceed = proceed0 && proceed1;
     }
 
     if (proceed)
     {
         // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        stereo_processor_permutation_compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+        // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+        compute_stereo_overlap(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
     }
 
     if (enable_imshow)
@@ -603,7 +606,10 @@ void guardian_thread_function()
             // create_process(child_module_path, child_module_name + extension0, true);
 
         if (process_running("daemon_plus" + extension0) == 0)
+        {
             ipc->send_message("everyone", "exit", "");
+            do_exit(true);
+        }
 
         Sleep(500);
     }
@@ -628,18 +634,7 @@ int main()
 
     ipc->map_function("exit", [](const string message_body)
     {
-        if (child_module_name != "")
-            ipc->send_message(child_module_name, "exit", "");
-
-        ipc->clear();
-        
-#ifdef __APPLE__
-        if (camera != NULL)
-            camera->stopVideoStream();
-#endif
-
-        console_log("exit 2");
-        exit(0);
+        do_exit(true);
     });
 
     bool menu_plus_ready = false;

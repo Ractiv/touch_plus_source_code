@@ -19,7 +19,7 @@
 #include "hand_splitter_new.h"
 #include "mat_functions.h"
 
-bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, const string name)
+bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, string name, bool visualize)
 {
 	if (value_store.get_bool("first_pass", false) == false)
 	{
@@ -55,6 +55,9 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	int complexity = 0;
 	for (vector<Point>& contour : contours)
 	{
+		if (contour.size() <= 1)
+			continue;
+
 		vector<Point> contour_approximated;
 		approxPolyDP(Mat(contour), contour_approximated, 10, false);
 		complexity += contour_approximated.size();
@@ -139,6 +142,14 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		seed1 = seed1_new;
 	}
 
+	BlobNew* blob_max_size_left = NULL;
+	BlobNew* blob_max_size_right = NULL;
+
+	bool dual = false;
+	bool dual_ground_truth = false;
+
+	float total_width = 1;
+
 	if (seed_vec0.size() > 0 && seed_vec1.size() > 0)
 	{
 		x_seed_vec0_max = seed_vec0[seed_vec0.size() - 1].x;
@@ -168,26 +179,27 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		bool bool_gap_size = gap_size >= 5;
 		bool bool_gap_order = x_seed_vec0_max < x_seed_vec1_min;
 
-		bool dual = bool_gap_order && bool_width_min && (bool_gap_size || bool_complexity);
+		dual = bool_gap_order && bool_width_min && (bool_gap_size || bool_complexity);
 		bool dual_old = value_store.get_bool("dual_old", dual);
 
-		float total_width = value_store.get_float("total_width", x_max - x_min);
+		total_width = value_store.get_float("total_width", x_max - x_min);
 		if (dual && !value_accumulator.ready)
 		{
 			total_width = x_max - x_min;
-			value_accumulator.compute(total_width, "total_width", 1000, 0, 0.5);
+			value_accumulator.compute(total_width, "total_width", 1000, 0, 0.5, true);
 			value_store.set_float("total_width", total_width);
 		}
 
 		if (!value_accumulator.ready)
 			return false;
 
-		// if (!dual && dual_old)
-		// {
-		// 	float width = x_max - x_min;
-		// 	if (width / total_width > 0.5)
-		// 		dual = true;
-		// }
+		dual_ground_truth = dual;
+		if (!dual && dual_old)
+		{
+			float width = x_max - x_min;
+			if (width / total_width > 0.4)
+				dual_ground_truth = true;
+		}
 
 		value_store.set_bool("dual_old", dual);
 
@@ -198,9 +210,6 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 		int count_max_left = -1;
 		int count_max_right = -1;
-		BlobNew* blob_max_size_left = NULL;
-		BlobNew* blob_max_size_right = NULL;
-
 		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
 			if (blob.active)
 				if (blob.x < motion_processor.x_separator_middle && blob.count > count_max_left)
@@ -277,6 +286,55 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 	//------------------------------------------------------------------------------------------------------------------------
 
+	bool dual_ground_truth_old = value_store.get_bool("dual_ground_truth_old", dual_ground_truth);
+
+	if (!dual_ground_truth && dual_ground_truth_old)
+	{
+		float width = x_max - x_min;
+		cout << width / total_width << endl;
+	}
+	value_store.set_bool("dual_ground_truth_old", dual_ground_truth);
+
+	return false;
+
+	if (blob_max_size_left == NULL && blob_max_size_right == NULL)
+		return false;
+
+	//------------------------------------------------------------------------------------------------------------------------
+
+	const int x_separator_middle_median = motion_processor.x_separator_middle_median;
+	const int x_separator_left_median = motion_processor.x_separator_left_median;
+	const int x_separator_right_median = motion_processor.x_separator_right_median;
+	const int y_separator_down_median = motion_processor.y_separator_down_median;
+	const int y_separator_up_median = motion_processor.y_separator_up_median;
+
+	if (dual)
+	{
+		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+			if (blob.y_min < y_separator_up_median && (blob.x < blob_max_size_left->x || blob.x > blob_max_size_right->x))
+			{
+				blob.active = false;
+			}
+	}
+	else if (blob_max_size_left == NULL || blob_max_size_right->count > blob_max_size_left->count)
+	{
+		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+			if (blob.y_min < y_separator_up_median && blob.x > blob_max_size_right->x)
+			{
+				blob.active = false;
+			}
+	}
+	else if (blob_max_size_right == NULL || blob_max_size_left->count > blob_max_size_right->count)
+	{
+		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+			if (blob.y_min < y_separator_up_median && blob.x < blob_max_size_left->x)
+			{
+				blob.active = false;
+			}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	x_min_result_right = 9999;
 	x_max_result_right = -1;
 	y_min_result_right = 9999;
@@ -322,6 +380,24 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		}
 
 	//------------------------------------------------------------------------------------------------------------------------
+
+	if (visualize)
+	{
+		Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+			if (blob.active)
+				blob.fill(image_visualization, 254);
+			else
+				blob.fill(image_visualization, 127);
+
+		line(image_visualization, Point(x_separator_left_median, 0), Point(x_separator_left_median, 999), Scalar(254), 1);
+		line(image_visualization, Point(x_separator_right_median, 0), Point(x_separator_right_median, 999), Scalar(254), 1);
+		line(image_visualization, Point(x_separator_middle_median, 0), Point(x_separator_middle_median, 999), Scalar(254), 1);
+		line(image_visualization, Point(0, y_separator_down_median), Point(999, y_separator_down_median), Scalar(254), 1);
+		line(image_visualization, Point(0, y_separator_up_median), Point(999, y_separator_up_median), Scalar(254), 1);
+
+		imshow("image_visualizationsdlkfjhasdf" + name, image_visualization);
+	}
 
 	if (blobs_right.size() > 0 || blobs_left.size() > 0)
 	{
