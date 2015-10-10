@@ -29,6 +29,8 @@ public:
 	BlobDetectorNew blob_detector;
 	ValueStore value_store;
 
+	Mat image_foreground;
+
 	int x_min_result = 0;
 	int x_max_result = 0;
 	int y_min_result = 0;

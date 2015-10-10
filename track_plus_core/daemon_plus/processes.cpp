@@ -21,7 +21,7 @@
 
 int check_process_running(string name, bool partial)
 {
-    #ifdef _WIN32
+#ifdef _WIN32
     int process_count = 0;
     HANDLE SnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 

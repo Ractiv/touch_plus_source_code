@@ -207,8 +207,8 @@ bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 
 		if (low_pass)
 		{
-			mat_functions_low_pass_filter.compute(gray_min_new, 0.5, "gray_min_new");
-			mat_functions_low_pass_filter.compute(gray_max_new, 0.5, "gray_max_new");
+			mat_functions_low_pass_filter.compute(gray_min_new, 0.1, "gray_min_new");
+			mat_functions_low_pass_filter.compute(gray_max_new, 0.1, "gray_max_new");
 		}
 
 		if (abs(gray_min_new - gray_min) + abs(gray_max_new - gray_max) > 2)

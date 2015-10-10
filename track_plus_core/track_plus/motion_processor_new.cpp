@@ -22,7 +22,9 @@
 #include "console_log.h"
 #include "camera_initializer_new.h"
 
-const float subtraction_threshold_ratio = 0.20;
+float subtraction_threshold_ratio = 0.20;
+int gray_threshold_range = 20;
+float alpha = 1;
 
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
@@ -59,8 +61,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	left_moving = false;
 	right_moving = false;
-
-	static float alpha = 1;
 
 	//------------------------------------------------------------------------------------------------------------------------
 
@@ -535,8 +535,6 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 								}
 	                        }
 
-	                    int gray_threshold_range = 20;
-
 						if (gray_vec_left.size() > 0 && left_moving)
 						{
 							sort(gray_vec_left.begin(), gray_vec_left.end());
@@ -834,7 +832,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						// float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
 						float ratio_max = max(max(max(ratio2, ratio3), ratio4), ratio5);
 
-						if (ratio_max < 1)
+						if (ratio_max < 2)
 						{
 							alpha = 0.10;
 							value_store->set_bool("result", true);

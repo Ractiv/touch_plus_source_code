@@ -47,7 +47,7 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	const int diff_threshold = motion_processor.diff_threshold;
 	Mat image_background_static = motion_processor.image_background_static;
 
-	Mat image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	for (int i = 0; i < WIDTH_SMALL; ++i)
 		for (int j = 0; j < HEIGHT_SMALL; ++j)
