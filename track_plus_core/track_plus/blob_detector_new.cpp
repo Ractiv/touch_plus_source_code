@@ -151,6 +151,126 @@ void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_
 			blob.fill(image_clone, gray_in);
 }
 
+void BlobDetectorNew::compute_region(Mat& image_in, uchar gray_in, vector<Point>& region_vec, bool shallow, bool octal)
+{
+	x_min_result = 9999;
+	x_max_result = 0;
+	y_min_result = 9999;
+	y_max_result = 0;
+
+	image_atlas = Mat::zeros(image_in.rows, image_in.cols, CV_16UC1);
+	Mat image_clone = image_in;
+
+	delete blobs;
+	blobs = new vector<BlobNew>();
+	blob_max_size_actual = BlobNew();
+	blob_max_size = &blob_max_size_actual;
+
+	for (Point& pt_region : region_vec)
+	{
+		int i = pt_region.x;
+		int j = pt_region.y;
+		
+		uchar* pix_ptr = &image_clone.ptr<uchar>(j, i)[0];
+
+		if (*pix_ptr != gray_in)
+			continue;
+
+		blobs->push_back(BlobNew(image_atlas, blobs->size() + 1));
+		BlobNew* blob = &((*blobs)[blobs->size() - 1]);
+		blob->add(i, j);
+		*pix_ptr = 255;
+
+		for (int k = 0; k < blob->data.size(); ++k)
+		{
+			const int pt_x = blob->data[k].x;
+			const int pt_y = blob->data[k].y;
+
+			const int pt_x0 = pt_x - 1;
+			const int pt_y0 = pt_y - 1;
+			const int pt_x1 = pt_x + 1;
+			const int pt_y1 = pt_y + 1;
+
+			pix_ptr = &image_clone.ptr<uchar>(pt_y, pt_x0)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x0, pt_y);
+				*pix_ptr = 255;
+			}
+			pix_ptr = &image_clone.ptr<uchar>(pt_y, pt_x1)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x1, pt_y);
+				*pix_ptr = 255;
+			}
+			pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x, pt_y0);
+				*pix_ptr = 255;
+			}
+			pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x)[0];
+			if (*pix_ptr == gray_in)
+			{
+				blob->add(pt_x, pt_y1);
+				*pix_ptr = 255;
+			}
+
+			if (octal)
+			{
+				pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x0)[0];
+				if (*pix_ptr == gray_in)
+				{
+					blob->add(pt_x0, pt_y0);
+					*pix_ptr = 255;
+				}
+				pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x1)[0];
+				if (*pix_ptr == gray_in)
+				{
+					blob->add(pt_x1, pt_y1);
+					*pix_ptr = 255;
+				}
+				pix_ptr = &image_clone.ptr<uchar>(pt_y0, pt_x1)[0];
+				if (*pix_ptr == gray_in)
+				{
+					blob->add(pt_x1, pt_y0);
+					*pix_ptr = 255;
+				}
+				pix_ptr = &image_clone.ptr<uchar>(pt_y1, pt_x0)[0];
+				if (*pix_ptr == gray_in)
+				{
+					blob->add(pt_x0, pt_y1);
+					*pix_ptr = 255;
+				}
+			}
+		}
+
+		blob->compute();
+
+		if (blob->data.size() > blob_max_size->data.size())
+		{
+			blob_max_size_actual = *blob;
+			blob_max_size = &blob_max_size_actual;
+		}
+
+		if (blob->x_min < x_min_result)
+			x_min_result = blob->x_min;
+		if (blob->x_max > x_max_result)
+			x_max_result = blob->x_max;
+		if (blob->y_min < y_min_result)
+			y_min_result = blob->y_min;
+		if (blob->y_max > y_max_result)
+		{
+			y_max_result = blob->y_max;
+			pt_y_max_result = blob->pt_y_max;
+		}
+	}
+
+	if (!shallow)
+		for (BlobNew& blob : *blobs)
+			blob.fill(image_clone, gray_in);
+}
+
 void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process, bool octal)
 {
 	if (in_process == false)

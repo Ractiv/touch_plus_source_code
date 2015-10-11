@@ -56,7 +56,7 @@ void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pi
 	int index = 0;
 	for (Point& pt : points)
 	{
-		float dist = get_distance(pt, pivot);
+		float dist = get_distance(pt, pivot, false);
 		if (dist < dist_min /*&& pt.x < pivot.x*/)
 		{
 			dist_min = dist;
@@ -86,7 +86,7 @@ BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
 	BlobNew* blob_dist_min = NULL;
 	for (BlobNew& blob : *blob_vec)
 	{
-		float dist = blob.compute_min_dist(pt);
+		float dist = blob.compute_min_dist(pt, false);
 		if (dist < dist_min)
 		{
 			dist_min = dist;
@@ -217,7 +217,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					for (Point& pt0 : *contour0)
 						for (Point& pt1 : *contour1)
 						{
-							const float dist_current = get_distance(pt0, pt1);
+							const float dist_current = get_distance(pt0, pt1, false);
 
 							if (dist_current < dist_max)
 							{
@@ -346,9 +346,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 					if (!found)
 					{
-						float dist0 = get_distance(pt0, palm_point);
-						float dist1 = get_distance(pt1, palm_point);
-						float dist2 = get_distance(pt2, palm_point);
+						float dist0 = get_distance(pt0, palm_point, false);
+						float dist1 = get_distance(pt1, palm_point, false);
+						float dist2 = get_distance(pt2, palm_point, false);
 
 						if (dist0 <= dist1 && dist0 <= dist2)
 							concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
@@ -391,7 +391,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_convex_indexed.z >= index_begin && pt_convex_indexed.z <= index_end) ||
 						(pt_convex_indexed.z <= index_begin && pt_convex_indexed.z >= index_end))
 					{
-						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), palm_point);
+						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), palm_point, false);
 						if (dist > dist_min)
 						{
 							dist_min = dist;
@@ -421,8 +421,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			{
 				Point anchor0 = Point(anchor_points0[i].x, anchor_points0[i].y);
 				Point anchor1 = Point(anchor_points1[i].x, anchor_points1[i].y);
-				float dist0 = get_distance(anchor0, palm_point);
-				float dist1 = get_distance(anchor1, palm_point);
+				float dist0 = get_distance(anchor0, palm_point, false);
+				float dist1 = get_distance(anchor1, palm_point, false);
 
 				Point anchor;
 				if (dist0 < dist1)
@@ -432,7 +432,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 				Point tip = Point(convex_points_indexed[i].x, convex_points_indexed[i].y);
 
-				float current_dist = get_distance(tip, seek_anchor);
+				float current_dist = get_distance(tip, seek_anchor, false);
 				if (current_dist < min_dist)
 				{
 					min_dist = current_dist;
@@ -522,9 +522,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 				if (!found)
 				{
-					float dist0 = get_distance(pt0, palm_point);
-					float dist1 = get_distance(pt1, palm_point);
-					float dist2 = get_distance(pt2, palm_point);
+					float dist0 = get_distance(pt0, palm_point, false);
+					float dist1 = get_distance(pt1, palm_point, false);
+					float dist2 = get_distance(pt2, palm_point, false);
 
 					if (dist0 <= dist1 && dist0 <= dist2)
 						concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
@@ -566,7 +566,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_concave_indexed.z > index_begin && pt_concave_indexed.z < index_end) ||
 						(pt_concave_indexed.z < index_begin && pt_concave_indexed.z > index_end))
 					{
-						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), palm_point);
+						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), palm_point, false);
 						if (dist < dist_min)
 						{
 							dist_min = dist;
@@ -606,7 +606,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_convex_indexed.z > index_begin && pt_convex_indexed.z < index_end) ||
 						(pt_convex_indexed.z < index_begin && pt_convex_indexed.z > index_end))
 					{
-						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), palm_point);
+						float dist = get_distance(Point(pt_convex_indexed.x, pt_convex_indexed.y), palm_point, false);
 						if (dist > dist_max)
 						{
 							dist_max = dist;
@@ -739,7 +739,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			{
 				Point pt_contour = contour_sorted[j];
 
-				const float dist_contour_circle = get_distance(pt, pt_contour);
+				const float dist_contour_circle = get_distance(pt, pt_contour, false);
 				if (dist_contour_circle < dist_contour_circle_min)
 				{
 					dist_contour_circle_min = dist_contour_circle;
@@ -805,7 +805,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		float min_dist = 9999;
 		for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
 		{
-			float dist = blob.compute_min_dist(Point(pt.x, pt.y));
+			float dist = blob.compute_min_dist(Point(pt.x, pt.y), false);
 			if (dist < min_dist)
 			{
 				min_dist = dist;

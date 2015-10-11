@@ -128,7 +128,7 @@ bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool r
 		if (gray_diff < 5)
 			gray_diff = 5;
 
-		float r_val = exponential(gray_diff, 0.9967884, 0.001570977, -0.1430162);// + 0.25;    //todo: figure out a better meter for graydiff
+		float r_val = exponential(gray_diff, 0.9967884, 0.001570977, -0.1430162) + 0.25;    //todo: figure out a better meter for graydiff
 		if (r_val > 3)
 			r_val = 3;
 		console_log("r_val is " + to_string(r_val));

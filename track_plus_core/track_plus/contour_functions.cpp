@@ -123,7 +123,7 @@ void compute_unwrap(vector<Point>& points, Point pivot, vector<int>& convex_inde
 
 	for (Point& pt : points)
 	{
-		const int dist = get_distance(pt, pivot);
+		const int dist = get_distance(pt, pivot, false);
 
 		if (dist > dist_max)
 			dist_max = dist;
@@ -244,7 +244,7 @@ void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_u
 
 	for (Point& pt : points)
 	{
-		const int dist = get_distance(pt, pivot);
+		const int dist = get_distance(pt, pivot, false);
 
 		if (dist > dist_max)
 			dist_max = dist;
@@ -255,7 +255,7 @@ void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_u
 		{
 			Point pt_current = Point(x_current, dist);
 			points_unwrapped[index - 1] = pt_current;
-			x_current += get_distance(pt_old, pt);
+			x_current += get_distance(pt_old, pt, false);
 		}
 
 		++index;

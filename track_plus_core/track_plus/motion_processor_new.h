@@ -57,6 +57,7 @@ public:
 	bool right_moving;
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
+	Mat image_ptr;
 
 	ValueStore* value_store = new ValueStore();
 

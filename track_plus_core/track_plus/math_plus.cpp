@@ -18,29 +18,44 @@
 
 #include "math_plus.h"
 
-float get_distance(float x0, float y0, float x1, float y1)
+float get_distance(float x0, float y0, float x1, float y1, bool accurate)
 {
-	return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+	if (accurate)
+		return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+
+	return abs(x0 - x1) + abs(y0 - y1);
 }
 
-float get_distance(int x0, int y0, int x1, int y1)
+float get_distance(int x0, int y0, int x1, int y1, bool accurate)
 {
-	return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+	if (accurate)
+		return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+
+	return abs(x0 - x1) + abs(y0 - y1);
 }
 
-float get_distance(Point pt0, Point pt1)
+float get_distance(Point pt0, Point pt1, bool accurate)
 {
-	return sqrt(pow(pt0.x - pt1.x, 2) + pow(pt0.y - pt1.y, 2));
+	if (accurate)
+		return sqrt(pow(pt0.x - pt1.x, 2) + pow(pt0.y - pt1.y, 2));
+
+	return abs(pt0.x - pt1.x) + abs(pt0.y - pt1.y);
 }
 
-float get_distance(Point2f pt0, Point2f pt1)
+float get_distance(Point2f pt0, Point2f pt1, bool accurate)
 {
-	return sqrt(pow(pt0.x - pt1.x, 2) + pow(pt0.y - pt1.y, 2));
+	if (accurate)
+		return sqrt(pow(pt0.x - pt1.x, 2) + pow(pt0.y - pt1.y, 2));
+
+	return abs(pt0.x - pt1.x) + abs(pt0.y - pt1.y);
 }
 
-float get_distance(Point3f pt0, Point3f pt1)
+float get_distance(Point3f pt0, Point3f pt1, bool accurate)
 {
-	return sqrt(pow(pt0.x - pt1.x, 2) + pow(pt0.y - pt1.y, 2) + pow(pt0.z - pt1.z, 2));
+	if (accurate)
+		return sqrt(pow(pt0.x - pt1.x, 2) + pow(pt0.y - pt1.y, 2) + pow(pt0.z - pt1.z, 2));
+
+	return abs(pt0.x - pt1.x) + abs(pt0.y - pt1.y) + abs(pt0.z - pt1.z);
 }
 
 float map_val(float value, float left_min, float left_max, float right_min, float right_max)
@@ -53,9 +68,9 @@ float map_val(float value, float left_min, float left_max, float right_min, floa
 
 float get_angle(Point p1, Point p2, Point p3)
 {
-	float p12 = get_distance(p1, p2);
-	float p13 = get_distance(p1, p3);
-	float p23 = get_distance(p2, p3);
+	float p12 = get_distance(p1, p2, true);
+	float p13 = get_distance(p1, p3, true);
+	float p23 = get_distance(p2, p3, true);
 	return acos((pow(p12, 2) + pow(p13, 2) - pow(p23, 2)) / (2 * p12 * p13)) * 180 / CV_PI;
 }
 
@@ -167,7 +182,7 @@ float dot_product(Point3f u, Point3f v)
 Point3f normalize(Point3f value)
 {
 	Point3f result;
-    float factor = get_distance(value, Point3f(0, 0, 0));
+    float factor = get_distance(value, Point3f(0, 0, 0), true);
     factor = 1 / factor;
     result.x = value.x * factor;
     result.y = value.y * factor;

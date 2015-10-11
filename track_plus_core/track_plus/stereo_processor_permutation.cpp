@@ -112,7 +112,7 @@ void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessor
 			pt_small_array.x += alignment_x_diff;
 			pt_small_array.y += alignment_y_diff;
 
-			float dist = get_distance(pt_small_array, pt_large_array);
+			float dist = get_distance(pt_small_array, pt_large_array, false);
 			dist_sigma += dist;
 
 			++small_array_index;

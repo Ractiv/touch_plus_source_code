@@ -504,8 +504,8 @@ void compute()
     if (proceed)
     {
         proceed0 = hand_splitter0.compute(foreground_extractor0, motion_processor0, "0", true);
-        // proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1", true);
-        // proceed = proceed0 && proceed1;
+        proceed1 = hand_splitter1.compute(foreground_extractor1, motion_processor1, "1", true);
+        proceed = proceed0 && proceed1;
     }
 
     proceed = false;

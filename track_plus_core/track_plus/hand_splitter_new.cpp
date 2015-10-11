@@ -101,8 +101,8 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 		for (Point& pt : hist_pt_vec)
 		{
-			float dist0 = get_distance(pt, seed0);
-			float dist1 = get_distance(pt, seed1);
+			float dist0 = get_distance(pt, seed0, false);
+			float dist1 = get_distance(pt, seed1, false);
 
 			if (dist0 < dist1)
 				seed_vec0.push_back(pt);
@@ -290,22 +290,22 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	if (!dual)
+	if (!dual && !merge)
 	{
 		int reference_x = reference_is_left ? foreground_extractor.x_min_result : foreground_extractor.x_max_result;
 		int reference_x_blob = reference_is_left ? blob_max_size->x_max : blob_max_size->x_min;
 
-		const int x_separator_middle_target = merge ? (reference_x - reference_x_offset) : (reference_x_blob - reference_x_offset_blob);
+		const int x_separator_middle_target = reference_x_blob - reference_x_offset_blob;
 		const int x_separator_middle = motion_processor.x_separator_middle;
 		const int i_increment = x_separator_middle_target > motion_processor.x_separator_middle ? 1 : -1;
 
-		int difficulty_forwards = 0;
+		int cost = 0;
 		for (int i = x_separator_middle; i != x_separator_middle_target; i += i_increment)
 			for (int j = 0; j < HEIGHT_SMALL; ++j)
 				if (foreground_extractor.image_foreground.ptr<uchar>(j, i)[0] > 0)
-					++difficulty_forwards;
+					++cost;
 
-		if ((float)difficulty_forwards / blob_max_size->count < 0.5)
+		if ((float)cost / blob_max_size->count < 0.5)
 			motion_processor.x_separator_middle = x_separator_middle_target;
 		else
 		{
@@ -316,6 +316,102 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 
 	//------------------------------------------------------------------------------------------------------------------------
 
+	Point seed_left = value_store.get_point("seed_left", Point(x_min, 0));
+	Point seed_right = value_store.get_point("seed_right", Point(x_max, 0));
+
+	if (merge || dual)
+	{
+		seed_left = Point(0, 0);
+		int seed_left_count = 0;
+		for (BlobNew& blob : blobs_left)
+			for (Point& pt : blob.data)
+			{
+				seed_left.x += pt.x;
+				seed_left.y += pt.y;
+				++seed_left_count;
+			}
+		
+		seed_right = Point(0, 0);
+		int seed_right_count = 0;
+		for (BlobNew& blob : blobs_right)
+			for (Point& pt : blob.data)
+			{
+				seed_right.x += pt.x;
+				seed_right.y += pt.y;
+				++seed_right_count;
+			}
+
+		if (seed_left_count > 0 && seed_right_count > 0)
+		{
+			seed_left.x /= seed_left_count;
+			seed_left.y /= seed_left_count;
+
+			seed_right.x /= seed_right_count;
+			seed_right.y /= seed_right_count;
+
+			vector<Point> seed_left_vec;
+			vector<Point> seed_right_vec;
+
+			while (true)
+			{
+				seed_left_vec.clear();
+				seed_right_vec.clear();				
+
+				for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
+					if (blob.active)
+						for (Point& pt : blob.data)
+						{
+							float dist_left = get_distance(pt, seed_left, false);
+							float dist_right = get_distance(pt, seed_right, false);
+							if (dist_left < dist_right)
+								seed_left_vec.push_back(pt);
+							else
+								seed_right_vec.push_back(pt);
+						}
+
+				if (seed_left_vec.size() > 0 && seed_right_vec.size() > 0)
+				{
+					Point seed_left_new = Point(0, 0);
+					for (Point& pt : seed_left_vec)
+					{
+						seed_left_new.x += pt.x;
+						seed_left_new.y += pt.y;
+					}
+					seed_left_new.x /= seed_left_vec.size();
+					seed_left_new.y /= seed_left_vec.size();
+
+					Point seed_right_new = Point(0, 0);
+					for (Point& pt : seed_right_vec)
+					{
+						seed_right_new.x += pt.x;
+						seed_right_new.y += pt.y;
+					}
+					seed_right_new.x /= seed_right_vec.size();
+					seed_right_new.y /= seed_right_vec.size();
+
+					if (seed_left.x == seed_left_new.x && seed_left.y == seed_left_new.y &&
+						seed_right.x == seed_right_new.x && seed_right.y == seed_right_new.y)
+					{
+						break;
+					}
+
+					seed_left = seed_left_new;
+					seed_right = seed_right_new;
+				}
+				else
+					break;
+			}
+
+			if (merge)
+				motion_processor.x_separator_middle = (seed_left.x + seed_right.x) / 2;
+		}
+	}
+
+	value_store.set_point("seed_left", seed_left);
+	value_store.set_point("seed_right", seed_right);
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	const int x_separator_middle = motion_processor.x_separator_middle;
 	const int x_separator_middle_median = motion_processor.x_separator_middle_median;
 	const int x_separator_left_median = motion_processor.x_separator_left_median;
@@ -323,30 +419,36 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 	const int y_separator_down_median = motion_processor.y_separator_down_median;
 	const int y_separator_up_median = motion_processor.y_separator_up_median;
 
-	/*if (dual)
+	while (dual)
 	{
-		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
-			if (blob.y_min < y_separator_up_median && (blob.x < blob_max_size_left->x || blob.x > blob_max_size_right->x))
-			{
-				blob.active = false;
-			}
+		const int i_min = seed_left.x;
+		const int i_max = seed_right.x;
+		const int j_min = 0;
+		const int j_max = y_separator_up_median;
+
+		if (!(i_max > i_min && i_min >= 0 && i_max <= WIDTH_SMALL_MINUS))
+			break;
+
+		Point pt0 = Point(i_min, 0);
+		Point pt1 = Point(i_max, 0);
+		Point pt2 = Point(x_separator_middle, j_max);    //tip point
+
+		if (pt2.y < 2 || i_max - i_min < 2)
+			break;
+
+		Mat image_triangle_fill = Mat::zeros(j_max + 1, WIDTH_SMALL, CV_8UC1);
+
+		line(image_triangle_fill, pt0, pt2, Scalar(254), 1);
+		line(image_triangle_fill, pt1, pt2, Scalar(254), 1);
+		floodFill(image_triangle_fill, Point(x_separator_middle, 0), Scalar(254));
+
+		for (int i = i_min; i <= i_max; ++i)
+			for (int j = j_min; j <= j_max; ++j)
+				if (image_triangle_fill.ptr<uchar>(j, i)[0] > 0)
+					motion_processor.fill_image_background_static(i, j, motion_processor.image_ptr);
+
+		break;
 	}
-	else if (blob_max_size_left == NULL || blob_max_size_right->count > blob_max_size_left->count)
-	{
-		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
-			if (blob.y_min < y_separator_up_median && blob.x > blob_max_size_right->x)
-			{
-				blob.active = false;
-			}
-	}
-	else if (blob_max_size_right == NULL || blob_max_size_left->count > blob_max_size_right->count)
-	{
-		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
-			if (blob.y_min < y_separator_up_median && blob.x < blob_max_size_left->x)
-			{
-				blob.active = false;
-			}
-	}*/
 
 	//------------------------------------------------------------------------------------------------------------------------
 
@@ -402,14 +504,12 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		for (BlobNew& blob : *foreground_extractor.blob_detector.blobs)
 			if (blob.active)
 				blob.fill(image_visualization, 254);
-			else
-				blob.fill(image_visualization, 127);
 
 		line(image_visualization, Point(x_separator_left_median, 0), Point(x_separator_left_median, 999), Scalar(254), 1);
 		line(image_visualization, Point(x_separator_right_median, 0), Point(x_separator_right_median, 999), Scalar(254), 1);
 		line(image_visualization, Point(x_separator_middle, 0), Point(x_separator_middle, 999), Scalar(254), 1);
-		// line(image_visualization, Point(0, y_separator_down_median), Point(999, y_separator_down_median), Scalar(254), 1);
-		// line(image_visualization, Point(0, y_separator_up_median), Point(999, y_separator_up_median), Scalar(254), 1);
+		line(image_visualization, Point(0, y_separator_down_median), Point(999, y_separator_down_median), Scalar(254), 1);
+		line(image_visualization, Point(0, y_separator_up_median), Point(999, y_separator_up_median), Scalar(254), 1);
 
 		imshow("image_visualizationsdlkfjhasdf" + name, image_visualization);
 	}

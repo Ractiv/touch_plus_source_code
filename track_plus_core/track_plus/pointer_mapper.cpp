@@ -233,7 +233,7 @@ void PointerMapper::compute_cursor_point(bool& target_down, Point2f& pt_target0,
 				if (value_store.has_point2f("pt_cursor" + name))
 				{
 	                Point2f temp = value_store.get_point2f("pt_cursor" + name);
-	                float alpha = get_distance(pt_cursor, temp) / 1000;
+	                float alpha = get_distance(pt_cursor, temp, true) / 1000;
 		            if (alpha < 0.1)
 		            	alpha = 0.1;
 		            else if (alpha > 1)

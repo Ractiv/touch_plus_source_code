@@ -123,7 +123,7 @@ Mat resize_image(Mat& image_in, const float scale)
 	return image_new;
 }
 
-void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& pt_dist_min, Point& pt_dist_max)
+void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& pt_dist_min, Point& pt_dist_max, bool accurate)
 {
 	Mat image_find_contours = image_in.clone();
 
@@ -146,7 +146,7 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 				for (vector<Point>& contour : contours)
 					for (Point& pt : contour)
 					{
-						const float dist_current = get_distance(i, j, pt.x, pt.y);
+						const float dist_current = get_distance(i, j, pt.x, pt.y, accurate);
 						if (dist_current < dist_min_current)
 							dist_min_current = dist_current;
 					}
