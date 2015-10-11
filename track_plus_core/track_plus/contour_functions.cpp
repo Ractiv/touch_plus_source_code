@@ -20,51 +20,25 @@
 
 vector<vector<Point>> legacyFindContours(Mat& Segmented)
 {
-	static const int thickness = 1;
-	static const int lineType = 8;
-
 	IplImage        SegmentedIpl = Segmented;
 	CvMemStorage*   storage = cvCreateMemStorage(0);
 	CvSeq*          contours = 0;
-	int             numCont = 0;
-	int             contAthresh = 45;
 
-	numCont = cvFindContours(&SegmentedIpl, storage, &contours, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+	cvFindContours(&SegmentedIpl, storage, &contours, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 
 	vector<vector<Point>> result;
 	for (; contours != 0; contours = contours->h_next)
 	{
 		vector<Point> contour_current;
-
-		Point pt_old = Point(-1, -1);
 		for (int i = 0; i < contours->total; ++i)
 		{
 			CvPoint* point = (CvPoint*)CV_GET_SEQ_ELEM(CvPoint, contours, i);
 			Point pt = Point(point->x, point->y);
-
-			if (pt_old.x != -1)
-			{
-				vector<Point> line_points;
-				bresenham_line(pt_old.x, pt_old.y, pt.x, pt.y, line_points, 1000);
-
-				int index = 0;
-				for (Point& pt : line_points)
-				{
-					if (index > 0)
-						contour_current.push_back(pt);
-
-					++index;
-				}
-			}
-
-			pt_old = pt;
+			contour_current.push_back(pt);
 		}
 
-		vector<Point> contour_current_reduced;
-		for (int i = 0; i < contour_current.size(); i += 1)
-			contour_current_reduced.push_back(contour_current[i]);
-
-		result.push_back(contour_current_reduced);
+		if (contour_current.size() > 0)
+			result.push_back(contour_current);
 	}
 
 	cvReleaseMemStorage(&storage);

@@ -77,10 +77,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 		float faulty_image_ratio = (float)count_total / HEIGHT_SMALL_HALF / WIDTH_SMALL_HALF;
 
 		if (faulty_image_ratio > 0.25)
-		{
-			cout << rand() << endl;
 			return false;
-		}
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------

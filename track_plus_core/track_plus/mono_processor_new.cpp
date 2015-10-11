@@ -131,16 +131,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
-	if (value_store.get_bool("reset", true) || !algo_name_found)
+	if (!algo_name_found)
 		low_pass_filter->reset();
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	if (hand_splitter.blobs_right.size() == 0)
-	{
-		value_store.set_bool("reset", true);
 		return false;
-	}
 
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_palm_segmented = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -172,11 +169,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	palm_point_raw.y /= palm_point_raw_count;
 
 	vector<vector<Point>> contours = legacyFindContours(image_find_contours);
-	const int contours_size = contours.size();
+	const int contours_size = contours.size();	
 
 	if (contours_size == 0)
 	{
-		value_store.set_bool("reset", true);
 		return false;
 	}
 	else if (contours_size > 1)
@@ -460,10 +456,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	sort_contour(contours[0], contour_sorted, pivot);
 
 	if (contour_sorted.size() == 0)
-	{
-		value_store.set_bool("reset", true);
 		return false;
-	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1045,6 +1038,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			}
 		}
+		imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
 	}
 	{
 		int index = 0;
@@ -1188,7 +1182,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	value_store.set_bool("reset", false);
 	algo_name_vec.push_back(algo_name);
 	return true;
 }

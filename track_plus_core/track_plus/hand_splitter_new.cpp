@@ -19,6 +19,16 @@
 #include "hand_splitter_new.h"
 #include "mat_functions.h"
 
+void set_value(float* val_old, int val_new, int val_min, int val_max)
+{
+	if (val_new < val_min)
+		val_new = val_min;
+	if (val_new > val_max)
+		val_new = val_max;
+
+	*val_old = val_new;
+}
+
 bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, MotionProcessorNew& motion_processor, string name, bool visualize)
 {
 	if (value_store.get_bool("first_pass", false) == false)
@@ -256,14 +266,14 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		if (dual)
 		{
 			motion_processor.compute_x_separator_middle = false;
-			motion_processor.x_separator_middle = (x_seed_vec1_min + x_seed_vec0_max) / 2;
+			set_value(&motion_processor.x_separator_middle, (x_seed_vec1_min + x_seed_vec0_max) / 2, 0, WIDTH_SMALL_MINUS);
 		}
 
 		reference_is_left = count_left > count_right;
 		value_store.set_bool("reference_is_left", reference_is_left);
 
 		if (!algo_name_found || do_reset)
-			motion_processor.x_separator_middle = motion_processor.x_separator_middle_median;
+			set_value(&motion_processor.x_separator_middle, motion_processor.x_separator_middle_median, 0, WIDTH_SMALL_MINUS);
 
 		int reference_x = reference_is_left ? foreground_extractor.x_min_result : foreground_extractor.x_max_result;
 		reference_x_offset = reference_x - motion_processor.x_separator_middle;
@@ -306,7 +316,7 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 					++cost;
 
 		if ((float)cost / blob_max_size->count < 0.5)
-			motion_processor.x_separator_middle = x_separator_middle_target;
+			set_value(&motion_processor.x_separator_middle, x_separator_middle_target, 0, WIDTH_SMALL_MINUS);
 		else
 		{
 			do_reset = true;
@@ -403,7 +413,7 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 			}
 
 			if (merge)
-				motion_processor.x_separator_middle = (seed_left.x + seed_right.x) / 2;
+				set_value(&motion_processor.x_separator_middle, (seed_left.x + seed_right.x) / 2, 0, WIDTH_SMALL_MINUS);
 		}
 	}
 
