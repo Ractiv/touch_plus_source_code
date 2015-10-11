@@ -131,7 +131,7 @@ int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_
 	return overlap_count;
 }
 
-float BlobNew::compute_min_dist(Point pt_in, bool accurate, Point* pt_out)
+float BlobNew::compute_min_dist(Point pt_in, Point* pt_out, bool accurate)
 {
 	float dist_min = 9999;
 	Point pt_dist_min;

@@ -86,7 +86,7 @@ BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
 	BlobNew* blob_dist_min = NULL;
 	for (BlobNew& blob : *blob_vec)
 	{
-		float dist = blob.compute_min_dist(pt, false);
+		float dist = blob.compute_min_dist(pt, NULL, false);
 		if (dist < dist_min)
 		{
 			dist_min = dist;
@@ -798,7 +798,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		float min_dist = 9999;
 		for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
 		{
-			float dist = blob.compute_min_dist(Point(pt.x, pt.y), false);
+			float dist = blob.compute_min_dist(Point(pt.x, pt.y), NULL, false);
 			if (dist < min_dist)
 			{
 				min_dist = dist;
@@ -850,25 +850,27 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 
 		Point pt_attach0;
-		float dist0 = blob0.compute_min_dist(attach_pivot, &pt_attach0);
+		float dist0 = blob0.compute_min_dist(attach_pivot, &pt_attach0, false);
 		for (BlobNew& blob1 : hand_splitter.blobs_right)
 			if (blob0.atlas_id != blob1.atlas_id)
 			{
 				Point pt_attach1;
-				float dist1 = blob1.compute_min_dist(attach_pivot, &pt_attach1);
+				float dist1 = blob1.compute_min_dist(attach_pivot, &pt_attach1, false);
 
 				Point pt_attach;
 				Point pt_base;
 				if (dist0 < dist1)
 				{
 					pt_attach = pt_attach1;
-					blob0.compute_min_dist(pt_attach, &pt_base);
+					blob0.compute_min_dist(pt_attach, &pt_base, false);
 				}
 				else
 				{
 					pt_attach = pt_attach0;
-					blob1.compute_min_dist(pt_attach, &pt_base);
+					blob1.compute_min_dist(pt_attach, &pt_base, false);
 				}
+
+				line(image_skeleton, pt_attach, pt_base, Scalar(254), 1);
 
 				vector<Point> line_vec;
 				bresenham_line(pt_attach.x, pt_attach.y, pt_base.x, pt_base.y, line_vec, 1000);
@@ -881,7 +883,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 	}
 
-	vector<Point> skeleton_points = compute_thinning(image_skeleton, subject_points);
+	vector<Point> skeleton_points = thinning_computer.compute_thinning(image_skeleton, subject_points);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1111,6 +1113,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				pt_rotated.x += x_diff;
 				pt_rotated.y += y_diff;
 
+				if (pt_rotated.x < 0 || pt_rotated.x >= image_atlas_rotated.cols ||
+					pt_rotated.y < 0 || pt_rotated.y >= image_atlas_rotated.rows)
+				{
+					continue;
+				}
+
 				blob_rotated->add(pt_rotated.x, pt_rotated.y);
 
 				if (pt_rotated.x < fingertip_blobs_rotated_x_min)
@@ -1153,7 +1161,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
-		if (!visualize)
+		//below code breaks when hand is too close to camera
+
+		/*if (!visualize)
 			break;
 
 		for (BlobNew& blob : fingertip_blobs_rotated)
@@ -1164,7 +1174,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 			put_text(blob.name, image_palm_segmented_rotated, blob.pt_y_max.x, blob.pt_y_max.y);
 		}
-		circle(image_palm_segmented_rotated, palm_point_rotated, palm_radius, Scalar(127), 1);
+		circle(image_palm_segmented_rotated, palm_point_rotated, palm_radius, Scalar(127), 1);*/
 
 		break;
 	}

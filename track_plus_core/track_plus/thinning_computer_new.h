@@ -18,6 +18,11 @@
 
 #pragma once
 
-#include "blob_new.h"
+#include <opencv2/opencv.hpp>
 
-vector<Point> compute_thinning(Mat image_in, vector<Point>& points_in, const int max_iter = -1);
+class ThinningComputer
+{
+public:
+	void thinning_iteration(cv::Mat& image_in, const int iter, vector<cv::Point>& points, int& iterations);
+	vector<cv::Point> compute_thinning(cv::Mat& image_in, vector<cv::Point>& points_in, const int max_iter = -1);
+};

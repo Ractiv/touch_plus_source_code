@@ -20,12 +20,14 @@
 
 #include "hand_splitter_new.h"
 #include "value_store.h"
+#include "thinning_computer_new.h"
 
 class MonoProcessorNew
 {
 public:
 	string algo_name = "mono_processor";
 
+	ThinningComputer thinning_computer;
 	ValueStore value_store;
 
 	Point pt_index;
