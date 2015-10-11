@@ -19,7 +19,7 @@
 #include "globals.h"
 #include "thinning_computer_new.h"
 
-void thinning_iteration(Mat& image_in, const int iter, vector<Point>& points, int& iterations)
+void thinning_iteration(Mat image_in, const int iter, vector<Point>& points, int& iterations)
 {
     Mat marker = Mat::zeros(image_in.size(), CV_8UC1);
 
@@ -52,7 +52,7 @@ void thinning_iteration(Mat& image_in, const int iter, vector<Point>& points, in
     ++iterations;
 }
 
-vector<Point> compute_thinning(Mat& image_in, vector<Point>& points_in, const int max_iter)
+vector<Point> compute_thinning(Mat image_in, vector<Point>& points_in, const int max_iter)
 {
     vector<Point> points;
     for (Point& pt : points_in)
