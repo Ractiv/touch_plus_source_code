@@ -200,7 +200,7 @@ void wait_for_device()
     }
 }
 
-void update(Mat& image_in)
+void update(Mat image_in)
 {
     image_pool[image_pool_count] = image_in;
 	image_current_frame = image_pool[image_pool_count];

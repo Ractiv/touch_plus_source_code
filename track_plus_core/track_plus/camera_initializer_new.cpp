@@ -40,7 +40,7 @@ void CameraInitializerNew::init(Camera* camera)
 	preset1(camera);
 }
 
-bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat& image_in, bool reset)
+bool CameraInitializerNew::adjust_exposure(Camera* camera, Mat image_in, bool reset)
 {
 	static int count = 0;
 	static bool step0 = false;

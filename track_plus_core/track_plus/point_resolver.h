@@ -30,5 +30,5 @@ public:
 
 	PointResolver(MotionProcessorNew& _motion_processor0, MotionProcessorNew& _motion_processor1, Reprojector& _reprojector);
 
-	Point2f compute(Point pt, Mat& image_color, uchar side);
+	Point2f compute(Point pt, Mat image_color, uchar side);
 };

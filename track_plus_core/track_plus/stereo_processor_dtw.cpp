@@ -58,7 +58,7 @@ struct compare_blob_pair_angle_diff
 };
 
 bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1, PointResolver& point_resolver,
-							     PointerMapper& pointer_mapper,     Mat& image0,                       Mat& image1)
+							     PointerMapper& pointer_mapper,     Mat image0,                       Mat image1)
 {
 	vector<Point>* vec0 = &mono_processor0.stereo_matching_points;
 	vector<Point>* vec1 = &mono_processor1.stereo_matching_points;

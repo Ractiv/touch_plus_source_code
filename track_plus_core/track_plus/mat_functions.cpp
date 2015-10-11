@@ -22,7 +22,7 @@
 LowPassFilter mat_functions_low_pass_filter;
 ValueStore mat_functions_value_store;
 
-void threshold_get_bounds(Mat& image_in, Mat& image_out, const int threshold_val, int& x_min, int& x_max, int& y_min, int& y_max)
+void threshold_get_bounds(Mat image_in, Mat image_out, const int threshold_val, int& x_min, int& x_max, int& y_min, int& y_max)
 {
 	Mat image_out_temp = Mat::zeros(image_in.size(), CV_8UC1);
 
@@ -56,7 +56,7 @@ void threshold_get_bounds(Mat& image_in, Mat& image_out, const int threshold_val
 	image_out = image_out_temp;
 }
 
-Mat rotate_image(const Mat& image_in, const float angle, const Point origin, const int border)
+Mat rotate_image(const Mat image_in, const float angle, const Point origin, const int border)
 {
     Mat bordered_source;
     copyMakeBorder(image_in, bordered_source, border, border, border, border, BORDER_CONSTANT,Scalar());
@@ -67,7 +67,7 @@ Mat rotate_image(const Mat& image_in, const float angle, const Point origin, con
     return dst;
 }
 
-Mat translate_image(Mat& image_in, const int x_diff, const int y_diff)
+Mat translate_image(Mat image_in, const int x_diff, const int y_diff)
 {
 	const int width_const = image_in.cols;
 	const int height_const = image_in.rows;
@@ -92,7 +92,7 @@ Mat translate_image(Mat& image_in, const int x_diff, const int y_diff)
 	return image_result;
 }
 
-Mat resize_image(Mat& image_in, const float scale)
+Mat resize_image(Mat image_in, const float scale)
 {
 	Mat image_resized;
 	resize(image_in, image_resized, Size(image_in.cols * scale, image_in.rows * scale), 0, 0, INTER_LINEAR);
@@ -123,7 +123,7 @@ Mat resize_image(Mat& image_in, const float scale)
 	return image_new;
 }
 
-void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& pt_dist_min, Point& pt_dist_max, bool accurate)
+void distance_transform(Mat image_in, float& dist_min, float& dist_max, Point& pt_dist_min, Point& pt_dist_max, bool accurate)
 {
 	Mat image_find_contours = image_in.clone();
 
@@ -165,7 +165,7 @@ void distance_transform(Mat& image_in, float& dist_min, float& dist_max, Point& 
 			}
 }
 
-bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, string name, bool set_norm_range, bool low_pass)
+bool compute_channel_diff_image(Mat image_in, Mat image_out, bool normalize, string name, bool set_norm_range, bool low_pass)
 {
 	bool result = true;
 
@@ -253,7 +253,7 @@ bool compute_channel_diff_image(Mat& image_in, Mat& image_out, bool normalize, s
 	return result;
 }
 
-void compute_max_image(Mat& image_in, Mat& image_out)
+void compute_max_image(Mat image_in, Mat image_out)
 {
 	const int image_width_const = image_in.cols;
 	const int image_height_const = image_in.rows;
@@ -264,7 +264,7 @@ void compute_max_image(Mat& image_in, Mat& image_out)
 										    max(image_in.ptr<uchar>(j, i)[1], image_in.ptr<uchar>(j, i)[2]));
 }
 
-void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat& image_out)
+void compute_active_light_image(Mat image_regular, Mat image_channel_diff, Mat image_out)
 {
 	const int image_width_const = image_regular.cols;
 	const int image_height_const = image_regular.rows;
@@ -286,7 +286,7 @@ void compute_active_light_image(Mat& image_regular, Mat& image_channel_diff, Mat
 		}
 }
 
-void compute_color_segmented_image(Mat& image_in, Mat& image_out)
+void compute_color_segmented_image(Mat image_in, Mat image_out)
 {
 	const int width = image_in.cols;
 	const int height = image_in.rows;
@@ -328,7 +328,7 @@ void compute_color_segmented_image(Mat& image_in, Mat& image_out)
 	image_out = image_segmented;
 }
 
-void compute_motion_structure_image(Mat& image_in, Mat& image_out, string name)
+void compute_motion_structure_image(Mat image_in, Mat image_out, string name)
 {
 	Mat image_old = mat_functions_value_store.get_mat("image_motion_structure" + name, true);
 
@@ -350,7 +350,7 @@ void compute_motion_structure_image(Mat& image_in, Mat& image_out, string name)
 	image_out = image_subtraction;
 }
 
-void print_mat_type(Mat& image_in)
+void print_mat_type(Mat image_in)
 {
 	int type = image_in.type();
 
@@ -377,7 +377,7 @@ void print_mat_type(Mat& image_in)
 	console_log(r);
 }
 
-void put_text(string text, Mat& img, int x, int y)
+void put_text(string text, Mat img, int x, int y)
 {
 	int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
 	double fontScale = 0.5;

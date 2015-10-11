@@ -28,5 +28,5 @@ public:
 	string algo_name = "stereo_processor";
 
 	bool compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_procesosr1, PointResolver& point_resolver,
-				 PointerMapper& pointer_mapper,     Mat& image0,                       Mat& image1);
+				 PointerMapper& pointer_mapper,     Mat image0,                       Mat image1);
 };

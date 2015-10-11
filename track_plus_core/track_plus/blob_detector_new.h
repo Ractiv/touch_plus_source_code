@@ -38,10 +38,10 @@ public:
 
 	Point pt_y_max_result;
 
-	void compute(Mat& image_in, uchar gray_in, int x_min_in, int x_max_in, int y_min_in, int y_max_in, bool shallow, bool octal = 0);
-	void compute_region(Mat& image_in, uchar gray_in, vector<Point>& region_vec, bool shallow, bool octal);
-	void compute_location(Mat& image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process = 0, bool octal = 0);
-	void compute_all(Mat& image_in, bool octal);
+	void compute(Mat image_in, uchar gray_in, int x_min_in, int x_max_in, int y_min_in, int y_max_in, bool shallow, bool octal = 0);
+	void compute_region(Mat image_in, uchar gray_in, vector<Point>& region_vec, bool shallow, bool octal);
+	void compute_location(Mat image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process = 0, bool octal = 0);
+	void compute_all(Mat image_in, bool octal);
 	void sort_blobs_by_count();
 	void sort_blobs_by_angle(Point& pivot);
 	void sort_blobs_by_x();

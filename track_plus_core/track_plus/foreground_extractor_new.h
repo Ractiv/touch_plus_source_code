@@ -38,5 +38,5 @@ public:
 
 	int count_result = 0;
 
-	bool compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize);
+	bool compute(Mat image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize);
 };

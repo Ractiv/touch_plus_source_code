@@ -600,7 +600,7 @@ void Reprojector::compute_y_bounds()
 	y_bottom1 = j_hit_bottom1;
 }
 
-void Reprojector::y_align(Mat& image0, Mat& image1, bool interpolate)
+void Reprojector::y_align(Mat image0, Mat image1, bool interpolate)
 {
 	float scale = (float)image0.cols / WIDTH_LARGE;
 

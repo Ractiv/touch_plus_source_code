@@ -18,7 +18,7 @@
 
 #include "contour_functions.h"
 
-vector<vector<Point>> legacyFindContours(Mat& Segmented)
+vector<vector<Point>> legacyFindContours(Mat Segmented)
 {
 	IplImage        SegmentedIpl = Segmented;
 	CvMemStorage*   storage = cvCreateMemStorage(0);

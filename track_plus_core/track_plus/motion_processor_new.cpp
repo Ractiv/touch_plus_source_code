@@ -26,7 +26,7 @@ float subtraction_threshold_ratio = 0.20;
 int gray_threshold_range = 20;
 float alpha = 1;
 
-bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
+bool MotionProcessorNew::compute(Mat image_in,             Mat image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
 	if (value_store->get_bool("first_pass", false) == false)
@@ -936,7 +936,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 	return ret_val;
 }
 
-inline void MotionProcessorNew::fill_image_background_static(const int x, const int y, Mat& image_in)
+inline void MotionProcessorNew::fill_image_background_static(const int x, const int y, Mat image_in)
 {
 	if (!compute_background_static)
 		return;

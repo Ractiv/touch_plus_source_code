@@ -26,8 +26,8 @@ const int window_height = 20;
 const int window_width_half = window_width / 2;
 const int window_height_half = window_height / 2;
 
-Point2f do_resolve(Point& pt_in,                    Mat& image_in,
-	               Mat& image_background_in,        const uchar diff_threshold,
+Point2f do_resolve(Point& pt_in,                    Mat image_in,
+	               Mat image_background_in,        const uchar diff_threshold,
 			   	   const uchar gray_threshold_left, const uchar gray_threshold_right,
 				   Reprojector* reprojector,        const uchar side,
 										  		    const int x_separator_middle)
@@ -166,7 +166,7 @@ PointResolver::PointResolver(MotionProcessorNew& _motion_processor0, MotionProce
 	reprojector = &_reprojector;
 }
 
-Point2f PointResolver::compute(Point pt, Mat& image_color, uchar side)
+Point2f PointResolver::compute(Point pt, Mat image_color, uchar side)
 {
 	MotionProcessorNew* motion_processor;
 	if (side == 0)
