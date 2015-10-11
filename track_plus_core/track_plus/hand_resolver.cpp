@@ -20,7 +20,7 @@
 
 void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorNew& mono_processor1,
 						   MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1,
-						   Mat image0, 					      Mat image1,
+						   Mat& image0, 					      Mat& image1,
 						   Reprojector& reprojector,              bool visualize)
 {
 	Mat image_visualization0;
@@ -93,8 +93,8 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 	}
 }
 
-Point2f HandResolver::increase_resolution(Point& pt_in,                    Mat image_in,
-										  Mat image_background_in,        const uchar diff_threshold,
+Point2f HandResolver::increase_resolution(Point& pt_in,                    Mat& image_in,
+										  Mat& image_background_in,        const uchar diff_threshold,
 										  const uchar gray_threshold_left, const uchar gray_threshold_right,
 										  Reprojector& reprojector,        const uchar side,
 										  							       const int x_separator_middle)

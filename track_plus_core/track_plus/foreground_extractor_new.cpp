@@ -19,7 +19,7 @@
 #include "foreground_extractor_new.h"
 #include "mat_functions.h"
 
-bool ForegroundExtractorNew::compute(Mat image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize)
+bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
 	if (value_store.get_bool("first_pass", false) == false)
 	{

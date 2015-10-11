@@ -26,5 +26,5 @@ using namespace cv;
 using namespace std;
 
 Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool stereo);
-float compute_dtw(Mat cost_mat);
-vector<Point> compute_dtw_indexes(Mat cost_mat);
+float compute_dtw(Mat& cost_mat);
+vector<Point> compute_dtw_indexes(Mat& cost_mat);

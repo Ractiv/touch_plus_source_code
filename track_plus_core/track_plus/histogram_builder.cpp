@@ -18,7 +18,7 @@
 
 #include "histogram_builder.h"
 
-void HistogramBuilder::compute_vertical(Mat image_in, Mat image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
+void HistogramBuilder::compute_vertical(Mat& image_in, Mat& image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
 {
 	x_min = 0;
 	x_max = 0;
@@ -53,7 +53,7 @@ void HistogramBuilder::compute_vertical(Mat image_in, Mat image_out, int gaussia
 	threshold(image_out, image_out, 150, 254, THRESH_BINARY);
 }
 
-void HistogramBuilder::compute_vertical(vector<int>& vec, Mat image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
+void HistogramBuilder::compute_vertical(vector<int>& vec, Mat& image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
 {
 	x_min = 0;
 	x_max = 0;
@@ -85,7 +85,7 @@ void HistogramBuilder::compute_vertical(vector<int>& vec, Mat image_out, int gau
 	threshold(image_out, image_out, 150, 254, THRESH_BINARY);
 }
 
-void HistogramBuilder::compute_horizontal(Mat image_in, Mat image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
+void HistogramBuilder::compute_horizontal(Mat& image_in, Mat& image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
 {
 	x_min = 9999;
 	x_max = 0;
@@ -120,7 +120,7 @@ void HistogramBuilder::compute_horizontal(Mat image_in, Mat image_out, int gauss
 	threshold(image_out, image_out, 150, 254, THRESH_BINARY);
 }
 
-void HistogramBuilder::compute_horizontal(vector<int>& vec, Mat image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
+void HistogramBuilder::compute_horizontal(vector<int>& vec, Mat& image_out, int gaussian_val, int& x_min, int& x_max, int& y_min, int& y_max)
 {
 	x_min = 9999;
 	x_max = 0;

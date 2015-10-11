@@ -33,5 +33,5 @@ public:
 
 	int y_reflection;
 
-	void init(Mat image0);
+	void init(Mat& image0);
 };

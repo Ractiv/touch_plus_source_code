@@ -57,7 +57,7 @@ public:
 	string name = "";
 
 	BlobNew();
-	BlobNew(Mat image_atlas_in, const ushort atlas_id_in);
+	BlobNew(Mat& image_atlas_in, const ushort atlas_id_in);
 
 	void add(const int i, const int j);
 	void compute();
@@ -65,5 +65,5 @@ public:
 	int compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_diff_in, const int dilate_num);
 	float compute_min_dist(Point pt_in, bool accurate, Point* pt_out = NULL);
 	Point compute_median_point();
-	void fill(Mat image_in, const uchar gray_in, bool check_bounds = false);
+	void fill(Mat& image_in, const uchar gray_in, bool check_bounds = false);
 };

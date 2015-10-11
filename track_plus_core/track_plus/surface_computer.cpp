@@ -18,7 +18,7 @@
 
 #include "surface_computer.h"
 
-void SurfaceComputer::init(Mat image0)
+void SurfaceComputer::init(Mat& image0)
 {
 	Mat image_bright = image0;
 	// Mat image_bright = Mat::zeros(image0.size(), CV_8UC3);

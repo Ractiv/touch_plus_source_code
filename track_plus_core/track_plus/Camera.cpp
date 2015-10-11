@@ -23,7 +23,7 @@
 #define TP_CAMERA_PID   "0107"
 #define USE_DIRECT_SHOW 0
 
-function<void (Mat image_in)> Camera::callback;
+function<void (Mat& image_in)> Camera::callback;
 
 unsigned char * myBuffer;
 Mat image_out = Mat(480, 1280, CV_8UC3);
@@ -32,7 +32,7 @@ void * pHandle = NULL;
 
 Camera::Camera(){}
 
-Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat image_in)> callback_in)
+Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in)
 {
     height = _height;
     width = _width;

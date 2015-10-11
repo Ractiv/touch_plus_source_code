@@ -18,7 +18,7 @@
 
 #include "blob_detector_new.h"
 
-void BlobDetectorNew::compute(Mat image_in, uchar gray_in, int x_min_in, int x_max_in, int y_min_in, int y_max_in, bool shallow, bool octal)
+void BlobDetectorNew::compute(Mat& image_in, uchar gray_in, int x_min_in, int x_max_in, int y_min_in, int y_max_in, bool shallow, bool octal)
 {
 	x_min_result = 9999;
 	x_max_result = 0;
@@ -151,7 +151,7 @@ void BlobDetectorNew::compute(Mat image_in, uchar gray_in, int x_min_in, int x_m
 			blob.fill(image_clone, gray_in);
 }
 
-void BlobDetectorNew::compute_region(Mat image_in, uchar gray_in, vector<Point>& region_vec, bool shallow, bool octal)
+void BlobDetectorNew::compute_region(Mat& image_in, uchar gray_in, vector<Point>& region_vec, bool shallow, bool octal)
 {
 	x_min_result = 9999;
 	x_max_result = 0;
@@ -271,7 +271,7 @@ void BlobDetectorNew::compute_region(Mat image_in, uchar gray_in, vector<Point>&
 			blob.fill(image_clone, gray_in);
 }
 
-void BlobDetectorNew::compute_location(Mat image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process, bool octal)
+void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process, bool octal)
 {
 	if (in_process == false)
 	{
@@ -397,7 +397,7 @@ void BlobDetectorNew::compute_location(Mat image_in, const uchar gray_in, const 
 			blob.fill(image_clone, gray_in);
 }
 
-void BlobDetectorNew::compute_all(Mat image_in, bool octal)
+void BlobDetectorNew::compute_all(Mat& image_in, bool octal)
 {
 	x_min_result = 9999;
 	x_max_result = 0;

@@ -23,7 +23,7 @@ struct compare_blob_pair_overlap
 };
 
 void compute_stereo_overlap(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
-							PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat image0, Mat image1)
+							PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1)
 {
 	Point pt_y_max0 = get_y_max_point(mono_processor0.fingertip_points);
 	Point pt_y_max1 = get_y_max_point(mono_processor1.fingertip_points);

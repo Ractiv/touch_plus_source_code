@@ -81,7 +81,7 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool stereo)
 	return cost_mat;
 }
 
-float compute_dtw(Mat cost_mat)
+float compute_dtw(Mat& cost_mat)
 {
 	if (cost_mat.cols == 0 || cost_mat.rows == 0)
 		return FLT_MAX;
@@ -121,7 +121,7 @@ float compute_dtw(Mat cost_mat)
 	return cost_mat.ptr<float>(j_max - 1, i_max - 1)[0];
 }
 
-vector<Point> compute_dtw_indexes(Mat cost_mat)
+vector<Point> compute_dtw_indexes(Mat& cost_mat)
 {
 	vector<Point> seed_vec;
 	if (cost_mat.cols == 0 || cost_mat.rows == 0)

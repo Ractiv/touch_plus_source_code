@@ -49,5 +49,5 @@ public:
 	Mat remap(Mat* const image_in, const int x_offset, const int y_offset, const uchar side, Point& pt_offset);
 	Point remap_point(Point& pt_in, const uchar side, const uchar scale);
 	void compute_y_bounds();
-	void y_align(Mat image0, Mat image1, bool interpolate);
+	void y_align(Mat& image0, Mat& image1, bool interpolate);
 };

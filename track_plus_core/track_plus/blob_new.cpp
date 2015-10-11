@@ -20,7 +20,7 @@
 
 BlobNew::BlobNew(){}
 
-BlobNew::BlobNew(Mat image_atlas_in, const ushort atlas_id_in)
+BlobNew::BlobNew(Mat& image_atlas_in, const ushort atlas_id_in)
 {
 	image_atlas = image_atlas_in;
 	atlas_id = atlas_id_in;
@@ -165,7 +165,7 @@ Point BlobNew::compute_median_point()
 	return Point(x_vec[x_vec.size() / 2], y_vec[y_vec.size() / 2]);
 }
 
-void BlobNew::fill(Mat image_in, const uchar gray_in, bool check_bounds)
+void BlobNew::fill(Mat& image_in, const uchar gray_in, bool check_bounds)
 {
 	if (!check_bounds)
 	{
