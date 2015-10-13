@@ -74,60 +74,35 @@ int BlobNew::compute_overlap(BlobNew& blob_in)
 	return overlap_count;
 }
 
-Mat image_blob_dilated0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-Mat image_blob_dilated1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-uchar blob_fill_gray = 0;
-
 int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_diff_in, const int dilate_num)
 {
-	++blob_fill_gray;
-	if (blob_fill_gray == 255)
+	const int i_max = blob_in.x_max + dilate_num + 10 + x_diff_in;
+	const int j_max = blob_in.y_max + dilate_num + 10 + y_diff_in;
+
+	Mat image_blob_in = Mat::zeros(j_max, i_max, CV_8UC1);
+	for (Point& pt : blob_in.data)
 	{
-		image_blob_dilated0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-		image_blob_dilated1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-		blob_fill_gray = 1;
+		int i = pt.x + x_diff_in;
+		int j = pt.y + y_diff_in;
+
+		if (i < 0 || i >= i_max || j < 0 || j >= j_max)
+			continue;
+
+		image_blob_in.ptr<uchar>(j, i)[0] = 254;
 	}
 
-	fill(image_blob_dilated0, blob_fill_gray);
-	dilate(image_blob_dilated0, image_blob_dilated0, Mat(), Point(-1, -1), dilate_num);
-
-	blob_in.fill(image_blob_dilated1, blob_fill_gray);
-	dilate(image_blob_dilated1, image_blob_dilated1, Mat(), Point(-1, -1), dilate_num);
-
-	int i_min = x_min - dilate_num;
-	if (i_min < 0)
-		i_min = 0;
-
-	int i_max = x_max + dilate_num;
-	if (i_max > WIDTH_SMALL_MINUS)
-		i_max = WIDTH_SMALL_MINUS;
-
-	int j_min = y_min - dilate_num;
-	if (j_min < 0)
-		j_min = 0;
-
-	int j_max = y_max + dilate_num;
-	if (j_max > HEIGHT_SMALL_MINUS)
-		j_max = HEIGHT_SMALL_MINUS;
-
-	const int i_max_const = i_max;
-	const int j_max_const = j_max;
+	dilate(image_blob_in, image_blob_in, Mat(), Point(-1, -1), dilate_num);
 
 	int overlap_count = 0;
-	for (int i = i_min; i <= i_max_const; ++i)
-		for (int j = j_min; j <= j_max_const; ++j)
-			if (image_blob_dilated0.ptr<uchar>(j, i)[0] == blob_fill_gray)
-			{
-				const int j_shifted = j + y_diff_in;
-				const int i_shifted = i + x_diff_in;
+	for (Point& pt : data)
+	{
+		if (pt.x >= i_max || pt.y >= j_max)
+			continue;
+		
+		if (image_blob_in.ptr<uchar>(pt.y, pt.x)[0] > 0)
+			++overlap_count;
+	}
 
-				if (j_shifted > HEIGHT_SMALL_MINUS || i_shifted > WIDTH_SMALL_MINUS || j_shifted < 0 || i_shifted < 0)
-					continue;
-
-				if (image_blob_dilated1.ptr<uchar>(j_shifted, i_shifted)[0] == blob_fill_gray)
-					++overlap_count;
-			}
-			
 	return overlap_count;
 }
 

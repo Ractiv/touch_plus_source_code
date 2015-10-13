@@ -31,9 +31,7 @@
 #include "foreground_extractor_new.h"
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
-#include "stereo_processor_dtw.h"
-#include "stereo_processor_permutation.h"
-#include "stereo_processor_overlap.h"
+#include "stereo_processor.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -91,7 +89,7 @@ HandSplitterNew hand_splitter1;
 MonoProcessorNew mono_processor0;
 MonoProcessorNew mono_processor1;
 
-StereoProcessorDTW stereo_processor_dtw;
+StereoProcessor stereo_processor;
 
 PoseEstimator pose_estimator;
 
@@ -516,11 +514,7 @@ void compute()
     }
 
     if (proceed)
-    {
-        // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        compute_stereo_overlap(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-    }
+        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
 
     if (enable_imshow)
         waitKey(1);
