@@ -19,6 +19,14 @@
 #include "foreground_extractor_new.h"
 #include "mat_functions.h"
 
+struct compare_point_x
+{
+	inline bool operator() (const Point pt0_in, const Point pt1_in)
+	{
+		return pt0_in.x < pt1_in.x;
+	}
+};
+
 bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
 	if (value_store.get_bool("first_pass", false) == false)
@@ -47,6 +55,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	const int diff_threshold = motion_processor.diff_threshold;
 	Mat image_background_static = motion_processor.image_background_static;
 
+	//------------------------------------------------------------------------------------------------------------------------
+
 	image_foreground = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	for (int i = 0; i < WIDTH_SMALL; ++i)
@@ -65,6 +75,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		}
 
 	threshold(image_foreground, image_foreground, diff_threshold, 254, THRESH_BINARY);
+
+	//------------------------------------------------------------------------------------------------------------------------
+
 	blob_detector.compute(image_foreground, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, false);
 
 	int x_min_result_temp = 9999;
@@ -109,6 +122,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		count_result = count_result_temp;
 	}
 
+	//------------------------------------------------------------------------------------------------------------------------
+
 	if (motion_processor.will_compute_next_frame && !value_store.get_bool("pass", false))
 	{
 		value_store.set_bool("pass", true);
@@ -124,6 +139,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 				if (image_foreground_processed.ptr<uchar>(j, i)[0] > 0)
 					image_background_static.ptr<uchar>(j, i)[0] = 255;
 	}
+
+	//------------------------------------------------------------------------------------------------------------------------
 
 	if (visualize && enable_imshow)
 	{

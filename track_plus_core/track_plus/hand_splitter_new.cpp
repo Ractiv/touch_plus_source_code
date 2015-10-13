@@ -55,15 +55,13 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 			blob.fill(image_find_contours, 254);
 
 	vector<vector<Point>> contours = legacyFindContours(image_find_contours);
+	
 	if (contours.size() == 0)
 		return false;
 
 	int complexity = 0;
 	for (vector<Point>& contour : contours)
 	{
-		if (contour.size() <= 1)
-			continue;
-
 		vector<Point> contour_approximated;
 		approxPolyDP(Mat(contour), contour_approximated, 10, false);
 		complexity += contour_approximated.size();

@@ -21,13 +21,6 @@
 #include "motion_processor_new.h"
 #include "foreground_extractor_new.h"
 
-struct Uchar3D
-{
-	uchar uchar0;
-	uchar uchar1;
-	uchar uchar2;
-};
-
 class HandSplitterNew
 {
 public:

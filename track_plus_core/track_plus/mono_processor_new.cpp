@@ -559,6 +559,16 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_concave_indexed.z > index_begin && pt_concave_indexed.z < index_end) ||
 						(pt_concave_indexed.z < index_begin && pt_concave_indexed.z > index_end))
 					{
+						float dist_to_convex0 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
+															 Point(pt_convex_indexed0.x, pt_convex_indexed0.y), true);
+
+						float dist_to_convex1 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
+															 Point(pt_convex_indexed1.x, pt_convex_indexed1.y), true);
+
+						float dist_to_convex_max = max(dist_to_convex0, dist_to_convex1);
+						if (dist_to_convex_max <= 5)
+							continue;
+
 						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), palm_point, false);
 						if (dist < dist_min)
 						{
@@ -883,7 +893,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 	}
 
-	vector<Point> skeleton_points = thinning_computer.compute_thinning(image_skeleton, subject_points);
+	vector<Point> skeleton_points = thinning_computer.compute_thinning(image_skeleton, subject_points, 10);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1040,7 +1050,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			}
 		}
-		imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
 	}
 	{
 		int index = 0;
