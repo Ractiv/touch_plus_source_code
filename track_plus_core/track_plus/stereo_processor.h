@@ -7,6 +7,8 @@
 class StereoProcessor
 {
 public:
-void compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
-			 PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1);
+	ValueStore value_store;
+
+	void compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
+				 PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1);
 };

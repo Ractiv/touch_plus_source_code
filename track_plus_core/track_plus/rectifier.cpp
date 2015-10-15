@@ -1213,8 +1213,11 @@ int compare(const void * a, const void * b)
 void CRectifier::Transform2(Mat image, int extLCol, int extRCol, int extTRow, int extBRow, string fileName)
 {
 	FILE *file1;
-	string txtFileName ("rect");
-	txtFileName = txtFileName + fileName[0] + ".txt";
+
+	string txtFileName("rect");
+	txtFileName = fileName.substr(0, fileName.size() - 1) + slash + txtFileName + fileName[fileName.size() - 1] + ".txt";
+	console_log("output file: " + txtFileName);
+
 	file1 = fopen(txtFileName.c_str(), "w+");
 
 	double cellHeight = double(image.rows) / double(patternSize.height + extTRow + extBRow - 1);

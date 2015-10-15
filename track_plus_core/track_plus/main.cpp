@@ -22,7 +22,7 @@
 
 #include "globals.h"
 #include "ipc.h"
-#include "Camera.h"
+#include "camera.h"
 #include "imu.h"
 #include "surface_computer.h"
 #include "mat_functions.h"
@@ -32,6 +32,8 @@
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
 #include "stereo_processor.h"
+#include "stereo_processor_permutation.h"
+#include "temporal_processor.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -90,6 +92,8 @@ MonoProcessorNew mono_processor0;
 MonoProcessorNew mono_processor1;
 
 StereoProcessor stereo_processor;
+
+TemporalProcessor temporal_processor;
 
 PoseEstimator pose_estimator;
 
@@ -509,12 +513,16 @@ void compute()
     if (proceed)
     {
         proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", false);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
         proceed = proceed0 && proceed1;
     }
 
     if (proceed)
+    {
+        // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
         stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+        temporal_processor.compute(stereo_processor);
+    }
 
     if (enable_imshow)
         waitKey(1);

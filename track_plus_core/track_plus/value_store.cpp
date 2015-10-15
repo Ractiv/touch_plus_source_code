@@ -46,6 +46,13 @@ void ValueStore::set_point2f(string name, Point2f value)
 	float_map[name + "y"] = value.y;
 }
 
+void ValueStore::set_point3f(string name, Point3f value)
+{
+	float_map[name + "x"] = value.x;
+	float_map[name + "y"] = value.y;
+	float_map[name + "z"] = value.z;
+}
+
 void ValueStore::set_mat(string name, Mat value)
 {
 	mat_map[name] = value;
@@ -180,6 +187,18 @@ Point2f ValueStore::get_point2f(string name, Point2f if_not_exist_result)
 	}
 
 	return Point2f(float_map[name + "x"], float_map[name + "y"]);
+}
+
+Point3f ValueStore::get_point3f(string name, Point3f if_not_exist_result)
+{
+	if (float_map.count(name + "z") == 0)
+	{
+		float_map[name + "x"] = if_not_exist_result.x;
+		float_map[name + "y"] = if_not_exist_result.y;
+		float_map[name + "z"] = if_not_exist_result.z;
+	}
+
+	return Point3f(float_map[name + "x"], float_map[name + "y"], float_map[name + "z"]);
 }
 
 Mat ValueStore::get_mat(string name, bool if_not_exist_return_zero_mat)

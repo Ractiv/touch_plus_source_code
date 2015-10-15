@@ -22,7 +22,7 @@
 #include <Windows.h>
 #include "EtronDI_O.h"
 #include "eSPAEAWBCtrl.h"
-#include "CameraDS.h"
+#include "camerads.h"
 
 #elif __APPLE__
 #include "libusb.h"

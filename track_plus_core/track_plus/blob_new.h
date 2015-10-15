@@ -48,6 +48,8 @@ public:
 
 	bool active = true;
 
+	float dist = -1;
+
 	Point pt_y_min = Point(0, 9999);
 	Point pt_y_max = Point(0, 0);
 	Point pt_x_min = Point(9999, 0);

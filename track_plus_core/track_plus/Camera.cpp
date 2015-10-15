@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-#include "Camera.h"
+#include "camera.h"
 #include "console_log.h"
 
 #define TP_CAMERA_VID   "1e4e"

@@ -38,13 +38,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\c_tracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\camera_initializer_new.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\CameraDS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\contour_functions.h">
@@ -104,16 +98,10 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\permutation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\Plane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\pointer_mapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\track_plus_core\track_plus\Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h">
@@ -170,6 +158,21 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\plane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\camerads.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\temporal_processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp">
@@ -190,13 +193,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\c_tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\camera_initializer_new.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\CameraDS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\contour_functions.cpp">
@@ -253,9 +250,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\permutation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\Plane.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\pointer_mapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -263,9 +257,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\track_plus_core\track_plus\Ray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp">
@@ -320,6 +311,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\plane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\ray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\camerads.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\temporal_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

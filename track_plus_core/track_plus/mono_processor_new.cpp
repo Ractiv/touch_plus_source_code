@@ -808,6 +808,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		float min_dist = 9999;
 		for (BlobNew& blob : *blob_detector_image_palm_segmented->blobs)
 		{
+			if (!blob.active)
+				continue;
+
 			float dist = blob.compute_min_dist(Point(pt.x, pt.y), NULL, false);
 			if (dist < min_dist)
 			{
@@ -948,6 +951,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	unordered_map<ushort, vector<Point>> skeleton_parts_map;
 	unordered_map<ushort, vector<Point>> skeleton_extensions_map;
 
+	float dist_to_palm_max = -1;
+
 	for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
 	{
 		bool overlap_found = false;
@@ -994,6 +999,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			if (to_break)
 				break;
 		}
+
 		if (pt_origin.x != -1)
 		{
 			blob_detector_image_skeleton_parts->compute_location(image_skeleton_segmented, 254, pt_origin.x, pt_origin.y, true, false, true);
@@ -1033,7 +1039,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			if (!caught_between_2_centers)
 			{
 				const int index_start = blob_detector_image_skeleton_parts->blob_max_size->count >= 10 ? 
-											blob_detector_image_skeleton_parts->blob_max_size->count * 0.7 : 0;
+										blob_detector_image_skeleton_parts->blob_max_size->count * 0.7 : 0;
 
 				const int index_end = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
 
@@ -1047,10 +1053,40 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 					skeleton_parts_map[overlap_blob->atlas_id] = blob.data;
 					skeleton_extensions_map[overlap_blob->atlas_id] = extension_line_vec;
+
+					//---------------------------------------------------------------------------------------------------
+
+					Point pt_first = blob_detector_image_skeleton_parts->blob_max_size->data[0];
+					float dist_to_palm = get_distance(pt_first, pt_palm, true);
+					dist_to_palm = dist_to_palm + blob_detector_image_skeleton_parts->blob_max_size->count - palm_radius;
+
+					if (dist_to_palm > dist_to_palm_max)
+						dist_to_palm_max = dist_to_palm;
+
+					overlap_blob->dist = dist_to_palm;
 				}
 			}
 		}
 	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	if (dist_to_palm_max != -1)
+	{
+		float dist_ratio_min = 9999;
+		for (BlobNew& blob : fingertip_blobs)
+		{
+			if (blob.dist == -1)
+				blob.dist = get_distance(blob.pt_y_max, pt_palm, true);
+
+			float dist_ratio = blob.dist / dist_to_palm_max;
+			if (dist_ratio < 0.1)
+				blob.active = false;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	{
 		int index = 0;
 		for (BlobNew& blob : fingertip_blobs)
@@ -1067,7 +1103,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if (image_active_hand.ptr<uchar>(pt.y, pt.x)[0] == 0)
 					{
 						fingertip_point_pushed = true;
-						fingertip_points.push_back(pt);
+						fingertip_points.push_back(blob.active ? pt : Point(-1, -1));
 						blob.pt_tip = pt;
 						break;					
 					}
@@ -1075,7 +1111,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 			if (!fingertip_point_pushed)
 			{
-				fingertip_points.push_back(fingertip_convexities[index]);
+				fingertip_points.push_back(blob.active ? fingertip_convexities[index] : Point(-1, -1));
 				blob.pt_tip = fingertip_convexities[index];
 			}
 			++index;
@@ -1193,7 +1229,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	if (visualize)
 	{
 		for (Point& pt : fingertip_points)
+		{
+			if (pt.x == -1)
+				continue;
+
 			circle(image_palm_segmented, pt, 3, Scalar(64), -1);
+		}
 
 		imshow("image_palm_segmented" + name, image_palm_segmented);
 		// imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);

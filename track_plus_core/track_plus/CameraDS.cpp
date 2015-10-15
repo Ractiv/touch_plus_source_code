@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-#include "CameraDS.h"
+#include "cameraDS.h"
 
 #pragma comment(lib,"Strmiids.lib") 
 

@@ -79,6 +79,9 @@ int BlobNew::compute_overlap(BlobNew& blob_in, const int x_diff_in, const int y_
 	const int i_max = blob_in.x_max + dilate_num + 10 + x_diff_in;
 	const int j_max = blob_in.y_max + dilate_num + 10 + y_diff_in;
 
+	if (i_max < 1 || j_max < 1)
+		return 0;
+
 	Mat image_blob_in = Mat::zeros(j_max, i_max, CV_8UC1);
 	for (Point& pt : blob_in.data)
 	{

@@ -93,16 +93,21 @@ void Reprojector::load(IPC& ipc, bool flipped)
 	}
 
 	bool has_complete_calib_data = false;
+	bool has_downloaded_data = false;
 
 	if (directory_exists(data_path_current_module))
 		if (file_exists(data_path_current_module + slash + "0.jpg"))
 			if (file_exists(data_path_current_module + slash + "1.jpg"))
 				if (file_exists(data_path_current_module + slash + "stereoCalibData.txt"))
+				{
 					if (file_exists(data_path_current_module + slash + "rect0.txt"))
 						if (file_exists(data_path_current_module + slash + "rect1.txt"))
 							has_complete_calib_data = true;
 
-	if (!has_complete_calib_data)
+					has_downloaded_data = true;
+				}
+
+	if (!has_downloaded_data)
 	{
 		static bool block_thread = true;
    	 	ipc.send_message("menu_plus", "set status", "downloading calibration data");
@@ -121,6 +126,8 @@ void Reprojector::load(IPC& ipc, bool flipped)
        	if (!directory_exists(data_path_current_module))
         	create_directory(data_path_current_module);
 
+        console_log("downloading 0.jpg");
+
 		//http://s3-us-west-2.amazonaws.com/ractiv.com/data/
 		//http://d2i9bzz66ghms6.cloudfront.net/data/
 
@@ -132,42 +139,43 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		ipc.get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)
 		{
 			if (message_body == "false")
+			{
+				console_log("0.jpg download failed");
 				ipc_ptr->send_message("daemon_plus", "exit", "");
+			}
 			else
 			{
+				console_log("0.jpg download succeeded");
+				console_log("downloading 1.jpg");
+
 				string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + *serial_ptr + "/1.jpg";
 				string param1 = data_path_current_module + slash + "1.jpg";
 
 				ipc_ptr->get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)
 				{
 					if (message_body == "false")
+					{
+						console_log("1.jpg download failed");
 						ipc_ptr->send_message("daemon_plus", "exit", "");
+					}
 					else
 					{
+						console_log("1.jpg download succeeded");
+						console_log("downloading stereoCalibData.txt");
+
 						string param0 = "http://d2i9bzz66ghms6.cloudfront.net/data/" + *serial_ptr + "/stereoCalibData.txt";
 						string param1 = data_path_current_module + slash + "stereoCalibData.txt";
 
 						ipc_ptr->get_response("menu_plus", "download", param0 + "`" + param1, [serial_ptr, ipc_ptr](const string message_body)
 						{
 							if (message_body == "false")
+							{
+								console_log("stereoCalibData.txt download failed");
 								ipc_ptr->send_message("daemon_plus", "exit", "");
+							}
 							else
 							{
-								bool has_complete_calib_data = false;
-								while (!has_complete_calib_data)
-								{
-									compute_rectification_data(data_path_current_module + slash + "0");
-									compute_rectification_data(data_path_current_module + slash + "1");
-
-									if (directory_exists(data_path_current_module))
-										if (file_exists(data_path_current_module + slash + "0.jpg"))
-											if (file_exists(data_path_current_module + slash + "1.jpg"))
-												if (file_exists(data_path_current_module + slash + "stereoCalibData.txt"))
-													if (file_exists(data_path_current_module + slash + "rect0.txt"))
-														if (file_exists(data_path_current_module + slash + "rect1.txt"))
-															has_complete_calib_data = true;
-								}
-
+								console_log("stereoCalibData.txt download succeeded");
 								block_thread = false;
 							}
 						});
@@ -180,6 +188,42 @@ void Reprojector::load(IPC& ipc, bool flipped)
 
 		while (block_thread)
 			Sleep(100);
+	}
+
+	while (!has_complete_calib_data)
+	{
+		console_log("computing rectification matrix 0");
+		compute_rectification_data(data_path_current_module + slash + "0");
+
+		console_log("computing rectification matrix 1");
+		compute_rectification_data(data_path_current_module + slash + "1");
+
+		console_log("verifying data path integrity");
+		if (!directory_exists(data_path_current_module))
+			continue;
+
+		console_log("succeeded 0");
+		if (!file_exists(data_path_current_module + slash + "0.jpg"))
+			continue;
+
+		console_log("succeeded 1");
+		if (!file_exists(data_path_current_module + slash + "1.jpg"))
+			continue;
+
+		console_log("succeeded 2");
+		if (!file_exists(data_path_current_module + slash + "stereoCalibData.txt"))
+			continue;
+
+		console_log("succeeded 3");
+		if (!file_exists(data_path_current_module + slash + "rect0.txt"))
+			continue;
+
+		console_log("succeeded 4");
+		if (!file_exists(data_path_current_module + slash + "rect1.txt"))
+			continue;
+
+		console_log("succeeded 5");
+		has_complete_calib_data = true;
 	}
 
 	ifstream file_stereo_calib_data(data_path_current_module + slash + "stereoCalibData.txt");

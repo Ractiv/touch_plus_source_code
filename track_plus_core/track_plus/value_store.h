@@ -69,6 +69,7 @@ public:
 	void set_int(string name, int value);
 	void set_point(string name, Point value);
 	void set_point2f(string name, Point2f value);
+	void set_point3f(string name, Point3f value);
 	void set_mat(string name, Mat value);
 
 	vector<int>* push_int(string name, int value);
@@ -82,6 +83,7 @@ public:
 	int get_int(string name, int if_not_exist_result = 0);
 	Point get_point(string name, Point if_not_exist_result = Point(0, 0));
 	Point2f get_point2f(string name, Point2f if_not_exist_result = Point2f(0, 0));
+	Point3f get_point3f(string name, Point3f if_not_exist_result = Point3f(0, 0, 0));
 	Mat get_mat(string name, bool if_not_exist_return_zero_mat = false);
 
 	vector<int>* get_int_vec(string name);
