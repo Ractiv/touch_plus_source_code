@@ -32,7 +32,7 @@ struct compare_blob_pair_overlap
 };
 
 void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
-							  PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1)
+							  PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1, bool visualize)
 {
 	Point pt_y_max0 = get_y_max_point(mono_processor0.fingertip_points);
 	Point pt_y_max1 = get_y_max_point(mono_processor1.fingertip_points);
@@ -52,7 +52,7 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 			float y_diff = blob0.y_max - blob1.y_max;
 			float y_diff_diff = abs(y_diff - alignment_y_diff) + 1;
 			float dist = get_distance(blob0.pt_tip, Point(blob1.pt_tip.x + alignment_x_diff, blob1.pt_tip.y + alignment_y_diff), true) + 1;
-			float overlap_real = blob0.compute_overlap(blob1, alignment_x_diff, alignment_y_diff, 1);
+			float overlap_real = blob0.compute_overlap(blob1, alignment_x_diff, alignment_y_diff, 2);
 			float overlap = overlap_real * 1000 / y_diff_diff / dist;
 			blob_pair_vec.push_back(BlobPairOverlap(&blob0, &blob1, overlap, index0, index1, y_diff_diff, overlap_real));
 
@@ -76,15 +76,13 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		checker0[blob_pair.index0] = true;
 		checker1[blob_pair.index1] = true;
 
-		if (blob_pair.y_diff_diff > 10/* && blob_pair.overlap_real == 0*/)
+		if (blob_pair.y_diff_diff > 10 || blob_pair.overlap_real == 0)
 			continue;
 
 		blob_pair_vec_filtered.push_back(blob_pair);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------
-
-	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
 
 	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_processor0.pt_palm, 0, 4);
 	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_processor1.pt_palm, 1, 4);
@@ -106,6 +104,14 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 
 	//------------------------------------------------------------------------------------------------------------------------
 
+	pt3d_vec.clear();
+	confidence_vec.clear();
+	float confidence_max = -1;
+
+	Mat image_visualization;
+	if (visualize)
+		image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
+
 	for (BlobPairOverlap& blob_pair : blob_pair_vec_filtered)
 	{
 		BlobNew* blob0 = blob_pair.blob0;
@@ -120,16 +126,25 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		if (pt_resolved0.x == 9999 || pt_resolved1.x == 9999)
 			continue;
 
-#if 1
 		Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
 
 		if (abs(pt3d.z - pt3d_pivot.z) >= 100)
 			continue;
 
-		circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / (pt3d.z + 1), 2), Scalar(254), 1);
-#endif
+		pt3d_vec.push_back(pt3d);
 
-#if 0
+		float confidence = min(blob0->count, blob1->count);
+		if (confidence > confidence_max)
+			confidence_max = confidence;
+
+		confidence_vec.push_back(confidence);
+
+		if (!visualize)
+			continue;
+
+		circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / (pt3d.z + 1), 2), Scalar(254), 1);
+
+#if 1
 		circle(image_visualization, pt_resolved0, 5, Scalar(127), 2);
 		circle(image_visualization, pt_resolved1, 5, Scalar(254), 2);
 		circle(image_visualization, pt_resolved_pivot0, 10, Scalar(127), 2);
@@ -145,5 +160,9 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 #endif
 	}
 
-	imshow("image_visualizationkladhflkjasdhf", image_visualization);
+	for (float& confidence : confidence_vec)
+		confidence /= confidence_max;
+
+	if (visualize)
+		imshow("image_visualizationkladhflkjasdhf", image_visualization);
 }

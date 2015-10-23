@@ -23,13 +23,24 @@ var net = require("net");
 var nw = require("nw.gui");
 
 var portRange = 45032;
+var server = null;
+
+//----------------------------------------------------------------------------------------------------
+//do some cleanup before exit
+
+process.on("exit", function()
+{
+	server.close();
+});
+
+//----------------------------------------------------------------------------------------------------
 
 function getPort(cb)
 {
 	var port = portRange;
-	portRange += 1;
+	portRange -= 1;
 
-	var server = net.createServer();
+	server = net.createServer();
 	server.listen(port, function(err)
 	{
 		server.once("close", function()

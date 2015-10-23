@@ -18,9 +18,9 @@
 
 #include "value_accumulator.h"
 
-const int value_accumulator_size_threshold = 20;
+const int value_accumulator_size_threshold = 10;
 
-void ValueAccumulator::compute(float& val, string name, int size_limit, float val_default, float ratio, bool stop_when_ready)
+float ValueAccumulator::compute(float& val, string name, int size_limit, float val_default, float ratio, bool stop_when_ready, bool overwrite)
 {
 	vector<float>* float_vec = value_store.get_float_vec(name);
 	if (float_vec->size() < size_limit && !(stop_when_ready && ready))
@@ -45,13 +45,18 @@ void ValueAccumulator::compute(float& val, string name, int size_limit, float va
 		ready = all_ready;
 	}
 
-	if (ready)
+	sort(float_vec->begin(), float_vec->end());
+	float val_new = (*float_vec)[float_vec->size() * ratio];
+
+	if (overwrite)
 	{
-		sort(float_vec->begin(), float_vec->end());
-		val = (*float_vec)[float_vec->size() * ratio];
+		if (ready)
+			val_new = val;
+		else
+			val = val_default;
 	}
-	else
-		val = val_default;
+
+	return val_new;
 }
 
 float ValueAccumulator::compute_max(float& val, string name)

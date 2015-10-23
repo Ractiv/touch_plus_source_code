@@ -31,7 +31,7 @@ public:
 
 	ValueStore value_store; 
 
-	void compute(float& val, string name, int size_limit, float val_default, float ratio, bool stop_when_ready);
+	float compute(float& val, string name, int size_limit, float val_default, float ratio, bool stop_when_ready, bool overwrite = true);
 	float compute_max(float& val, string name);
 	float compute_min(float& val, string name);
 };

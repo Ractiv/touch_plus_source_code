@@ -673,8 +673,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					while ((left_moving || right_moving) && value_accumulator.ready)
 					{
-						int x_separator_left_temp = x_separator_left - 20;
-						int x_separator_right_temp = x_separator_right + 20;
+						int x_separator_left_temp = x_separator_left - 10;
+						int x_separator_right_temp = x_separator_right + 10;
 
 						if (!value_store->get_bool("border_first_pass", false))
 						{
@@ -891,7 +891,17 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						// float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
 						float ratio_max = max(max(max(ratio2, ratio3), ratio4), ratio5);
 
-						if (ratio_max < 1)
+						float entropy = entropy_left + entropy_right;
+						low_pass_filter->compute(entropy, 0.1, "entropy");
+
+						if (entropy < 700)
+							entropy = 700;
+						if (entropy > 800)
+							entropy = 800;
+
+						const float ratio_threshold = map_val(entropy, 700, 800, 2, 1);
+
+						if (ratio_max < ratio_threshold)
 						{
 							alpha = 0.10;
 							value_store->set_bool("result", true);

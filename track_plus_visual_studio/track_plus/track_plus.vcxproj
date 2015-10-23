@@ -59,7 +59,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\ray.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\temporal_processor.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\temporal_processor_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_accumulator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
@@ -112,7 +112,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ray.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\temporal_processor.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\temporal_processor_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_accumulator.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />

@@ -108,13 +108,28 @@ struct Line
 	}
 };
 
+bool has_blob(vector<BlobNew*>& blob_vec, BlobNew* blob)
+{
+	bool found = false;
+	for (BlobNew* blob_current : blob_vec)
+		if (blob_current == blob)
+		{
+			found = true;
+			break;
+		}
+	return found;
+}
+
+void push_blob(vector<BlobNew*>& blob_vec, BlobNew* blob)
+{
+	if (!has_blob(blob_vec, blob))
+		blob_vec.push_back(blob);
+}
+
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
-	if (value_store.get_bool("first_pass", false) == false)
-	{
-		value_store.set_bool("first_pass", true);
+	if (value_store->get_bool("first_pass", false) == false)
 		algo_name += name;
-	}
 
 	bool algo_name_found = false;
 	for (String& algo_name_current : algo_name_vec_old)
@@ -129,10 +144,16 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	pt_index = Point(-1, -1);
 	pt_thumb = Point(-1, -1);
 
-	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
+	LowPassFilter* low_pass_filter = value_store->get_low_pass_filter("low_pass_filter");
 
-	if (!algo_name_found)
+	if (!algo_name_found && value_store->get_bool("first_pass", false) == true)
+	{
+		delete value_store;
+		value_store = new ValueStore();
 		low_pass_filter->reset();
+	}
+
+	value_store->set_bool("first_pass", true);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -143,8 +164,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	Mat image_palm_segmented = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-	float palm_radius = value_store.get_float("palm_radius", 1);
-	Point palm_point = value_store.get_point("palm_point");
+	float palm_radius = value_store->get_float("palm_radius", 1);
+	Point palm_point = value_store->get_point("palm_point");
 
 	Point2f palm_point_raw = Point2f(0, 0);
 	int palm_point_raw_count = 0;
@@ -298,8 +319,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	pt_palm = palm_point;
 
-	value_store.set_float("palm_radius", palm_radius);
-	value_store.set_point("palm_point", palm_point);
+	value_store->set_float("palm_radius", palm_radius);
+	value_store->set_point("palm_point", palm_point);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -681,7 +702,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	float hand_angle = get_angle(palm_point, pt_intersection_hand_direction_stereo, Point(0, palm_point.y)) - 90;
+	float hand_angle = value_store->get_float("hand_angle", 0);
 
 	RotatedRect r_rect0 = RotatedRect(palm_point, Size2f(500, 500), -hand_angle);
 	Point2f vertices0[4];
@@ -780,7 +801,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	BlobDetectorNew* blob_detector_image_palm_segmented = value_store.get_blob_detector("blob_detector_image_palm_segmented");
+	BlobDetectorNew* blob_detector_image_palm_segmented = value_store->get_blob_detector("blob_detector_image_palm_segmented");
 	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254,
 												hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
 									            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, true);
@@ -837,6 +858,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 		}
 	}
+
+	if (fingertip_blobs.size() == 0)
+		return false;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -904,6 +928,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	for (Point& pt : skeleton_points)
 		image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 254;
 
+	Mat image_skeleton_segmented1 = Mat::zeros(image_skeleton.size(), CV_8UC1);
+	for (Point& pt : skeleton_points)
+		image_skeleton_segmented1.ptr<uchar>(pt.y, pt.x)[0] = 254;
+
 	vector<Point> skeleton_branch_centers;
 
 	for (Point& pt : skeleton_points)
@@ -930,23 +958,28 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		if ((a + b + c + d) >= 3 || (e + f + g + h) >= 3 || b0 || b1 || b2 || b3 || b4 || b5 || b6 || b7)
 		{
 			circle(image_skeleton_segmented, pt, 3, Scalar(127), -1);
+			circle(image_skeleton_segmented1, pt, 3, Scalar(127), -1);
 			skeleton_branch_centers.push_back(pt);
 		}
 	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
 
 	for (BlobNew& blob : hand_splitter.blobs_right)
 		for (Point& pt : blob.data)
 			if (image_palm.ptr<uchar>(pt.y, pt.x)[0] != 127)
 				image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 127;
 
+	circle(image_skeleton_segmented1, pt_palm, palm_radius, Scalar(127), -1);
+
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
+	BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store->get_blob_detector("blob_detector_image_skeleton_segmented");
 	blob_detector_image_skeleton_segmented->compute(image_skeleton_segmented, 254,
 													hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
 										            hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, false, true);
 
-	BlobDetectorNew* blob_detector_image_skeleton_parts = value_store.get_blob_detector("blob_detector_image_skeleton_parts");
+	BlobDetectorNew* blob_detector_image_skeleton_parts = value_store->get_blob_detector("blob_detector_image_skeleton_parts");
 
 	unordered_map<ushort, vector<Point>> skeleton_parts_map;
 	unordered_map<ushort, vector<Point>> skeleton_extensions_map;
@@ -1120,125 +1153,413 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	Mat image_palm_segmented_rotated = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	Mat image_visualization = image_active_hand.clone();
+	// Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-	while (true)
+	const int x_diff_rotation = WIDTH_SMALL / 2 - palm_point.x;
+	const int y_diff_rotation = HEIGHT_SMALL / 2 - palm_point.y;
+
+	Point pt_palm_rotated = pt_palm;
+	pt_palm_rotated.x += x_diff_rotation;
+	pt_palm_rotated.y += y_diff_rotation;
+
 	{
-		if (fingertip_blobs.size() == 0)
-			break;
+		BlobDetectorNew* blob_detector_image_skeleton_segmented1 = value_store->get_blob_detector("blob_detector_image_skeleton_segmented1");
+		blob_detector_image_skeleton_segmented1->compute(image_skeleton_segmented1, 254,
+														 hand_splitter.x_min_result_right, hand_splitter.x_max_result_right,
+											             hand_splitter.y_min_result_right, hand_splitter.y_max_result_right, false, true);
 
-		Point palm_point_rotated = Point(WIDTH_SMALL / 2, HEIGHT_SMALL / 2);
-		vector<BlobNew> fingertip_blobs_rotated;
+		Mat image_sort_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+		BlobDetectorNew* blob_detector_image_sort_skeleton = value_store->get_blob_detector("blob_detector_image_sort_skeleton");
 
-		int fingertip_blobs_rotated_x_min = 9999;
-		int fingertip_blobs_rotated_x_max = -1;
-		int fingertip_blobs_rotated_y_min = 9999;
-		int fingertip_blobs_rotated_y_max = -1;
+		float angle_mean = 0;
+		int angle_count = 0;
 
-		const int x_diff = WIDTH_SMALL / 2 - palm_point.x;
-		const int y_diff = HEIGHT_SMALL / 2 - palm_point.y;
-
-		Mat image_atlas_rotated = Mat::zeros(fingertip_blobs[0].image_atlas.size(), CV_16UC1);
-
-		int index = 0;
+		int index = -1;
 		for (BlobNew& blob : fingertip_blobs)
 		{
-			fingertip_blobs_rotated.push_back(BlobNew(image_atlas_rotated, blob.atlas_id));
-			BlobNew* blob_rotated = &(fingertip_blobs_rotated[fingertip_blobs_rotated.size() - 1]);
+			++index;
+			if (skeleton_extensions_map.count(blob.atlas_id) > 0)
+			{
+				vector<Point> extension_line_vec = skeleton_extensions_map[blob.atlas_id];
+				Point pt0 = extension_line_vec[0];
+				Point pt1 = extension_line_vec[extension_line_vec.size() - 1];
+				Point pt2 = Point(0, pt0.y);
+				float angle = get_angle(pt0, pt1, pt2) - 90;
 
-			blob_rotated->name = "?";
-			blob_rotated->index = index;
+				int xw = abs(blob.x - pt_palm.x);
+				float indexw = pow(abs((float)index - ((float)fingertip_blobs.size() / 2)), 2);
+				int weight = 1000 / get_distance(pt1, Point(pt_palm.x + palm_radius, HEIGHT_SMALL), true) + blob.count - xw - indexw;
 
-			blob.name = "?";
-			blob.index = index;
+				angle_mean += angle * weight;
+				angle_count += weight;
+			}
 
-			for (Point& pt : blob.data)
+			//-----------------------------------------------------------------------------------------------------------------
+
+			BlobNew* blob_skeleton_y_min = NULL;
+			for (BlobNew& blob_skeleton : *blob_detector_image_skeleton_segmented1->blobs)
+				if (blob.compute_overlap(blob_skeleton) > 0)
+					if (blob_skeleton_y_min == NULL || blob_skeleton.y_min < blob_skeleton_y_min->y_min)
+						blob_skeleton_y_min = &blob_skeleton;
+
+			if (blob_skeleton_y_min != NULL)
+			{
+				fill_mat(blob_skeleton_y_min->data, image_sort_skeleton, 254);
+
+				Point pt_origin = blob_skeleton_y_min->data[0];
+				blob_detector_image_sort_skeleton->compute_location(image_sort_skeleton, 254, pt_origin.x, pt_origin.y, false, false, true);
+
+				const int skeleton_size = blob_detector_image_sort_skeleton->blob_max_size->data.size();
+
+				pt_origin = blob_detector_image_sort_skeleton->blob_max_size->data[skeleton_size - 1];
+				blob_detector_image_sort_skeleton->compute_location(image_sort_skeleton, 254, pt_origin.x, pt_origin.y, true, false, true);
+
+				Point pt_compare0 = blob_detector_image_sort_skeleton->blob_max_size->data[0];
+				Point pt_compare1 = blob_detector_image_sort_skeleton->blob_max_size->data[skeleton_size / 2];
+
+				float dist_compare0 = get_distance(pt_compare0, Point(pt_palm.x, 0), false);
+				float dist_compare1 = get_distance(pt_compare1, Point(pt_palm.x, 0), false);
+
+				int i_begin;
+				int i_end;
+				int i_increment;
+				if (dist_compare0 < dist_compare1)
+				{
+					i_begin = 0;
+					i_end = skeleton_size;
+					i_increment = 1;
+				}
+				else
+				{
+					i_begin = skeleton_size - 1;
+					i_end = -1;
+					i_increment = -1;
+				}
+
+				blob.skeleton.clear();
+
+				const int i_begin_const = i_begin;
+				const int i_end_const = i_end;
+				const int i_increment_const = i_increment;
+				for (int i = i_begin_const; i != i_end_const; i += i_increment_const)
+					blob.skeleton.push_back(blob_detector_image_sort_skeleton->blob_max_size->data[i]);
+			}
+		}
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		angle_mean /= angle_count;
+		hand_angle = angle_mean + 20;
+
+		while (true)
+		{
+			Point pt_anchor = Point(pt_palm_rotated.x, HEIGHT_SMALL);
+			Point pt_search_hand_angle = value_store->get_point("pt_search_hand_angle", Point(pt_palm.x, HEIGHT_SMALL));
+
+			float dist_min = 9999;
+			vector<Point> extension_line_vec_dist_min;
+			Point pt_search_hand_angle_candidate;
+
+			int index = -1;
+			for (BlobNew& blob : fingertip_blobs)
+			{
+				if (fingertip_blobs.size() >= 4 && index == fingertip_blobs.size() - 1)
+					continue;
+
+				if (skeleton_extensions_map.count(blob.atlas_id) > 0)
+				{
+					vector<Point> extension_line_vec = skeleton_extensions_map[blob.atlas_id];
+					Point pt_root = extension_line_vec[0];
+					Point pt_root_rotated = rotate_point(-hand_angle, pt_root, palm_point);
+					pt_root_rotated.x += x_diff_rotation;
+					pt_root_rotated.y += y_diff_rotation;
+
+					Point pt_search_adjusted = Point(pt_search_hand_angle.x - (palm_radius / 1), pt_search_hand_angle.y);
+
+					float dist = get_distance(pt_anchor, pt_root_rotated, false) +
+								 get_distance(blob.pt_y_min, pt_palm, false) +
+								 get_distance(blob.pt_tip, pt_search_adjusted, false);
+
+					if (dist < dist_min)
+					{
+						dist_min = dist;
+						extension_line_vec_dist_min = extension_line_vec;
+						pt_search_hand_angle_candidate = blob.pt_tip;
+					}
+				}
+			}
+
+			if (extension_line_vec_dist_min.size() == 0)
+				break;
+
+			pt_search_hand_angle = pt_search_hand_angle_candidate;
+			low_pass_filter->compute(pt_search_hand_angle, 0.5, "pt_search_hand_angle");
+			value_store->set_point("pt_search_hand_angle", pt_search_hand_angle);
+
+			Point pt_first = extension_line_vec_dist_min[0];
+			Point pt_last = extension_line_vec_dist_min[extension_line_vec_dist_min.size() - 1];
+			hand_angle = get_angle(pt_first, pt_last, Point(0, pt_first.y)) - 90;
+
+			vector<Point> extension_line_vec_dist_min_rotated;
+			for (Point& pt : extension_line_vec_dist_min)
 			{
 				Point pt_rotated = rotate_point(-hand_angle, pt, palm_point);
-				pt_rotated.x += x_diff;
-				pt_rotated.y += y_diff;
-
-				if (pt_rotated.x < 0 || pt_rotated.x >= image_atlas_rotated.cols ||
-					pt_rotated.y < 0 || pt_rotated.y >= image_atlas_rotated.rows)
-				{
-					continue;
-				}
-
-				blob_rotated->add(pt_rotated.x, pt_rotated.y);
-
-				if (pt_rotated.x < fingertip_blobs_rotated_x_min)
-					fingertip_blobs_rotated_x_min = pt_rotated.x;
-				if (pt_rotated.x > fingertip_blobs_rotated_x_max)
-					fingertip_blobs_rotated_x_max = pt_rotated.x;
-				if (pt_rotated.y < fingertip_blobs_rotated_y_min)
-					fingertip_blobs_rotated_y_min = pt_rotated.y;
-				if (pt_rotated.y > fingertip_blobs_rotated_y_max)
-					fingertip_blobs_rotated_y_max = pt_rotated.y;
+				pt_rotated.x += x_diff_rotation;
+				pt_rotated.y += y_diff_rotation;
+				extension_line_vec_dist_min_rotated.push_back(pt_rotated);
 			}
-			blob_rotated->compute();
+			fill_mat(extension_line_vec_dist_min_rotated, image_visualization, 127);
+			circle(image_visualization, pt_palm_rotated, palm_radius, Scalar(254), 1);
 
-			++index;
-		}
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		if (fingertip_blobs_rotated.size() == 5)
-		{
-			for (BlobNew& blob : fingertip_blobs_rotated)
-				blob.name = to_string(blob.index);
-		}
-		else
-		{
-			for (BlobNew& blob : fingertip_blobs_rotated)
-				if (blob.x_min == fingertip_blobs_rotated_x_min)
-				{
-					Point blob_anchor = Point(blob.x_max, blob.y_min);
-					float blob_angle = get_angle(palm_point_rotated, blob_anchor, Point(palm_point_rotated.x, 0));
-					if (blob_anchor.x > palm_point_rotated.x)
-						blob_angle = 360 - blob_angle;
-
-					if (blob_angle < 90)
-						blob.name = "0";
-				}
-		}
-		for (BlobNew& blob : fingertip_blobs_rotated)
-			fingertip_blobs[blob.index].name = blob.name;
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		//below code breaks when hand is too close to camera
-
-		/*if (!visualize)
 			break;
-
-		for (BlobNew& blob : fingertip_blobs_rotated)
-		{
-			for (Point& pt : blob.data)
-				if (pt.x >= 0 && pt.x < WIDTH_SMALL && pt.y >= 0 && pt.y < HEIGHT_SMALL)
-					image_palm_segmented_rotated.ptr<uchar>(pt.y, pt.x)[0] = 254;
-
-			put_text(blob.name, image_palm_segmented_rotated, blob.pt_y_max.x, blob.pt_y_max.y);
 		}
-		circle(image_palm_segmented_rotated, palm_point_rotated, palm_radius, Scalar(127), 1);*/
 
-		break;
+		low_pass_filter->compute(hand_angle, 0.5, "hand_angle");
+		value_store->set_float("hand_angle", hand_angle);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	if (visualize)
 	{
-		for (Point& pt : fingertip_points)
+		for (BlobNew& blob : fingertip_blobs)
 		{
-			if (pt.x == -1)
+			for (Point& pt : blob.data)
+			{
+				Point pt_rotated = rotate_point(-hand_angle, pt, palm_point);
+				pt_rotated.x += x_diff_rotation;
+				pt_rotated.y += y_diff_rotation;
+				blob.data_rotated.push_back(pt_rotated);
+			}
+			for (Point& pt : blob.skeleton)
+			{
+				Point pt_rotated = rotate_point(-hand_angle, pt, palm_point);
+				pt_rotated.x += x_diff_rotation;
+				pt_rotated.y += y_diff_rotation;
+				blob.skeleton_rotated.push_back(pt_rotated);
+			}
+
+			Point pt_tip_rotated = rotate_point(-hand_angle, blob.pt_tip, palm_point);
+			pt_tip_rotated.x += x_diff_rotation;
+			pt_tip_rotated.y += y_diff_rotation;
+
+			blob.pt_tip_rotated = pt_tip_rotated;
+			blob.name = "?";
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	for (BlobNew& blob : fingertip_blobs)
+	{
+		fill_mat(blob.data_rotated, image_visualization, 127);
+		fill_mat(blob.skeleton_rotated, image_visualization, 254);
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+	//find thumb
+
+	{
+		vector<BlobNew*> candidate_vec;
+
+		int index = -1;
+		for (BlobNew& blob : fingertip_blobs)
+		{
+			++index;
+
+			int x_min_skeleton_rotated;
+			int x_max_skeleton_rotated;
+			int y_min_skeleton_rotated;
+			int y_max_skeleton_rotated;
+			get_bounds(blob.skeleton_rotated, x_min_skeleton_rotated, x_max_skeleton_rotated, y_min_skeleton_rotated, y_max_skeleton_rotated);
+
+			int x_min_data_rotated;
+			int x_max_data_rotated;
+			int y_min_data_rotated;
+			int y_max_data_rotated;
+			get_bounds(blob.data_rotated, x_min_data_rotated, x_max_data_rotated, y_min_data_rotated, y_max_data_rotated);
+
+			if (y_min_skeleton_rotated - pt_palm_rotated.y < 0)
+				push_blob(candidate_vec, &blob);
+
+			//-----------------------------------------------------------------------------------------------------------------------
+
+			if (blob.skeleton_rotated.size() == 0)
 				continue;
 
-			circle(image_palm_segmented, pt, 3, Scalar(64), -1);
+			Point pt_first = blob.skeleton_rotated[0];
+			Point pt_last = blob.skeleton_rotated[blob.skeleton_rotated.size() - 1];
+
+			float normal_dist_max = 0;
+			float normal_dist_max_abs = -1;
+			Point pt_normal_dist_max;
+			for (Point& pt : blob.skeleton_rotated)
+			{
+				float normal_dist = distance_to_line(pt_first, pt_last, pt);
+				float normal_dist_abs = abs(normal_dist);
+
+				if (normal_dist_abs > normal_dist_max_abs)
+				{
+					normal_dist_max_abs = normal_dist_abs;
+					normal_dist_max = normal_dist;
+					pt_normal_dist_max = pt;
+				}
+			}
+
+			if (normal_dist_max_abs > -1 && normal_dist_max <= -3)
+			{
+				push_blob(candidate_vec, &blob);
+				circle(image_visualization, pt_normal_dist_max, 3, Scalar(254), 1);
+			}
+
+			//-----------------------------------------------------------------------------------------------------------------------
+
+			while (index <= 1)
+			{
+				const int size_threshold = 3;
+				const float size_ratio = 0.2;
+
+				if (blob.skeleton_rotated.size() < size_threshold)
+					break;
+
+				const int index_first_top = blob.skeleton_rotated.size() * size_ratio < (size_threshold - 1) ?
+											(size_threshold - 1) : blob.skeleton_rotated.size() * size_ratio;
+				const int index_last_top = 0;
+
+				if (index_first_top == index_last_top)
+					break;
+
+				Point pt_first_top = blob.skeleton_rotated[index_first_top];
+				Point pt_last_top = blob.skeleton_rotated[index_last_top];
+
+				if (pt_first_top.x > pt_last_top.x)
+					break;
+
+				float angle = get_angle(pt_first_top, pt_last_top, Point(0, pt_first_top.x));
+				if (angle > 170)
+					push_blob(candidate_vec, &blob);
+
+				//-----------------------------------------------------------------------------------------------------------------------
+
+				Point pt0 = get_x_min_point(blob.data_rotated);
+				Point pt1 = get_y_min_point(blob.data_rotated);
+				Point pt2 = get_y_max_point(blob.data_rotated);
+
+				if (pt0 == pt1 || pt0 == pt2 || pt1 == pt2)
+					break;
+
+				float angle_knuckle = get_angle(pt0, pt1, pt2);
+				if (angle_knuckle < 100)
+					push_blob(candidate_vec, &blob);
+
+				break;
+			}
+
+			//-----------------------------------------------------------------------------------------------------------------------
+
+			const int y_top = pt_palm_rotated.y + palm_radius;
+			const int x_left = pt_palm_rotated.x - palm_radius;
+
+			float top_region_count = 0;
+			float left_region_count = 0;
+
+			for (Point& pt : blob.data_rotated)
+			{
+				if (pt.y <= y_top)
+					++top_region_count;
+
+				if (pt.x <= x_left)
+					++left_region_count;
+			}
+
+			float in_region_ratio = top_region_count / blob.data_rotated.size();
+			float left_region_ratio = left_region_count / blob.data_rotated.size();
+
+			if (in_region_ratio > 0.7 && left_region_ratio > 0.7)
+				push_blob(candidate_vec, &blob);
 		}
 
-		imshow("image_palm_segmented" + name, image_palm_segmented);
-		// imshow("image_palm_segmented_rotated" + name, image_palm_segmented_rotated);
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		Point pt_search = Point(0, pt_palm_rotated.y);
+
+		float dist_min = 9999;
+		BlobNew* blob_dist_min = NULL;
+		for (BlobNew* blob_candidate : candidate_vec)
+		{
+			float dist = get_distance(pt_search, Point(blob_candidate->x, blob_candidate->y), false);
+			if (dist < dist_min)
+			{
+				dist_min = dist;
+				blob_dist_min = blob_candidate;
+			}
+		}
+
+		if (blob_dist_min != NULL)
+		{
+			BlobNew* blob_y_max = NULL;
+			for (BlobNew& blob : fingertip_blobs)
+				if (blob_y_max == NULL || blob.pt_tip_rotated.y > blob_y_max->pt_tip_rotated.y)
+					blob_y_max = &blob;
+
+			int range_min = pt_palm_rotated.y;
+			int range_max = blob_y_max->pt_tip_rotated.y;
+
+			bool require_verification = false;
+			if (blob_dist_min->pt_tip_rotated.y >= range_min && blob_dist_min->pt_tip_rotated.y <= range_max)
+			{
+				float range_ratio = map_val(blob_dist_min->pt_tip_rotated.y, range_min, range_max, 0, 1);
+				if (range_ratio > 0.6)
+					require_verification = true;
+			}
+
+			if (require_verification)
+			{
+				int in_range_count = 0;
+				for (BlobNew& blob : fingertip_blobs)
+				{
+					if (!(blob.pt_tip_rotated.y >= range_min && blob.pt_tip_rotated.y <= range_max))
+						continue;
+
+					float range_ratio = map_val(blob.pt_tip_rotated.y, range_min, range_max, 0, 1);
+					if (range_ratio > 0.6)
+						++in_range_count;
+				}
+				if (in_range_count > 1)
+					blob_dist_min->name = "0";
+			}
+			else
+				blob_dist_min->name = "0";
+		}
 	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+	//find index finger
+
+	{
+		if (fingertip_blobs.size() >= 5)
+		{
+			int thumb_index = -1;
+
+			int index = -1;
+			for (BlobNew& blob : fingertip_blobs)
+			{
+				++index;
+				if (blob.name == "0")
+					thumb_index = index;
+			}
+
+			if (thumb_index != -1 && fingertip_blobs.size() > thumb_index + 1)
+				fingertip_blobs[thumb_index + 1].name = "1";
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	for (BlobNew& blob : fingertip_blobs)
+		put_text(blob.name, image_visualization, get_y_max_point(blob.data_rotated));
+
+	imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 

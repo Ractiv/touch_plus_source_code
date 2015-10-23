@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
+#include <iostream>
 #include "math_plus.h"
+
+using namespace std;
 
 float get_distance(float x0, float y0, float x1, float y1, bool accurate)
 {
@@ -200,6 +203,14 @@ uchar get_quadrant(int x, int y, int pivot_x, int pivot_y)
 		return 3;
 	else
 		return 4;
+}
+
+float distance_to_line(Point line_start, Point line_end, Point point)
+{
+	float normal_length = _hypot(line_end.x - line_start.x, line_end.y - line_start.y);
+	float distance = (float)((point.x - line_start.x) * (line_end.y - line_start.y) - (point.y - line_start.y) * (line_end.x - line_start.x));
+	distance /= normal_length;
+	return distance;
 }
 
 float linear(float x, float m, float c)

@@ -33,7 +33,7 @@
 #include "mono_processor_new.h"
 #include "stereo_processor.h"
 #include "stereo_processor_permutation.h"
-#include "temporal_processor.h"
+#include "temporal_processor_new.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -286,7 +286,7 @@ void setup_on_first_frame()
     int z_accel;
     camera->getAccelerometerValues(&x_accel, &y_accel, &z_accel);    
     
-    Point3d heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
+    Point3f heading = imu.compute_azimuth(x_accel, y_accel, z_accel);
 
     ipc->send_message("menu_plus", "set status", "loading calibration data");
     reprojector.load(*ipc, true);
@@ -440,7 +440,7 @@ void compute()
     if (enable_imshow)
     {
         imshow("image_small1", image_small1);
-        imshow("image_preprocessed1", image_preprocessed1);
+        // imshow("image_preprocessed1", image_preprocessed1);
 
         // setMouseCallback("image_preprocessed1", left_mouse_cb, NULL);
         // waitKey(1);
@@ -460,7 +460,7 @@ void compute()
     if (normalized)
     {
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "0",          false);
+                                             construct_background, "0",          true);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
                                              construct_background, "1",          false);
     }
@@ -498,7 +498,7 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", false);
+        proceed0 = foreground_extractor0.compute(image_preprocessed0, motion_processor0, "0", true);
         proceed1 = foreground_extractor1.compute(image_preprocessed1, motion_processor1, "1", false);
         proceed = proceed0 && proceed1;
     }
@@ -512,15 +512,17 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
-        proceed = proceed0 && proceed1;
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
+        // proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        // proceed = proceed0 && proceed1;
     }
+
+    proceed = false;
 
     if (proceed)
     {
         // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
+        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
         temporal_processor.compute(stereo_processor);
     }
 

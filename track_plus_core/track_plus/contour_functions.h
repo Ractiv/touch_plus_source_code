@@ -44,3 +44,11 @@ void extension_line(Point pt_start, Point pt_end, const uchar length, vector<Poi
 Point get_y_min_point(vector<Point>& pt_vec);
 
 Point get_y_max_point(vector<Point>& pt_vec);
+
+Point get_x_min_point(vector<Point>& pt_vec);
+
+Point get_x_max_point(vector<Point>& pt_vec);
+
+void get_bounds(vector<Point>& pt_vec, int& x_min, int& x_max, int& y_min, int& y_max);
+
+bool check_bounds_small(Point& pt);

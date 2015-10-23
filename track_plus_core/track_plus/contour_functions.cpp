@@ -452,3 +452,51 @@ Point get_y_max_point(vector<Point>& pt_vec)
 
 	return pt_y_max;
 }
+
+Point get_x_min_point(vector<Point>& pt_vec)
+{
+	Point pt_x_min = Point(9999, 0);
+	for (Point& pt : pt_vec)
+		if (pt.x < pt_x_min.x)
+			pt_x_min = pt;
+
+	return pt_x_min;
+}
+
+Point get_x_max_point(vector<Point>& pt_vec)
+{
+	Point pt_x_max = Point(-1, 0);
+	for (Point& pt : pt_vec)
+		if (pt.x > pt_x_max.x)
+			pt_x_max = pt;
+
+	return pt_x_max;
+}
+
+void get_bounds(vector<Point>& pt_vec, int& x_min, int& x_max, int& y_min, int& y_max)
+{
+	x_min = 9999;
+	x_max = -1;
+	y_min = 9999;
+	y_max = -1;
+
+	for (Point& pt : pt_vec)
+	{
+		if (pt.x > x_max)
+			x_max = pt.x;
+		if (pt.x < x_min)
+			x_min = pt.x;
+		if (pt.y < y_min)
+			y_min = pt.y;
+		if (pt.y > y_max)
+			y_max = pt.y;
+	}
+}
+
+bool check_bounds_small(Point& pt)
+{
+	if (pt.x < 0 || pt.x >= WIDTH_SMALL || pt.y < 0 || pt.y >= HEIGHT_SMALL)
+		return false;
+
+	return true;
+}

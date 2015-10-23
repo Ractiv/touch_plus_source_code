@@ -385,3 +385,26 @@ void put_text(string text, Mat& img, int x, int y)
 	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(0), 3, 8);
 	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(255), 1, 8);
 }
+
+void put_text(string text, Mat& img, Point pt)
+{
+	int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
+	double fontScale = 0.5;
+	cv::Point textOrg(pt.x, pt.y);
+	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(0), 3, 8);
+	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(255), 1, 8);
+}
+
+void fill_mat(vector<Point>& pt_vec, Mat& image, uchar gray)
+{
+	const int i_max = image.cols;
+	const int j_max = image.rows;
+
+	for (Point& pt : pt_vec)
+	{
+		if (pt.x < 0 || pt.y < 0 || pt.x >= i_max || pt.y >= j_max)
+			continue;
+
+		image.ptr<uchar>(pt.y, pt.x)[0] = gray;
+	}			
+}

@@ -41,3 +41,5 @@ void compute_color_segmented_image(Mat& image_in, Mat& image_out);
 void compute_motion_structure_image(Mat& image_in, Mat& image_out, string name);
 void print_mat_type(Mat& image_in);
 void put_text(string text, Mat& img, int x, int y);
+void put_text(string text, Mat& img, Point pt);
+void fill_mat(vector<Point>& pt_vec, Mat& image, uchar gray);

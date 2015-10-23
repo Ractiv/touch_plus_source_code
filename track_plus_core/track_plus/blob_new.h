@@ -33,6 +33,9 @@ public:
 	ushort atlas_id;
 
 	vector<Point> data;
+	vector<Point> skeleton;
+	vector<Point> data_rotated;
+	vector<Point> skeleton_rotated;
 
 	int x_min = 9999;
 	int x_max = 0;
@@ -47,6 +50,7 @@ public:
 	int index = -1;
 
 	bool active = true;
+	bool significant = true;
 
 	float dist = -1;
 
@@ -55,6 +59,7 @@ public:
 	Point pt_x_min = Point(9999, 0);
 	Point pt_x_max = Point(0, 0);
 	Point pt_tip;
+	Point pt_tip_rotated;
 
 	string name = "";
 
