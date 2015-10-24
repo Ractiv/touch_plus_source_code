@@ -63,6 +63,8 @@ public:
 
 	string name = "";
 
+	BlobNew* matching_blob = NULL;
+
 	BlobNew();
 	BlobNew(Mat& image_atlas_in, const ushort atlas_id_in);
 

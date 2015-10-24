@@ -21,6 +21,7 @@
 #include "contour_functions.h"
 #include "dtw.h"
 #include "thinning_computer_new.h"
+#include "permutation.h"
 
 struct compare_blob_angle
 {
@@ -122,18 +123,6 @@ BlobNew* find_blob_dist_min(Point pt, vector<BlobNew>* blob_vec)
 	return blob_dist_min;
 }
 
-struct Line
-{
-	Point pt0;
-	Point pt1;
-
-	Line(Point _pt0, Point _pt1)
-	{
-		pt0 = _pt0;
-		pt1 = _pt1;
-	}
-};
-
 bool has_blob(vector<BlobNew*>& blob_vec, BlobNew* blob)
 {
 	bool found = false;
@@ -150,6 +139,45 @@ void push_blob(vector<BlobNew*>& blob_vec, BlobNew* blob)
 {
 	if (!has_blob(blob_vec, blob))
 		blob_vec.push_back(blob);
+}
+
+void match_blobs_by_permutation(vector<BlobNew>& blobs0, vector<BlobNew>& blobs1)
+{
+	vector<BlobNew>* large_array = &blobs0;
+	vector<BlobNew>* small_array = &blobs1;
+	bool flipped = false;
+
+	if (blobs0.size() < blobs1.size())
+	{
+		large_array = &blobs1;
+		small_array = &blobs0;
+		flipped = true;
+	}
+
+	const int large_array_size = large_array->size();
+	const int small_array_size = small_array->size();
+
+	compute_permutations(large_array_size, small_array_size);
+
+	float dist_sigma_min = FLT_MAX;
+	for (vector<int>& rows : permutations)
+	{
+		float dist_sigma = 0;
+
+		int small_array_index = 0;
+		for (int large_array_index : rows)
+		{
+			BlobNew blob_small_array = (*small_array)[small_array_index];
+			BlobNew blob_large_array = (*large_array)[large_array_index];
+
+			float dist = get_distance(blob_small_array.pt_tip_rotated, blob_large_array.pt_tip_rotated, false);
+			dist_sigma += dist;
+
+			++small_array_index;
+		}
+		if (dist_sigma < dist_sigma_min)
+			dist_sigma_min = dist_sigma;
+	}
 }
 
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
