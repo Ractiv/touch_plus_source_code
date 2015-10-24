@@ -120,6 +120,9 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 		if (!blob0->active || !blob1->active)
 			continue;
 
+		if (blob0->name == "?" || blob1->name == "?" || blob0->name != blob1->name)
+			continue;
+
 		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip, image0, 0);
 		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip, image1, 1);
 

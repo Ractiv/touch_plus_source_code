@@ -22,6 +22,32 @@
 #include "dtw.h"
 #include "thinning_computer_new.h"
 
+struct compare_blob_angle
+{
+	Point pivot;
+
+	compare_blob_angle(Point& pivot_in)
+	{
+		pivot = pivot_in;
+	}
+
+	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
+	{
+		float theta0 = get_angle(blob0.x, blob0.y, pivot.x, pivot.y);
+		float theta1 = get_angle(blob1.x, blob1.y, pivot.x, pivot.y);
+
+		return theta0 > theta1;
+	}
+};
+
+struct compare_blob_count
+{
+	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
+	{
+		return (blob0.count > blob1.count);
+	}
+};
+
 struct compare_point_angle
 {
 	Point anchor;
@@ -862,6 +888,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	if (fingertip_blobs.size() == 0)
 		return false;
 
+	sort(fingertip_blobs.begin(), fingertip_blobs.end(), compare_blob_angle(pt_palm));
+
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	Mat image_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -1189,7 +1217,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 				int xw = abs(blob.x - pt_palm.x);
 				float indexw = pow(abs((float)index - ((float)fingertip_blobs.size() / 2)), 2);
-				int weight = 1000 / get_distance(pt1, Point(pt_palm.x + palm_radius, HEIGHT_SMALL), true) + blob.count - xw - indexw;
+				int weight = 1000 / get_distance(pt1, Point(pt_palm.x + palm_radius, HEIGHT_SMALL), true)/* + blob.count - xw - indexw*/;
 
 				angle_mean += angle * weight;
 				angle_count += weight;
@@ -1246,75 +1274,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					blob.skeleton.push_back(blob_detector_image_sort_skeleton->blob_max_size->data[i]);
 			}
 		}
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
 		angle_mean /= angle_count;
-		hand_angle = angle_mean + 20;
-
-		while (true)
-		{
-			Point pt_anchor = Point(pt_palm_rotated.x, HEIGHT_SMALL);
-			Point pt_search_hand_angle = value_store->get_point("pt_search_hand_angle", Point(pt_palm.x, HEIGHT_SMALL));
-
-			float dist_min = 9999;
-			vector<Point> extension_line_vec_dist_min;
-			Point pt_search_hand_angle_candidate;
-
-			int index = -1;
-			for (BlobNew& blob : fingertip_blobs)
-			{
-				if (fingertip_blobs.size() >= 4 && index == fingertip_blobs.size() - 1)
-					continue;
-
-				if (skeleton_extensions_map.count(blob.atlas_id) > 0)
-				{
-					vector<Point> extension_line_vec = skeleton_extensions_map[blob.atlas_id];
-					Point pt_root = extension_line_vec[0];
-					Point pt_root_rotated = rotate_point(-hand_angle, pt_root, palm_point);
-					pt_root_rotated.x += x_diff_rotation;
-					pt_root_rotated.y += y_diff_rotation;
-
-					Point pt_search_adjusted = Point(pt_search_hand_angle.x - (palm_radius / 1), pt_search_hand_angle.y);
-
-					float dist = get_distance(pt_anchor, pt_root_rotated, false) +
-								 get_distance(blob.pt_y_min, pt_palm, false) +
-								 get_distance(blob.pt_tip, pt_search_adjusted, false);
-
-					if (dist < dist_min)
-					{
-						dist_min = dist;
-						extension_line_vec_dist_min = extension_line_vec;
-						pt_search_hand_angle_candidate = blob.pt_tip;
-					}
-				}
-			}
-
-			if (extension_line_vec_dist_min.size() == 0)
-				break;
-
-			pt_search_hand_angle = pt_search_hand_angle_candidate;
-			low_pass_filter->compute(pt_search_hand_angle, 0.5, "pt_search_hand_angle");
-			value_store->set_point("pt_search_hand_angle", pt_search_hand_angle);
-
-			Point pt_first = extension_line_vec_dist_min[0];
-			Point pt_last = extension_line_vec_dist_min[extension_line_vec_dist_min.size() - 1];
-			hand_angle = get_angle(pt_first, pt_last, Point(0, pt_first.y)) - 90;
-
-			vector<Point> extension_line_vec_dist_min_rotated;
-			for (Point& pt : extension_line_vec_dist_min)
-			{
-				Point pt_rotated = rotate_point(-hand_angle, pt, palm_point);
-				pt_rotated.x += x_diff_rotation;
-				pt_rotated.y += y_diff_rotation;
-				extension_line_vec_dist_min_rotated.push_back(pt_rotated);
-			}
-			fill_mat(extension_line_vec_dist_min_rotated, image_visualization, 127);
-			circle(image_visualization, pt_palm_rotated, palm_radius, Scalar(254), 1);
-
-			break;
-		}
-
+		hand_angle = angle_mean;
 		low_pass_filter->compute(hand_angle, 0.5, "hand_angle");
 		value_store->set_float("hand_angle", hand_angle);
 	}
@@ -1357,8 +1318,33 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
+
+	bool has_all_fingers = fingertip_blobs.size() >= 5;
+
+	if (has_all_fingers)
+	{
+		vector<BlobNew> fingertip_blobs_count_sorted = fingertip_blobs;
+		sort(fingertip_blobs_count_sorted.begin(), fingertip_blobs_count_sorted.end(), compare_blob_count());
+
+		vector<BlobNew> fingertip_blobs_filtered;
+		for (int i = 0; i < 5; ++i)
+			fingertip_blobs_filtered.push_back(fingertip_blobs_count_sorted[i]);
+
+		sort(fingertip_blobs_filtered.begin(), fingertip_blobs_filtered.end(), compare_blob_angle(pt_palm));
+
+		int index = -1;
+		for (BlobNew& blob : fingertip_blobs_filtered)
+		{
+			++index;
+			blob.name = to_string(index);
+		}
+		fingertip_blobs = fingertip_blobs_filtered;
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
 	//find thumb
 
+	if (!has_all_fingers)
 	{
 		vector<BlobNew*> candidate_vec;
 
@@ -1372,12 +1358,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			int y_min_skeleton_rotated;
 			int y_max_skeleton_rotated;
 			get_bounds(blob.skeleton_rotated, x_min_skeleton_rotated, x_max_skeleton_rotated, y_min_skeleton_rotated, y_max_skeleton_rotated);
-
-			int x_min_data_rotated;
-			int x_max_data_rotated;
-			int y_min_data_rotated;
-			int y_max_data_rotated;
-			get_bounds(blob.data_rotated, x_min_data_rotated, x_max_data_rotated, y_min_data_rotated, y_max_data_rotated);
 
 			if (y_min_skeleton_rotated - pt_palm_rotated.y < 0)
 				push_blob(candidate_vec, &blob);
@@ -1534,24 +1514,58 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
+	//use relationship between index finger and thumb to find the both of them
+
+	if (!has_all_fingers && fingertip_blobs.size() >= 2)
+	{
+		vector<Point> pt_vec0 = fingertip_blobs[0].data_rotated;
+		vector<Point> pt_vec1 = fingertip_blobs[1].data_rotated;
+
+		for (Point& pt : fingertip_blobs[0].skeleton_rotated)
+			pt_vec0.push_back(pt);
+
+		for (Point& pt : fingertip_blobs[1].skeleton_rotated)
+			pt_vec1.push_back(pt);
+
+		float dist_min0 = 9999;
+		Point pt_dist_min0;
+		for (Point& pt : pt_vec0)
+		{
+			float dist = get_distance(pt, pt_palm_rotated, false);
+			if (dist < dist_min0)
+			{
+				dist_min0 = dist;
+				pt_dist_min0 = pt;
+			}
+		}
+		float dist_min1 = 9999;
+		Point pt_dist_min1;
+		for (Point& pt : pt_vec1)
+		{
+			float dist = get_distance(pt, pt_palm_rotated, false);
+			if (dist < dist_min1)
+			{
+				dist_min1 = dist;
+				pt_dist_min1 = pt;
+			}
+		}
+		if (pt_dist_min0 != pt_dist_min1)
+		{
+			float angle = get_angle(pt_dist_min1, pt_dist_min0, Point(0, pt_dist_min1.y));
+			if (angle > 60)
+			{
+				fingertip_blobs[0].name = "0";
+				fingertip_blobs[1].name = "1";
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
 	//find index finger
 
+	if (!has_all_fingers)
 	{
-		if (fingertip_blobs.size() >= 5)
-		{
-			int thumb_index = -1;
 
-			int index = -1;
-			for (BlobNew& blob : fingertip_blobs)
-			{
-				++index;
-				if (blob.name == "0")
-					thumb_index = index;
-			}
-
-			if (thumb_index != -1 && fingertip_blobs.size() > thumb_index + 1)
-				fingertip_blobs[thumb_index + 1].name = "1";
-		}
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------

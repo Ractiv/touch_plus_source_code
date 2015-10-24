@@ -512,9 +512,9 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
-        // proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
-        // proceed = proceed0 && proceed1;
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        proceed = proceed0 && proceed1;
     }
 
     proceed = false;
@@ -523,7 +523,7 @@ void compute()
     {
         // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
         stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
-        temporal_processor.compute(stereo_processor);
+        // temporal_processor.compute(stereo_processor);
     }
 
     if (enable_imshow)
