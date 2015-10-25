@@ -343,6 +343,12 @@ void midpoint_circle(int x_in, int y_in, int radius_in, vector<Point>& result_ou
 
 void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_threshold)
 {
+	if (x1_in == x2_in && y1_in == y2_in)
+	{
+		result_out.push_back(Point(x1_in, y1_in));
+		return;
+	}
+
     int delta_x(x2_in - x1_in);
     signed char const ix((delta_x > 0) - (delta_x < 0));
     delta_x = abs(delta_x) << 1;

@@ -61,7 +61,7 @@ public:
 	Point pt_tip;
 	Point pt_tip_rotated;
 
-	string name = "";
+	string name = "?";
 
 	BlobNew* matching_blob = NULL;
 

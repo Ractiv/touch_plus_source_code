@@ -160,23 +160,45 @@ void match_blobs_by_permutation(vector<BlobNew>& blobs0, vector<BlobNew>& blobs1
 	compute_permutations(large_array_size, small_array_size);
 
 	float dist_sigma_min = FLT_MAX;
+	vector<int> large_array_index_vec_result;
+	vector<int> small_array_index_vec_result;
+
 	for (vector<int>& rows : permutations)
 	{
 		float dist_sigma = 0;
 
-		int small_array_index = 0;
+		vector<int> large_array_index_vec;
+		vector<int> small_array_index_vec;
+
+		int small_array_index = -1;
 		for (int large_array_index : rows)
 		{
+			++small_array_index;
+
+			large_array_index_vec.push_back(large_array_index);
+			small_array_index_vec.push_back(small_array_index);
+
 			BlobNew blob_small_array = (*small_array)[small_array_index];
 			BlobNew blob_large_array = (*large_array)[large_array_index];
 
 			float dist = get_distance(blob_small_array.pt_tip_rotated, blob_large_array.pt_tip_rotated, false);
 			dist_sigma += dist;
-
-			++small_array_index;
 		}
 		if (dist_sigma < dist_sigma_min)
+		{
 			dist_sigma_min = dist_sigma;
+			large_array_index_vec_result = large_array_index_vec;
+			small_array_index_vec_result = small_array_index_vec;
+		}
+	}
+
+	for (int i = 0; i < large_array_index_vec_result.size(); ++i)
+	{
+		const int index_large = large_array_index_vec_result[i];
+		const int index_small = small_array_index_vec_result[i];
+
+		(*large_array)[index_large].matching_blob = &(*small_array)[index_small];
+		(*small_array)[index_small].matching_blob = &(*large_array)[index_large];
 	}
 }
 
@@ -906,7 +928,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			if (!found)
 			{
-				blob_min_dist->index = fingertip_blobs.size();
 				fingertip_blobs.push_back(*blob_min_dist);
 				fingertip_convexities.push_back(blob_min_dist->pt_y_max);
 			}
@@ -917,6 +938,23 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		return false;
 
 	sort(fingertip_blobs.begin(), fingertip_blobs.end(), compare_blob_angle(pt_palm));
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	bool has_all_fingers = fingertip_blobs.size() >= 5;
+
+	if (has_all_fingers)
+	{
+		vector<BlobNew> fingertip_blobs_count_sorted = fingertip_blobs;
+		sort(fingertip_blobs_count_sorted.begin(), fingertip_blobs_count_sorted.end(), compare_blob_count());
+
+		vector<BlobNew> fingertip_blobs_filtered;
+		for (int i = 0; i < 5; ++i)
+			fingertip_blobs_filtered.push_back(fingertip_blobs_count_sorted[i]);
+
+		sort(fingertip_blobs_filtered.begin(), fingertip_blobs_filtered.end(), compare_blob_angle(pt_palm));
+		fingertip_blobs = fingertip_blobs_filtered;
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1243,8 +1281,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				Point pt2 = Point(0, pt0.y);
 				float angle = get_angle(pt0, pt1, pt2) - 90;
 
-				int xw = abs(blob.x - pt_palm.x);
-				float indexw = pow(abs((float)index - ((float)fingertip_blobs.size() / 2)), 2);
+				// int xw = abs(blob.x - pt_palm.x);
+				// float indexw = pow(abs((float)index - ((float)fingertip_blobs.size() / 2)), 2);
 				int weight = 1000 / get_distance(pt1, Point(pt_palm.x + palm_radius, HEIGHT_SMALL), true)/* + blob.count - xw - indexw*/;
 
 				angle_mean += angle * weight;
@@ -1347,26 +1385,54 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	bool has_all_fingers = fingertip_blobs.size() >= 5;
+	int blob_index_max = value_store->get_int("blob_index_max", 0);
+
+	vector<BlobNew>* fingertip_blobs_old_ptr = value_store->get_blob_vec("fingertip_blobs_old_ptr");
+	vector<BlobNew> fingertip_blobs_old = *fingertip_blobs_old_ptr;
+
+	match_blobs_by_permutation(fingertip_blobs, fingertip_blobs_old);
+
+	for (BlobNew& blob : fingertip_blobs)
+	{
+		if (blob.matching_blob == NULL)
+		{
+			blob.index = blob_index_max;
+			++blob_index_max;
+			continue;
+		}
+
+		Point pt0 = blob.pt_tip_rotated;
+		Point pt1 = blob.matching_blob->pt_tip_rotated;
+
+		if (!check_bounds_small(pt0) || !check_bounds_small(pt1))
+			continue;
+
+		vector<Point> line_points;
+		bresenham_line(pt0.x, pt0.y, pt1.x, pt1.y, line_points, 9999);
+
+		for (Point& pt : line_points)
+			image_visualization.ptr<uchar>(pt.y, pt.x)[0] = 254;
+
+		blob.index = blob.matching_blob->index;
+	}
+
+	value_store->set_int("blob_index_max", blob_index_max);
+
+	for (BlobNew& blob : fingertip_blobs)
+	{
+		blob.name = to_string(blob.index);
+	}
+
+	/*//------------------------------------------------------------------------------------------------------------------------------
 
 	if (has_all_fingers)
 	{
-		vector<BlobNew> fingertip_blobs_count_sorted = fingertip_blobs;
-		sort(fingertip_blobs_count_sorted.begin(), fingertip_blobs_count_sorted.end(), compare_blob_count());
-
-		vector<BlobNew> fingertip_blobs_filtered;
-		for (int i = 0; i < 5; ++i)
-			fingertip_blobs_filtered.push_back(fingertip_blobs_count_sorted[i]);
-
-		sort(fingertip_blobs_filtered.begin(), fingertip_blobs_filtered.end(), compare_blob_angle(pt_palm));
-
 		int index = -1;
-		for (BlobNew& blob : fingertip_blobs_filtered)
+		for (BlobNew& blob : fingertip_blobs)
 		{
 			++index;
 			blob.name = to_string(index);
 		}
-		fingertip_blobs = fingertip_blobs_filtered;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -1594,7 +1660,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	if (!has_all_fingers)
 	{
 
-	}
+	}*/
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	*fingertip_blobs_old_ptr = fingertip_blobs;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
