@@ -47,4 +47,7 @@ public:
 	void sort_blobs_by_x();
 	void sort_blobs_by_y_max();
 	void sort_blobs_by_x_min();
+
+	static void reconstruct_atlas_image(Mat& _image_atlas, vector<BlobNew>& _blob_vec);
+	static void reconstruct_atlas_image_rotated(Mat& _image_atlas, vector<BlobNew>& _blob_vec);
 };

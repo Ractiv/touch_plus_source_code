@@ -173,6 +173,9 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\temporal_processor_new.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_new.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp">
@@ -326,6 +329,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\track_plus_core\track_plus\temporal_processor_new.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_new.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

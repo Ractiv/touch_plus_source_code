@@ -124,9 +124,9 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	if (motion_processor.will_compute_next_frame && !value_store.get_bool("pass", false))
+	if (motion_processor.will_compute_next_frame /*&& !value_store.get_bool("pass", false)*/)
 	{
-		value_store.set_bool("pass", true);
+		// value_store.set_bool("pass", true);
 
 		Mat image_foreground_processed;
 		GaussianBlur(image_foreground, image_foreground_processed, Size(1, 29), 0, 0);
@@ -137,7 +137,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		for (int i = 0; i < WIDTH_SMALL; ++i)
 			for (int j = j_max; j >= 0; --j)
 				if (image_foreground_processed.ptr<uchar>(j, i)[0] > 0)
-					image_background_static.ptr<uchar>(j, i)[0] = 255;
+					if (motion_processor.image_borders_public.ptr<uchar>(j, i)[0] == 0)
+						image_background_static.ptr<uchar>(j, i)[0] = 255;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------

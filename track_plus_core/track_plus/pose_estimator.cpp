@@ -41,7 +41,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	for (vector<Point>& points : points_collection)
 	{
 		// float dist = matchShapes(points_current, points, CV_CONTOURS_MATCH_I1, 0);
-		Mat cost_mat = compute_cost_mat(points_current, points, false);
+		Mat cost_mat = compute_cost_mat(points_current, points, true);
 		float dist = compute_dtw(cost_mat);
 
 		if (dist < dist_min)
@@ -54,7 +54,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		++index;
 	}
 
-	if (record_pose && target_pose_name != "" && (pose_name_dist_min != target_pose_name))
+	if (record_pose && target_pose_name != "" && (pose_name_dist_min != target_pose_name || dist_min > 1000))
 	{
 		save(target_pose_name);
 		console_log(pose_name_dist_min + "->" + target_pose_name + " " + to_string(dist_min));
@@ -77,9 +77,9 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 3, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 5, pose_name_temp);
 
-	if (pose_name_temp == "point")
+	if (pose_name_temp != "")
 		pose_name = pose_name_temp;
 
 	if (show)

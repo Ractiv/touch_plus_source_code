@@ -41,13 +41,20 @@ public:
 	int x_max = 0;
 	int y_min = 9999;
 	int y_max = 0;
+
+	int x_min_rotated;
+	int x_max_rotated;
+	int y_min_rotated;
+	int y_max_rotated;
+
 	int width;
 	int height;
 	int area;
 	int count = 0;
 	int x;
 	int y;
-	int index = -1;
+	int index;
+	int track_index = -1;
 
 	bool active = true;
 	bool significant = true;
@@ -58,10 +65,14 @@ public:
 	Point pt_y_max = Point(0, 0);
 	Point pt_x_min = Point(9999, 0);
 	Point pt_x_max = Point(0, 0);
+
 	Point pt_tip;
 	Point pt_tip_rotated;
 
-	string name = "?";
+	Point pt_root;
+	Point pt_root_rotated;
+
+	string name = "";
 
 	BlobNew* matching_blob = NULL;
 

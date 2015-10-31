@@ -671,10 +671,12 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					Mat image_borders = value_store->get_mat("image_borders", true);
 					bool image_borders_set = false;
 
+					const int borders_x_offset = value_store->get_bool("image_borders_public_set", false) ? 10 : 20;
+
 					while ((left_moving || right_moving) && value_accumulator.ready)
 					{
-						int x_separator_left_temp = x_separator_left - 10;
-						int x_separator_right_temp = x_separator_right + 10;
+						int x_separator_left_temp = x_separator_left - borders_x_offset;
+						int x_separator_right_temp = x_separator_right + borders_x_offset;
 
 						if (!value_store->get_bool("border_first_pass", false))
 						{
@@ -730,6 +732,12 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 								floodFill(image_borders, Point(WIDTH_SMALL_MINUS, 0), Scalar(254));
 
 							image_borders_set = true;
+						}
+
+						if (value_store->get_bool("result", false) && !value_store->get_bool("image_borders_public_set", false))
+						{
+							value_store->set_bool("image_borders_public_set", true);
+							image_borders_public = image_borders.clone();
 						}
 
 						value_store->set_mat("image_borders", image_borders);
@@ -891,17 +899,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						// float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
 						float ratio_max = max(max(max(ratio2, ratio3), ratio4), ratio5);
 
-						float entropy = entropy_left + entropy_right;
-						low_pass_filter->compute(entropy, 0.1, "entropy");
-
-						if (entropy < 700)
-							entropy = 700;
-						if (entropy > 800)
-							entropy = 800;
-
-						const float ratio_threshold = map_val(entropy, 700, 800, 2, 1);
-
-						if (ratio_max < ratio_threshold)
+						if (ratio_max < 1)
 						{
 							alpha = 0.10;
 							value_store->set_bool("result", true);

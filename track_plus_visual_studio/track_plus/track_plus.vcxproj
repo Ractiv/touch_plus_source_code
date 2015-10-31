@@ -43,6 +43,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\rectifier.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\surface_computer.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
@@ -95,6 +96,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\rectifier.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\surface_computer.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />

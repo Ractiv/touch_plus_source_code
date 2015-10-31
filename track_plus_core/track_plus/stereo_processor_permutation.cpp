@@ -2,43 +2,6 @@
 #include "permutation.h"
 #include "contour_functions.h"
 
-struct StereoPair
-{
-	vector<int> index_vec_large;
-	vector<int> index_vec_small;
-
-	vector<Point> pt_vec_large_sorted;
-	vector<Point> pt_vec_small_sorted;
-
-	vector<BlobNew*> blob_vec_large_sorted;
-	vector<BlobNew*> blob_vec_small_sorted;
-
-	void compute(vector<Point>* pt_vec_large, vector<Point>* pt_vec_small, vector<BlobNew>& blob_vec_large, vector<BlobNew>& blob_vec_small)
-	{
-		for (int index : index_vec_large)
-		{
-			pt_vec_large_sorted.push_back((*pt_vec_large)[index]);
-			blob_vec_large_sorted.push_back(&blob_vec_large[index]);
-		}
-
-		for (int index : index_vec_small)
-		{
-			pt_vec_small_sorted.push_back((*pt_vec_small)[index]);
-			blob_vec_small_sorted.push_back(&blob_vec_small[index]);
-		}
-	};
-
-	void push_large_index(int index)
-	{
-		index_vec_large.push_back(index);
-	};
-
-	void push_small_index(int index)
-	{
-		index_vec_small.push_back(index);
-	};
-};
-
 struct MonoData
 {
 	vector<Point>* array;
@@ -55,6 +18,56 @@ struct MonoData
 		image = _image;
 		side = _side;
 	}
+};
+
+struct StereoPair
+{
+	vector<int> index_vec_large;
+	vector<int> index_vec_small;
+
+	vector<Point> pt_vec_large_sorted;
+	vector<Point> pt_vec_small_sorted;
+
+	vector<BlobNew> blob_vec_large_sorted;
+	vector<BlobNew> blob_vec_small_sorted;
+
+	MonoData mono_data0;
+	MonoData mono_data1;
+
+	bool side_flipped;
+
+	void compute(vector<Point>* pt_vec_large,     vector<Point>* pt_vec_small,
+				 vector<BlobNew>& blob_vec_large, vector<BlobNew>& blob_vec_small,
+				 MonoData& _mono_data0,           MonoData& _mono_data1,
+				 bool _side_flipped)
+	{
+		for (int index : index_vec_large)
+		{
+			pt_vec_large_sorted.push_back((*pt_vec_large)[index]);
+			blob_vec_large_sorted.push_back(blob_vec_large[index]);
+		}
+
+		for (int index : index_vec_small)
+		{
+			pt_vec_small_sorted.push_back((*pt_vec_small)[index]);
+			blob_vec_small_sorted.push_back(blob_vec_small[index]);
+		}
+
+		mono_data0 = _mono_data0;
+		mono_data1 = _mono_data1;
+
+		side_flipped = _side_flipped;
+	};
+
+	void push_large_index(int index)
+	{
+		index_vec_large.push_back(index);
+	};
+
+	void push_small_index(int index)
+	{
+		index_vec_small.push_back(index);
+	};
 };
 
 void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
@@ -125,22 +138,47 @@ void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessor
 	}
 
 	stereo_pair_dist_sigma_min.compute(mono_data_large.array,                           mono_data_small.array,
-									   mono_data_large.mono_processor->fingertip_blobs, mono_data_small.mono_processor->fingertip_blobs);
+									   mono_data_large.mono_processor->fingertip_blobs, mono_data_small.mono_processor->fingertip_blobs,
+									   mono_data0,                                      mono_data1,
+									   side_flipped);
 
 	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
 
 	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_data0.mono_processor->pt_palm, mono_data0.side, 4);
 	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_data1.mono_processor->pt_palm, mono_data1.side, 4);
 
-	for (int i = 0; i < stereo_pair_dist_sigma_min.pt_vec_large_sorted.size(); ++i)
-	{
-		BlobNew* blob_large = stereo_pair_dist_sigma_min.blob_vec_large_sorted[i];
-		BlobNew* blob_small = stereo_pair_dist_sigma_min.blob_vec_small_sorted[i];
-		BlobNew* blob0 = side_flipped ? blob_small : blob_large;
-		BlobNew* blob1 = side_flipped ? blob_large : blob_small;
+	static const int frame_cache_num = 3;
+	static int cached_count = -1;
+	static bool begin_action = false;
 
-		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip, mono_data0.image, mono_data0.side);
-		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip, mono_data1.image, mono_data1.side);
+	++cached_count;
+	if (cached_count == frame_cache_num)
+	{
+		cached_count = 0;
+		begin_action = true;
+	}
+
+	static StereoPair stereo_pair_vec[frame_cache_num];
+	stereo_pair_vec[cached_count] = stereo_pair_dist_sigma_min;
+
+	if (!begin_action)
+		return;
+
+	int index_before = cached_count - (frame_cache_num - 1);
+	if (index_before < 0)
+		index_before = frame_cache_num + index_before;
+
+	StereoPair stereo_pair_current = stereo_pair_vec[index_before];
+
+	for (int i = 0; i < stereo_pair_current.pt_vec_large_sorted.size(); ++i)
+	{
+		BlobNew* blob_large = &stereo_pair_current.blob_vec_large_sorted[i];
+		BlobNew* blob_small = &stereo_pair_current.blob_vec_small_sorted[i];
+		BlobNew* blob0 = stereo_pair_current.side_flipped ? blob_small : blob_large;
+		BlobNew* blob1 = stereo_pair_current.side_flipped ? blob_large : blob_small;
+
+		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip, stereo_pair_current.mono_data0.image, stereo_pair_current.mono_data0.side);
+		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip, stereo_pair_current.mono_data1.image, stereo_pair_current.mono_data1.side);
 
 #if 0
 		circle(image_visualization, pt_resolved0, 5, Scalar(127), 2);

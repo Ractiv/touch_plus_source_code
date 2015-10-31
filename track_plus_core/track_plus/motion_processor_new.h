@@ -58,6 +58,7 @@ public:
 
 	Mat image_background_static = Mat(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1, Scalar(255));
 	Mat image_ptr;
+	Mat image_borders_public = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	ValueStore* value_store = new ValueStore();
 

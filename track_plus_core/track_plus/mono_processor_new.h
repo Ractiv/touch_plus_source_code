@@ -31,11 +31,16 @@ public:
 	ThinningComputer thinning_computer;
 
 	ValueStore* value_store = new ValueStore();
+	ValueStore value_store_permanent;
 
 	ValueAccumulator value_accumulator;
 
 	Point pt_index;
 	Point pt_thumb;
+
+	Point pt_index_root;
+	Point pt_thumb_root;
+
 	Point pt_palm;
 	Point pt_alignment;
 

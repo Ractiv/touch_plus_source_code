@@ -497,3 +497,27 @@ void BlobDetectorNew::sort_blobs_by_x_min()
 {
 	sort(blobs->begin(), blobs->end(), compare_blob_x_min());
 }
+
+void BlobDetectorNew::reconstruct_atlas_image(Mat& _image_atlas, vector<BlobNew>& _blob_vec)
+{
+	_image_atlas = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_16UC1);
+	for (BlobNew& blob : _blob_vec)
+	{
+		for (Point& pt : blob.data)
+			_image_atlas.ptr<ushort>(pt.y, pt.x)[0] = blob.atlas_id;
+
+		blob.image_atlas = _image_atlas;
+	}
+}
+
+void BlobDetectorNew::reconstruct_atlas_image_rotated(Mat& _image_atlas, vector<BlobNew>& _blob_vec)
+{
+	_image_atlas = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_16UC1);
+	for (BlobNew& blob : _blob_vec)
+	{
+		for (Point& pt : blob.data_rotated)
+			_image_atlas.ptr<ushort>(pt.y, pt.x)[0] = blob.atlas_id;
+
+		blob.image_atlas = _image_atlas;
+	}
+}

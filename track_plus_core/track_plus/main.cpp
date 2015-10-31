@@ -32,6 +32,7 @@
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
 #include "stereo_processor.h"
+#include "stereo_processor_new.h"
 #include "stereo_processor_permutation.h"
 #include "temporal_processor_new.h"
 #include "pose_estimator.h"
@@ -93,6 +94,8 @@ MonoProcessorNew mono_processor1;
 
 StereoProcessor stereo_processor;
 
+StereoProcessorNew stereo_processor_new;
+
 TemporalProcessor temporal_processor;
 
 PoseEstimator pose_estimator;
@@ -107,7 +110,7 @@ PointerMapper pointer_mapper;
 
 LowPassFilter low_pass_filter;
 
-const int pool_size_max = 10;
+const int pool_size_max = 100;
 
 Mat image_pool[pool_size_max];
 int image_pool_count = 0;
@@ -117,7 +120,7 @@ int point_vec_pool_count = 0;
 vector<Point>* point_vec_ptr = NULL;
 
 bool serial_verified = false;
-bool initialized = false;
+bool point_vec_pool_initialized = false;
 bool updated = false;
 
 int wait_count = 0;
@@ -205,7 +208,7 @@ void wait_for_device()
 void update(Mat& image_in)
 {
     image_pool[image_pool_count] = image_in;
-	image_current_frame = image_pool[image_pool_count];
+    image_current_frame = image_pool[image_pool_count];
     
     ++image_pool_count;
     if (image_pool_count == pool_size_max)
@@ -410,32 +413,32 @@ void compute()
         GaussianBlur(image_remapped1, image_remapped1, Size(9, 9), 0, 0);
 
 
-		Mat image_disparity;
+        Mat image_disparity;
 
-		static StereoSGBM stereo_sgbm(0, 32, 21, 0, 0, 0, 0, 20, 0, 0, false);
-		stereo_sgbm(image_remapped0, image_remapped1, image_disparity);
+        static StereoSGBM stereo_sgbm(0, 32, 21, 0, 0, 0, 0, 20, 0, 0, false);
+        stereo_sgbm(image_remapped0, image_remapped1, image_disparity);
 
         Mat image_disparity_8u;
         double minVal, maxVal;
         minMaxLoc(image_disparity, &minVal, &maxVal);
         image_disparity.convertTo(image_disparity_8u, CV_8UC1, 255 / (maxVal - minVal));
 
-		imshow("image_remapped0", image_remapped0);
-		imshow("image_remapped1", image_remapped1);
-		imshow("image_disparity_8u", image_disparity_8u);
+        imshow("image_remapped0", image_remapped0);
+        imshow("image_remapped1", image_remapped1);
+        imshow("image_disparity_8u", image_disparity_8u);
     }
 #endif
 
-	/*static bool show_wiggle_sent = false;
-	if (!show_wiggle_sent)
-	{
+    /*static bool show_wiggle_sent = false;
+    if (!show_wiggle_sent)
+    {
         if (child_module_name != "")
-		  ipc->open_udp_channel(child_module_name);
+          ipc->open_udp_channel(child_module_name);
         
-		ipc->send_message("menu_plus", "show window", "");
-		ipc->send_message("menu_plus", "show wiggle", "");//todo
-	}
-	show_wiggle_sent = true;*/
+        ipc->send_message("menu_plus", "show window", "");
+        ipc->send_message("menu_plus", "show wiggle", "");//todo
+    }
+    show_wiggle_sent = true;*/
 
     if (enable_imshow)
     {
@@ -448,7 +451,7 @@ void compute()
     }
 
     algo_name_vec_old = algo_name_vec;
-	algo_name_vec.clear();
+    algo_name_vec.clear();
 
     static bool motion_processor_proceed = false;
     static bool construct_background = false;
@@ -517,12 +520,20 @@ void compute()
         proceed = proceed0 && proceed1;
     }
 
-    proceed = false;
-
     if (proceed)
     {
+        point_vec_pool[point_vec_pool_count] = mono_processor0.pose_estimation_points;
+        point_vec_ptr = &point_vec_pool[point_vec_pool_count];
+        
+        ++point_vec_pool_count;
+        if (point_vec_pool_count == pool_size_max)
+           point_vec_pool_count = 0;
+
+        point_vec_pool_initialized = true;
+
+        // stereo_processor_new.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
         // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
+        // stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
         // temporal_processor.compute(stereo_processor);
     }
 
@@ -534,12 +545,63 @@ void pose_estimator_thread_function()
 {
     while (true)
     {
-        if (initialized)
+        if (point_vec_pool_initialized)
             pose_estimator.compute(*point_vec_ptr);
 
-        Sleep(100);
+        Sleep(200);
     }
 }
+
+void on_key_down(int code)
+{
+    if (target_pose_name != "")
+    {
+        if (code == 192)
+            record_pose = true;
+        else if (code == 49)
+            record_pose = false;
+    }
+    else
+        pose_name = "";
+}
+
+void on_key_up(int code)
+{
+    
+}
+
+#ifdef _WIN32
+HHOOK keyboard_hook_handle;
+LRESULT CALLBACK keyboard_handler(int n_code, WPARAM w_param, LPARAM l_param)
+{
+    KBDLLHOOKSTRUCT* keyboard_hook_stuct = (KBDLLHOOKSTRUCT*)l_param;
+    const int code = keyboard_hook_stuct->vkCode;
+
+    if (w_param == WM_KEYDOWN)
+        on_key_down(code);
+    else if (w_param == WM_KEYUP)
+        on_key_up(code);
+
+    return CallNextHookEx(keyboard_hook_handle, n_code, w_param, l_param);
+}
+
+void keyboard_hook_thread_function()
+{
+    keyboard_hook_handle = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_handler, NULL, 0);
+
+    MSG msg;
+    while (!GetMessage(&msg, NULL, NULL, NULL))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+        Sleep(100);
+    }
+
+    UnhookWindowsHookEx(keyboard_hook_handle);
+}
+#elif __APPLE__
+//todo: port to OSX
+#endif
 
 void input_thread_function()
 {
@@ -657,6 +719,11 @@ int main()
     ipc->send_message("menu_plus", "set status", "initializing tracking core");
     ipc->open_udp_channel("menu_plus");
 
+#ifdef _WIN32
+    thread keyboard_hook_thread(keyboard_hook_thread_function);
+#elif __APPLE__
+    //todo: port to OSX
+#endif
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
     thread pose_estimator_thread(pose_estimator_thread_function);

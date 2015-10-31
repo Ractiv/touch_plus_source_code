@@ -51,7 +51,7 @@ float ValueAccumulator::compute(float& val, string name, int size_limit, float v
 	if (overwrite)
 	{
 		if (ready)
-			val_new = val;
+			val = val_new;
 		else
 			val = val_default;
 	}

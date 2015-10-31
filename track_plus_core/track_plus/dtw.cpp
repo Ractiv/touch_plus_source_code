@@ -18,9 +18,8 @@
 
 #include "dtw.h"
 
-vector<Point> preprocess_points(vector<Point>& vec)
+vector<Point> preprocess_points(vector<Point>& vec, Point pivot)
 {
-	Point pivot = vec[vec.size() - 1];
 	Point pt_y_max = get_y_max_point(vec);
 
 	int x_diff = WIDTH_SMALL / 2 - pivot.x;
@@ -33,21 +32,21 @@ vector<Point> preprocess_points(vector<Point>& vec)
 	return vec_adjusted;
 }
 
-Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool stereo)
+Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool center_and_resize, Point pt_alignment)
 {
-	const int vec0_size_minus = vec0.size() - 1;
-	const int vec1_size_minus = vec1.size() - 1;
-	Mat cost_mat = Mat(vec1_size_minus, vec0_size_minus, CV_32FC1);
+	const int vec0_size = vec0.size();
+	const int vec1_size = vec1.size();
+	Mat cost_mat = Mat(vec1_size, vec0_size, CV_32FC1);
 
-	if (stereo)
+	if (center_and_resize)
 	{
-		vector<Point> vec0_adjusted = preprocess_points(vec0);
-		vector<Point> vec1_adjusted = preprocess_points(vec1);
+		vector<Point> vec0_adjusted = preprocess_points(vec0, pt_alignment);
+		vector<Point> vec1_adjusted = preprocess_points(vec1, pt_alignment);
 
-		for (int i = 0; i < vec0_size_minus; ++i)
+		for (int i = 0; i < vec0_size; ++i)
 		{
 			Point pt0_raw = vec0_adjusted[i];
-			for (int j = 0; j < vec1_size_minus; ++j)
+			for (int j = 0; j < vec1_size; ++j)
 			{
 				Point pt1_raw = vec1_adjusted[j];
 				float dist = pow(abs(pt1_raw.y - pt0_raw.y), 2) + abs(pt1_raw.x - pt0_raw.x);
@@ -57,21 +56,12 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool stereo)
 	}
 	else
 	{
-		Point pivot0 = vec0[vec0.size() - 1];
-		Point pivot1 = vec1[vec1.size() - 1];
-
-		vector<Point> vec0_unwrapped;
-		compute_unwrap2(vec0, pivot0, vec0_unwrapped);
-
-		vector<Point> vec1_unwrapped;
-		compute_unwrap2(vec1, pivot1, vec1_unwrapped);
-
-		for (int i = 0; i < vec0_size_minus; ++i)
+		for (int i = 0; i < vec0_size; ++i)
 		{
-			Point pt0 = vec0_unwrapped[i];
-			for (int j = 0; j < vec1_size_minus; ++j)
+			Point pt0 = vec0[i];
+			for (int j = 0; j < vec1_size; ++j)
 			{
-				Point pt1 = vec1_unwrapped[j];
+				Point pt1 = vec1[j];
 				float dist = abs(pt1.y - pt0.y) + abs(pt1.x - pt0.x);
 				cost_mat.ptr<float>(j, i)[0] = dist;
 			}
