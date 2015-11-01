@@ -69,12 +69,32 @@ float map_val(float value, float left_min, float left_max, float right_min, floa
     return right_min + (value_scaled * right_span);
 }
 
+float get_angle(Point p1, Point p2, bool horizontal)
+{
+	Point p3;
+	if (horizontal)
+		p3 = Point(0, p1.y);
+	else
+		p3 = Point(p1.x, 0);
+
+	float p12 = get_distance(p1, p2, true);
+	float p13 = get_distance(p1, p3, true);
+	float p23 = get_distance(p2, p3, true);
+	float angle = acos((pow(p12, 2) + pow(p13, 2) - pow(p23, 2)) / (2 * p12 * p13)) * 180 / CV_PI;
+
+	if ((horizontal && p2.y < p1.y) || (!horizontal && p2.x > p1.x))
+		angle = 360 - angle;
+
+	return angle;
+}
+
 float get_angle(Point p1, Point p2, Point p3)
 {
 	float p12 = get_distance(p1, p2, true);
 	float p13 = get_distance(p1, p3, true);
 	float p23 = get_distance(p2, p3, true);
-	return acos((pow(p12, 2) + pow(p13, 2) - pow(p23, 2)) / (2 * p12 * p13)) * 180 / CV_PI;
+	float angle = acos((pow(p12, 2) + pow(p13, 2) - pow(p23, 2)) / (2 * p12 * p13)) * 180 / CV_PI;
+	return angle;
 }
 
 float get_angle(float x0, float y0, float x1, float y1)

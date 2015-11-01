@@ -87,10 +87,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 
 		if (angle_vec.size() < 1000)
 		{
-			float angle = get_angle(pt0, pt1, Point(pt0.x, 0));
-			if (pt0.x < pt1.x)
-				angle = 360 - angle;
-
+			float angle = get_angle(pt0, pt1, false);
 			angle_vec.push_back(angle);
 			y_diff_vec.push_back(pt0.y - pt1.y);
 			x_diff_vec.push_back(pt0.x - pt1.x);
@@ -156,10 +153,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 			BlobNew* blob0 = &blob;
 			BlobNew* blob1 = &(*blob_vec1)[max_score_index];
 
-			float angle = get_angle(blob0->pt_y_max, blob1->pt_y_max, Point(blob0->pt_y_max.x, 0));
-			if (blob0->pt_y_max.x < blob1->pt_y_max.x)
-				angle = 360 - angle;
-
+			float angle = get_angle(blob0->pt_y_max, blob1->pt_y_max, false);
 			float angle_diff = abs(angle - angle_median);
 			blob_pair_vec.push_back(BlobPairAngleDiff(blob0, blob1, angle_diff));
 		}

@@ -746,7 +746,9 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					//------------------------------------------------------------------------------------------------------------------------
 
-					BlobDetectorNew* blob_detector_image_in_thresholded = value_store->get_blob_detector("blob_detector_image_in_thresholded");
+					BlobDetectorNew* blob_detector_image_in_thresholded =
+						value_store->get_blob_detector("blob_detector_image_in_thresholded");
+						
 					blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
 					for (BlobNew& blob : *blob_detector_image_in_thresholded->blobs)

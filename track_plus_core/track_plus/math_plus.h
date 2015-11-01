@@ -29,6 +29,7 @@ float get_distance(Point pt0, Point pt1, bool accurate);
 float get_distance(Point2f pt0, Point2f pt1, bool accurate);
 float get_distance(Point3f pt0, Point3f pt1, bool accurate);
 float map_val(float value, float left_min, float left_max, float right_min, float right_max);
+float get_angle(Point pt0, Point pt1, bool horizontal);
 float get_angle(Point pt0, Point pt1, Point pt2);
 float get_angle(float x0, float y0, float x1, float y1);
 float get_slope(Point pt0, Point pt1);
