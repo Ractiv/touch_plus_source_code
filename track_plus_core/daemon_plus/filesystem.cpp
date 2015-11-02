@@ -131,7 +131,7 @@ void copy_file(const string src_path, const string dst_path)
 void delete_file(const string path)
 {
 	while (remove(path.c_str()) != 0)
-		Sleep(1);
+		Sleep(1000);
 }
 
 void delete_all_files(const string path)

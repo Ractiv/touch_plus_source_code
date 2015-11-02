@@ -519,7 +519,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	low_pass_filter->compute(palm_radius, 0.1, "palm_radius");
-	low_pass_filter->compute(palm_point, 0.5, "palm_point");
+	// low_pass_filter->compute(palm_point, 0.5, "palm_point");
 
 	pt_palm = palm_point;
 
@@ -538,7 +538,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		static Point pt_intersection_hand_direction_stereo = Point(0, 0);
 
 		vector<Point> contour_approximated;
-		approxPolyDP(Mat(contours[0]), contour_approximated, 1, false);
+		approxPolyDP(Mat(contours[0]), contour_approximated, 2, false);
 		contour_approximated.insert(contour_approximated.begin(), contours[0][0]);
 		contour_approximated.push_back(contours[0][contours[0].size() - 1]);
 
@@ -699,7 +699,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	vector<Point> contour_approximated_unsorted;
-	approxPolyDP(Mat(contours[0]), contour_approximated_unsorted, 1, false);
+	approxPolyDP(Mat(contours[0]), contour_approximated_unsorted, 2, false);
 
 	vector<Point> contour_approximated;
 	sort_contour(contour_approximated_unsorted, contour_approximated, pivot);
@@ -809,13 +809,50 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					}
 
 				if (dist_min < 9999)
-					concave_points_indexed.push_back(pt_dist_min);
+					concave_points_indexed.push_back(pt_dist_min);//mark1
 			}
 
 			if (concave_points_indexed.size() == 0)
 				break;
 
 			sort(concave_points_indexed.begin(), concave_points_indexed.end(), compare_point_z());
+
+			int concave_x_min_index = -1;
+			Point3f concave_x_min_point = Point3f(9999, 9999, 9999);
+
+			int index = -1;
+			for (Point3f& pt : concave_points_indexed)
+			{
+				++index;
+				if (pt.x < concave_x_min_point.x)
+				{
+					concave_x_min_index = index;
+					concave_x_min_point = pt;
+				}
+			}
+
+			vector<Point> line_vec;
+			bresenham_line(concave_x_min_point.x, concave_x_min_point.y, pt_palm.x, pt_palm.y, line_vec, 1000);
+
+			bool black_hit = false;
+			for (Point& pt : line_vec)
+				if (image_active_hand.ptr<uchar>(pt.y, pt.x)[0] == 0)
+				{
+					black_hit = true;
+					break;
+				}
+
+			// if (black_hit)
+				// concave_points_indexed.erase(concave_points_indexed.begin() + concave_x_min_index);
+
+			Mat image_test = image_active_hand.clone();
+
+			// circle(image_test, Point(concave_x_min_point.x, concave_x_min_point.y), 3, Scalar(127), 2);	
+			
+			for (Point3f& pt : concave_points_indexed)
+				circle(image_test, Point(pt.x, pt.y), 3, Scalar(127), -1);		
+
+			imshow("image_test" + name, image_test);
 		}
 
 		//------------------------------------------------------------------------------------------------------------------------------
@@ -859,6 +896,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 
 		//------------------------------------------------------------------------------------------------------------------------------
+		//segment finger blobs by connecting all concave positions
 
 		/*int x_min_palm_lines = 9999;
 		int x_max_palm_lines = 0;
@@ -909,8 +947,23 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
-		for (Point3f& pt : concave_points_indexed)
+		for (Point3f& pt : concave_points_indexed)//mark0
 		{
+			bool caught_between_2_convexes = false;
+
+			Point3f pt_convex_old = Point3f(-1, -1, -1);
+			for (Point3f pt_convex : convex_points_indexed)
+			{
+				if (pt_convex.x != -1)
+					if (pt.z > pt_convex_old.z && pt.z < pt_convex.z)
+						caught_between_2_convexes = true;
+
+				pt_convex_old = pt_convex;
+			}
+
+			if (!caught_between_2_convexes)
+				continue;
+
 			Point pt_new = Point(pt.x, pt.y);
 			line(image_palm_segmented, pt_new, pt_palm, Scalar(0), 1);
 		}
@@ -952,9 +1005,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	line(image_palm_segmented, Point(vertices_1_3_x, vertices_1_3_y), Point(vertices_1_0_x, vertices_1_0_y), Scalar(0), 1);
 
 	//------------------------------------------------------------------------------------------------------------------------------
+	//loop palm circle and connect positions in hand contour closest to point in circle
 
-	// circle(image_palm, palm_point, palm_radius, Scalar(254), 1);
-	// circle(image_palm_segmented, palm_point, palm_radius, Scalar(0), 1);
+	circle(image_palm, palm_point, palm_radius, Scalar(254), 1);
+	circle(image_palm_segmented, palm_point, palm_radius, Scalar(0), 1);
 
 	/*if (circle_vec.size() > 0)
 	{
@@ -1013,9 +1067,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		floodFill(image_palm, Point(WIDTH_SMALL_MINUS, HEIGHT_SMALL_MINUS), Scalar(127));
 
 	//------------------------------------------------------------------------------------------------------------------------------
-
-	imshow("image_palm_segmented" + name, image_palm_segmented);
-	return false;
 
 	BlobDetectorNew* blob_detector_image_palm_segmented = value_store->get_blob_detector("blob_detector_image_palm_segmented");
 	blob_detector_image_palm_segmented->compute(image_palm_segmented, 254,
@@ -2188,8 +2239,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
-	imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
-	imshow("image_palm_segmented" + name, image_palm_segmented);
+	// imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
+	// imshow("image_palm_segmented" + name, image_palm_segmented);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 

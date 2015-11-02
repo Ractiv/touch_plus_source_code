@@ -31,12 +31,15 @@ const string extension0 = "";
 const string extension1 = ".app";
 #endif
 
+const string module_name = "track_plus";
+
 string serial_number = "";
 string executable_path = "";
 string data_path = "";
 string data_path_current_module = "";
 string settings_file_path = "";
 string ipc_path = "";
+string processes_temp_path = "";
 string pose_database_path = "";
 
 string pose_name = "";

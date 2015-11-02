@@ -73,7 +73,7 @@ void IPC::update()
 
 			if (file_name == self_name || file_name_everyone == "everyone")
 			{
-				Sleep(20);
+				// Sleep(20);
 
 				vector<string> lines = read_text_file(ipc_path + slash + file_name_current);
 				// delete_file(ipc_path + slash + file_name_current);
@@ -208,7 +208,7 @@ void IPC::open_udp_channel(string recipient, int port_num)
 
 			while (port_old == port_new)
 			{
-				Sleep(100);
+				Sleep(1000);
 				update();
 			}
 		}

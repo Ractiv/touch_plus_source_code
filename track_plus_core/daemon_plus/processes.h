@@ -36,6 +36,6 @@
 
 using namespace std;
 
-int process_running(string name, bool partial = false);
-void create_process(string path, string name, bool show_window = true, bool is_app = false, bool partial = false);
+bool process_running(string name);
+void create_process(string path, string name, bool is_app = false);
 void kill_process(string name);

@@ -46,8 +46,10 @@ const extern string cmd_quote;
 const extern string slash;
 const extern string extension0;
 const extern string extension1;
+const extern string module_name;
 
 extern string executable_path;
 extern string data_path;
 extern string settings_file_path;
 extern string ipc_path;
+extern string processes_temp_path;

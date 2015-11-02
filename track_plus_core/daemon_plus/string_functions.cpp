@@ -77,4 +77,11 @@ string to_string(wstring ws)
 
 	return 0;
 }
+
+const wchar_t* to_wchar_t_array(string str)
+{
+	std::wstring widestr = std::wstring(str.begin(), str.end());
+	const wchar_t* widecstr = widestr.c_str();
+	return widecstr;
+}
 #endif

@@ -26,3 +26,4 @@ using namespace std;
 vector<string> split_string(const string str_in, const string str_char);
 bool string_has_line_break(string str_in);
 string to_string(wstring ws);
+const wchar_t* to_wchar_t_array(string str);

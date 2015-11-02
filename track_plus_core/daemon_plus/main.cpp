@@ -58,20 +58,20 @@ void guardian_thread_function()
 			continue;
 		}
 
-		if (process_running("menu_plus" + extension1, true) == 0)
+		if (!process_running("menu_plus" + extension1))
 		{
 			console_log("menu_plus created");
 			string menu_path = executable_path + slash + "menu_plus" + slash + "menu_plus" + extension1;
-			create_process(menu_path, "menu_plus" + extension1, show_console, true, true);
+			create_process(menu_path, "menu_plus" + extension1, true);
 		}
 
-		if (process_running("track_plus" + extension0) == 0)
+		if (!process_running("track_plus" + extension0))
 		{
 			console_log("track_plus created");
-			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0, show_console);
+			create_process(executable_path + slash + "track_plus" + extension0, "track_plus" + extension0);
 		}
 
-		Sleep(500);
+		Sleep(1000);
 	}
 }
 
@@ -80,7 +80,7 @@ void ipc_thread_function()
 	while (true)
 	{
 		ipc.update();
-		Sleep(100);
+		Sleep(500);
 	}
 }
 
@@ -115,14 +115,20 @@ int main()
 	data_path = executable_path + slash + "userdata";
 	settings_file_path = data_path + slash + "settings.nrocinunerrad";
 	ipc_path = executable_path + slash + "ipc";
+	processes_temp_path = executable_path + slash + "processes";
 
 	if (!directory_exists(ipc_path))
 		create_directory(ipc_path);
 	else
 		delete_all_files(ipc_path);
 
-	if (file_exists(executable_path + "/lock"))
-		delete_file(executable_path + "/lock");
+	if (!directory_exists(processes_temp_path))
+		create_directory(processes_temp_path);
+	else
+		delete_all_files(processes_temp_path);
+
+	if (!directory_exists(data_path))
+		create_directory(data_path);
 
 	Settings settings;
     
@@ -135,9 +141,6 @@ int main()
 		settings.table_mode = "0";
 		settings.detect_interaction_plane = "0";
 		settings.click_height = "5";
-
-		if (!directory_exists(data_path))
-			create_directory(data_path);
 		
 		ofstream settings_ofs(settings_file_path, ios::binary);
 		settings_ofs.write((char*)&settings, sizeof(settings));
@@ -226,7 +229,7 @@ int main()
 		else if (settings.launch_on_startup != "1" && file_exists(get_startup_folder_path() + slash + "Touch+ Software.lnk"))
 			delete_file(get_startup_folder_path() + slash + "Touch+ Software.lnk");
 
-		Sleep(500);
+		Sleep(1000);
 	}
 	
 #elif __APPLE__

@@ -37,7 +37,10 @@ const string extension0 = "";
 const string extension1 = ".app";
 #endif
 
+const string module_name = "daemon_plus";
+
 string executable_path = "";
 string data_path = "";
 string settings_file_path = "";
 string ipc_path = "";
+string processes_temp_path = "";

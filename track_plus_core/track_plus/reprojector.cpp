@@ -118,7 +118,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		});
 
 		while (block_thread)
-			Sleep(100);
+			Sleep(1000);
 
 		if (!directory_exists(data_path))
        		create_directory(data_path);
@@ -187,7 +187,7 @@ void Reprojector::load(IPC& ipc, bool flipped)
 		block_thread = true;
 
 		while (block_thread)
-			Sleep(100);
+			Sleep(1000);
 	}
 
 	while (!has_complete_calib_data)

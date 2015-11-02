@@ -201,7 +201,7 @@ void wait_for_device()
             }
 #endif
 
-        Sleep(500);
+        Sleep(1000);
     }
 }
 
@@ -237,6 +237,7 @@ void init_paths()
     data_path = executable_path + slash + "userdata";
     settings_file_path = data_path + slash + "settings.nrocinunerrad";
     ipc_path = executable_path + slash + "ipc";
+    processes_temp_path = executable_path + slash + "processes";
     pose_database_path = executable_path + slash + "database";
 }
 
@@ -516,9 +517,11 @@ void compute()
     if (proceed)
     {
         proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
-        proceed = proceed0 && proceed1;
+        // proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        // proceed = proceed0 && proceed1;
     }
+
+    proceed = false;
 
     if (proceed)
     {
@@ -594,7 +597,7 @@ void keyboard_hook_thread_function()
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-        Sleep(100);
+        Sleep(1000);
     }
 
     UnhookWindowsHookEx(keyboard_hook_handle);
@@ -654,28 +657,28 @@ void guardian_thread_function()
         /*if (child_module_name != "" && child_module_path != "")
         {
             static bool first = true;
-            if (first && (process_running(child_module_name + extension0) > 0))
+            if (first && process_running(child_module_name + extension0))
             {
                 kill_process(child_module_name + extension0);
-                while (process_running(child_module_name + extension0) > 0)
+                while (process_running(child_module_name + extension0))
                 {
                     console_log("wait kill");
-                    Sleep(100);
+                    Sleep(1000);
                 }
             }
             first = false;
         }*/
 
-        // if (child_module_name != "" && child_module_path != "" && process_running(child_module_name + extension0) == 0)
-            // create_process(child_module_path, child_module_name + extension0, true);
+        // if (child_module_name != "" && child_module_path != "" && !process_running(child_module_name + extension0))
+            // create_process(child_module_path, child_module_name + extension0);
 
-        if (process_running("daemon_plus" + extension0) == 0)
+        if (!process_running("daemon_plus" + extension0))
         {
             ipc->send_message("everyone", "exit", "");
             do_exit(true);
         }
 
-        Sleep(500);
+        Sleep(1000);
     }
 }
 
@@ -684,7 +687,7 @@ void ipc_thread_function()
     while (true)
     {
         ipc->update();
-        Sleep(100);
+        Sleep(500);
     }
 }
 
