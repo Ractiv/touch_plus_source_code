@@ -308,6 +308,11 @@ bool verify_detection(BlobNew* blob, ValueStore* value_store)
 	return true;
 }
 
+Point to_pt(Point3f& pt3f)
+{
+	return Point(pt3f.x, pt3f.y);
+}
+
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
 	int frame_count = value_store->get_int("frame_count", -1);
@@ -538,7 +543,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		static Point pt_intersection_hand_direction_stereo = Point(0, 0);
 
 		vector<Point> contour_approximated;
-		approxPolyDP(Mat(contours[0]), contour_approximated, 2, false);
+		approxPolyDP(Mat(contours[0]), contour_approximated, 1, false);
 		contour_approximated.insert(contour_approximated.begin(), contours[0][0]);
 		contour_approximated.push_back(contours[0][contours[0].size() - 1]);
 
@@ -699,7 +704,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	vector<Point> contour_approximated_unsorted;
-	approxPolyDP(Mat(contours[0]), contour_approximated_unsorted, 2, false);
+	approxPolyDP(Mat(contours[0]), contour_approximated_unsorted, 1, false);
 
 	vector<Point> contour_approximated;
 	sort_contour(contour_approximated_unsorted, contour_approximated, pivot);
@@ -790,7 +795,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_concave_indexed.z > index_begin && pt_concave_indexed.z < index_end) ||
 						(pt_concave_indexed.z < index_begin && pt_concave_indexed.z > index_end))
 					{
-						float dist_to_convex0 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
+						/*float dist_to_convex0 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
 															 Point(pt_convex_indexed0.x, pt_convex_indexed0.y), true);
 
 						float dist_to_convex1 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
@@ -798,6 +803,29 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 						float dist_to_convex_max = max(dist_to_convex0, dist_to_convex1);
 						if (dist_to_convex_max <= 5)
+							continue;*/
+
+						Point pt0 = to_pt(pt_concave_indexed);
+						Point pt1 = to_pt(pt_convex_indexed0);
+						Point pt2 = to_pt(pt_convex_indexed1);
+
+						if (pt0 == pt1 || pt0 == pt2 || pt1 == pt2)
+							continue;
+
+						float angle = get_angle(pt0, pt1, pt2);
+						if (angle > 130)
+							continue;
+
+						float dist0 = get_distance(to_pt(pt_concave_indexed), pt_palm, false);
+						float dist1 = get_distance(to_pt(pt_convex_indexed0), pt_palm, false);
+						float dist2 = get_distance(to_pt(pt_convex_indexed1), pt_palm, false);
+						if (!(dist0 < dist1 && dist0 < dist2))
+							continue;
+
+						float dist_smallest = min(min(dist0, dist1), dist2);
+						float dist_largest = max(max(dist0, dist1), dist2);
+						float dist_diff = dist_largest - dist_smallest;
+						if (dist_diff <= 5)//mark3
 							continue;
 
 						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), palm_point, false);
@@ -2239,8 +2267,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
-	// imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
-	// imshow("image_palm_segmented" + name, image_palm_segmented);
+	imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
+	imshow("image_palm_segmented" + name, image_palm_segmented);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
