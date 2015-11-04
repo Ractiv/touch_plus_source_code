@@ -469,6 +469,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	float hand_angle = value_store->get_float("hand_angle", 0);
+	float hand_angle_old = hand_angle;
+
+	//------------------------------------------------------------------------------------------------------------------------------
 
 	Mat image_very_small;
 	resize(image_active_hand, image_very_small, Size(WIDTH_MIN / 2, HEIGHT_MIN / 2), 0, 0, INTER_LINEAR);
@@ -498,9 +502,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		x_min_ivst += 2;
 		x_max_ivst += 2;
 
+		const float mask_ratio = 0.5;
+
 		const int i_max = x_max_ivst;
 		const int j_max = y_max_ivst;
-		for (int i = (x_max_ivst - x_min_ivst) * 0.7 + x_min_ivst; i < i_max; ++i)
+		for (int i = (x_max_ivst - x_min_ivst) * mask_ratio + x_min_ivst; i < i_max; ++i)
 			for (int j = y_min_ivst; j < j_max; ++j)
 				image_very_small.ptr<uchar>(j, i)[0] = 0;
 
@@ -518,9 +524,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		multiplier = map_val(multiplier, 0, 10, 2, 1);
 		palm_radius *= multiplier * 1.5;
 
+		const int x_offset = hand_angle > 0 ? 0 : (palm_radius / 2);
+
 		Point palm_point_new = max_loc * 4;
 		palm_point.y = palm_point_new.y;
-		palm_point.x = palm_point_raw.x + (palm_radius / 2);
+		palm_point.x = palm_point_raw.x + x_offset;
 	}
 
 	low_pass_filter->compute(palm_radius, 0.1, "palm_radius");
@@ -534,9 +542,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	Point pivot = value_store->get_point("pivot");
-
-	float hand_angle = value_store->get_float("hand_angle", 0);
-	float hand_angle_old = hand_angle;
 
 	if (!value_store->get_bool("hand_angle_set", false))
 	{
@@ -581,9 +586,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 						float dist1 = get_distance(pt1, palm_point, false);
 						float dist2 = get_distance(pt2, palm_point, false);
 
-						if (dist0 <= dist1 && dist0 <= dist2)
+						if (dist0 < dist1 && dist0 < dist2)
 							concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
-						else if (dist0 >= dist1 && dist0 >= dist2)
+						else if (dist0 > dist1 && dist0 > dist2)
 							convex_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
 					}
 				}
@@ -755,9 +760,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					float dist1 = get_distance(pt1, palm_point, false);
 					float dist2 = get_distance(pt2, palm_point, false);
 
-					if (dist0 <= dist1 && dist0 <= dist2)
+					if (dist0 < dist1 && dist0 < dist2)
 						concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
-					else if (dist0 >= dist1 && dist0 >= dist2)
+					else if (dist0 > dist1 && dist0 > dist2)
 						convex_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
 				}
 			}
@@ -795,15 +800,15 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					if ((pt_concave_indexed.z > index_begin && pt_concave_indexed.z < index_end) ||
 						(pt_concave_indexed.z < index_begin && pt_concave_indexed.z > index_end))
 					{
-						/*float dist_to_convex0 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
+						float dist_to_convex0 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
 															 Point(pt_convex_indexed0.x, pt_convex_indexed0.y), true);
 
 						float dist_to_convex1 = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y),
 															 Point(pt_convex_indexed1.x, pt_convex_indexed1.y), true);
 
 						float dist_to_convex_max = max(dist_to_convex0, dist_to_convex1);
-						if (dist_to_convex_max <= 5)
-							continue;*/
+						if (dist_to_convex_max < 5)
+							continue;
 
 						Point pt0 = to_pt(pt_concave_indexed);
 						Point pt1 = to_pt(pt_convex_indexed0);
@@ -819,13 +824,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 						float dist0 = get_distance(to_pt(pt_concave_indexed), pt_palm, false);
 						float dist1 = get_distance(to_pt(pt_convex_indexed0), pt_palm, false);
 						float dist2 = get_distance(to_pt(pt_convex_indexed1), pt_palm, false);
-						if (!(dist0 < dist1 && dist0 < dist2))
-							continue;
 
 						float dist_smallest = min(min(dist0, dist1), dist2);
 						float dist_largest = max(max(dist0, dist1), dist2);
 						float dist_diff = dist_largest - dist_smallest;
-						if (dist_diff <= 5)//mark3
+						if (dist_diff < 5)//mark3
 							continue;
 
 						float dist = get_distance(Point(pt_concave_indexed.x, pt_concave_indexed.y), palm_point, false);
@@ -844,43 +847,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				break;
 
 			sort(concave_points_indexed.begin(), concave_points_indexed.end(), compare_point_z());
-
-			int concave_x_min_index = -1;
-			Point3f concave_x_min_point = Point3f(9999, 9999, 9999);
-
-			int index = -1;
-			for (Point3f& pt : concave_points_indexed)
-			{
-				++index;
-				if (pt.x < concave_x_min_point.x)
-				{
-					concave_x_min_index = index;
-					concave_x_min_point = pt;
-				}
-			}
-
-			vector<Point> line_vec;
-			bresenham_line(concave_x_min_point.x, concave_x_min_point.y, pt_palm.x, pt_palm.y, line_vec, 1000);
-
-			bool black_hit = false;
-			for (Point& pt : line_vec)
-				if (image_active_hand.ptr<uchar>(pt.y, pt.x)[0] == 0)
-				{
-					black_hit = true;
-					break;
-				}
-
-			// if (black_hit)
-				// concave_points_indexed.erase(concave_points_indexed.begin() + concave_x_min_index);
-
-			Mat image_test = image_active_hand.clone();
-
-			// circle(image_test, Point(concave_x_min_point.x, concave_x_min_point.y), 3, Scalar(127), 2);	
-			
-			for (Point3f& pt : concave_points_indexed)
-				circle(image_test, Point(pt.x, pt.y), 3, Scalar(127), -1);		
-
-			imshow("image_test" + name, image_test);
 		}
 
 		//------------------------------------------------------------------------------------------------------------------------------
@@ -1181,7 +1147,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		return false;
 
 	sort(fingertip_blobs.begin(), fingertip_blobs.end(), compare_blob_angle(pt_palm));
-	bool has_all_fingers = fingertip_blobs.size() >= 5;//mark
+	bool has_all_fingers = fingertip_blobs.size() >= 5;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1681,17 +1647,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	{//mark
-		for (BlobNew& blob : fingertip_blobs)
-		{
-			vector<Point> blob_contour;
-			for (Point& pt : contour_sorted)
-				if (blob.image_atlas.ptr<ushort>(pt.y, pt.x)[0] == blob.atlas_id)
-					blob_contour.push_back(pt);
-
-			fill_mat(blob_contour, image_visualization, 127);
-		}
-
+	{//mark2
+		imshow("image_palm", image_palm);
 	}
 
 	// stereo_matching_points = contour_sorted;
@@ -1991,8 +1948,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
-		// if (blob_dist_min != NULL && !verify_detection(blob_dist_min, value_store))
-			// blob_dist_min = NULL;
+		if (blob_dist_min != NULL && !verify_detection(blob_dist_min, value_store))
+			blob_dist_min = NULL;
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
