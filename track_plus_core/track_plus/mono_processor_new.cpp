@@ -532,7 +532,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	low_pass_filter->compute(palm_radius, 0.1, "palm_radius");
-	// low_pass_filter->compute(palm_point, 0.5, "palm_point");
+	low_pass_filter->compute(palm_point.y, 0.5, "palm_point");
 
 	pt_palm = palm_point;
 
@@ -586,9 +586,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 						float dist1 = get_distance(pt1, palm_point, false);
 						float dist2 = get_distance(pt2, palm_point, false);
 
-						if (dist0 < dist1 && dist0 < dist2)
+						if (dist0 <= dist1 && dist0 <= dist2)
 							concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
-						else if (dist0 > dist1 && dist0 > dist2)
+						else if (dist0 >= dist1 && dist0 >= dist2)
 							convex_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
 					}
 				}
@@ -720,16 +720,18 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	Mat image_palm = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
 	vector<Point3f> concave_points_indexed;
 	vector<Point3f> convex_points_indexed;
+
+	vector<Point3f> concave_points_indexed_raw;
+	vector<Point3f> convex_points_indexed_raw;
 
 	vector<Point> circle_vec;
 	midpoint_circle(palm_point.x, palm_point.y, palm_radius, circle_vec);
 
 	while (true)
 	{
-		vector<Point3f> concave_points_indexed_raw;
-		vector<Point3f> convex_points_indexed_raw;
 		for (int skip_count = 1; skip_count < contour_approximated.size() / 2; ++skip_count)
 		{
 			const int i_max = contour_approximated.size() - skip_count;
@@ -760,9 +762,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					float dist1 = get_distance(pt1, palm_point, false);
 					float dist2 = get_distance(pt2, palm_point, false);
 
-					if (dist0 < dist1 && dist0 < dist2)
+					if (dist0 <= dist1 && dist0 <= dist2)
 						concave_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
-					else if (dist0 > dist1 && dist0 > dist2)
+					else if (dist0 >= dist1 && dist0 >= dist2)
 						convex_points_indexed_raw.push_back(Point3f(pt0.x, pt0.y, i));
 				}
 			}
@@ -843,8 +845,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 					concave_points_indexed.push_back(pt_dist_min);//mark1
 			}
 
-			if (concave_points_indexed.size() == 0)
+			if (concave_points_indexed_raw.size() < 2)
 				break;
+
+			concave_points_indexed.push_back(concave_points_indexed_raw[0]);
+			concave_points_indexed.push_back(concave_points_indexed_raw[concave_points_indexed_raw.size() - 1]);
 
 			sort(concave_points_indexed.begin(), concave_points_indexed.end(), compare_point_z());
 		}
@@ -966,15 +971,16 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
+	//mask arm part of image so that only palm and fingers are left
 
 	RotatedRect r_rect0 = RotatedRect(palm_point, Size2f(500, 500), -hand_angle);
 	Point2f vertices0[4];
 	r_rect0.points(vertices0);
 
 	int vertices_0_3_x = (vertices0[3].x - vertices0[2].x) / 2 + vertices0[2].x;
-	int vertices_0_3_y = (vertices0[3].y - vertices0[2].y) / 2 + vertices0[2].y - 10;
+	int vertices_0_3_y = (vertices0[3].y - vertices0[2].y) / 2 + vertices0[2].y - palm_radius;
 	int vertices_0_0_x = (vertices0[0].x - vertices0[1].x) / 2 + vertices0[1].x;
-	int vertices_0_0_y = (vertices0[0].y - vertices0[1].y) / 2 + vertices0[1].y - 10;
+	int vertices_0_0_y = (vertices0[0].y - vertices0[1].y) / 2 + vertices0[1].y - palm_radius;
 
 	line(image_palm, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(254), 1);
 	line(image_palm_segmented, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(0), 1);
@@ -1118,7 +1124,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 		}
 	}
-
 	if (fingertip_blobs.size() == 0)
 		return false;
 
@@ -1134,15 +1139,14 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	vector<BlobNew> fingertip_blobs_filtered0;
 	for (BlobNew& blob : fingertip_blobs)
 	{
-		// if (blob.count > count_max / 10)
+		if (blob.count > count_max / 5)
 			fingertip_blobs_filtered0.push_back(blob);
 
-		if (blob.count > count_max / 3)
+		if (blob.count > count_max / 5)
 			++count_significant;
 	}
 
 	fingertip_blobs = fingertip_blobs_filtered0;
-
 	if (fingertip_blobs.size() == 0)
 		return false;
 
@@ -1164,7 +1168,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			fingertip_blobs_filtered1.push_back(fingertip_blobs_count_sorted[i]);
 
 		sort(fingertip_blobs_filtered1.begin(), fingertip_blobs_filtered1.end(), compare_blob_angle(pt_palm));
+
 		fingertip_blobs = fingertip_blobs_filtered1;
+		if (fingertip_blobs.size() == 0)
+			return false;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -1764,7 +1771,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 	//find thumb
 
-	bool has_thumb = false;
+	/*bool has_thumb = false;
 	int thumb_index = -1;
 	BlobNew* blob_thumb = NULL;
 
@@ -2199,7 +2206,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			thumb_index = blob_x_min->index;
 			blob_thumb = blob_x_min;
 		}
-	}
+	}*/
 
 	//------------------------------------------------------------------------------------------------------------------------------
 

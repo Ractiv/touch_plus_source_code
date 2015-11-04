@@ -18,7 +18,7 @@
 
 #include "value_accumulator.h"
 
-const int value_accumulator_size_threshold = 20;
+const int value_accumulator_size_threshold = 10;
 
 float ValueAccumulator::compute(float& val, string name, int size_limit, float val_default, float ratio, bool stop_when_ready, bool overwrite)
 {
