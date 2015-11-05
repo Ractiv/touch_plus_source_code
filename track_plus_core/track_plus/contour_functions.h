@@ -41,6 +41,10 @@ void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vect
 
 void extension_line(Point pt_start, Point pt_end, const uchar length, vector<Point>& line_points, const bool reverse);
 
+float get_min_dist(vector<Point>& pt_vec, Point& pt, bool accurate, Point* pt_dist_min = NULL);
+
+float get_max_dist(vector<Point>& pt_vec, Point& pt, bool accurate, Point* pt_dist_max = NULL);
+
 Point get_y_min_point(vector<Point>& pt_vec);
 
 Point get_y_max_point(vector<Point>& pt_vec);
@@ -52,3 +56,5 @@ Point get_x_max_point(vector<Point>& pt_vec);
 void get_bounds(vector<Point>& pt_vec, int& x_min, int& x_max, int& y_min, int& y_max);
 
 bool check_bounds_small(Point& pt);
+
+void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness);

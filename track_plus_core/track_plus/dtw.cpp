@@ -18,21 +18,7 @@
 
 #include "dtw.h"
 
-vector<Point> preprocess_points(vector<Point>& vec, Point pivot)
-{
-	Point pt_y_max = get_y_max_point(vec);
-
-	int x_diff = WIDTH_SMALL / 2 - pivot.x;
-	int y_diff = HEIGHT_SMALL / 2 - pt_y_max.y;
-
-	vector<Point> vec_adjusted;
-	for (Point& pt : vec)
-		vec_adjusted.push_back(Point(pt.x + x_diff, pt.y + y_diff));
-
-	return vec_adjusted;
-}
-
-Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool center_and_resize, Point pt_alignment)
+Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool center_and_resize)
 {
 	const int vec0_size = vec0.size();
 	const int vec1_size = vec1.size();
@@ -40,8 +26,33 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool center_and_r
 
 	if (center_and_resize)
 	{
-		vector<Point> vec0_adjusted = preprocess_points(vec0, pt_alignment);
-		vector<Point> vec1_adjusted = preprocess_points(vec1, pt_alignment);
+		int x_min0;
+		int x_max0;
+		int y_min0;
+		int y_max0;
+		get_bounds(vec0, x_min0, x_max0, y_min0, y_max0);
+
+		int x_min1;
+		int x_max1;
+		int y_min1;
+		int y_max1;
+		get_bounds(vec1, x_min1, x_max1, y_min1, y_max1);
+
+		vector<Point> vec0_adjusted;
+		for (Point& pt : vec0)
+		{
+			int x_adjusted = map_val(pt.x, x_min0, x_max0, 0, WIDTH_SMALL);
+			int y_adjusted = map_val(pt.y, y_min0, y_max0, 0, HEIGHT_SMALL);
+			vec0_adjusted.push_back(Point(x_adjusted, y_adjusted));
+		}
+
+		vector<Point> vec1_adjusted;
+		for (Point& pt : vec1)
+		{
+			int x_adjusted = map_val(pt.x, x_min1, x_max1, 0, WIDTH_SMALL);
+			int y_adjusted = map_val(pt.y, y_min1, y_max1, 0, HEIGHT_SMALL);
+			vec1_adjusted.push_back(Point(x_adjusted, y_adjusted));
+		}
 
 		for (int i = 0; i < vec0_size; ++i)
 		{

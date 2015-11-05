@@ -439,6 +439,44 @@ void extension_line(Point pt_start, Point pt_end, const uchar length, vector<Poi
 	}
 }
 
+float get_min_dist(vector<Point>& pt_vec, Point& pt, bool accurate, Point* pt_dist_min)
+{
+	float dist_min = 9999;
+	Point pt_dist_min0;
+	for (Point& pt0 : pt_vec)
+	{
+		float dist = get_distance(pt0, pt, accurate);
+		if (dist < dist_min)
+		{
+			pt_dist_min0 = pt0;
+			dist_min = dist;
+		}
+	}
+	if (pt_dist_min != NULL)
+		*pt_dist_min = pt_dist_min0;
+
+	return dist_min;
+}
+
+float get_max_dist(vector<Point>& pt_vec, Point& pt, bool accurate, Point* pt_dist_max)
+{
+	float dist_max = -1;
+	Point pt_dist_max0;
+	for (Point& pt0 : pt_vec)
+	{
+		float dist = get_distance(pt0, pt, accurate);
+		if (dist > dist_max)
+		{
+			pt_dist_max0 = pt0;
+			dist_max = dist;
+		}
+	}
+	if (pt_dist_max != NULL)
+		*pt_dist_max = pt_dist_max0;
+
+	return dist_max;
+}
+
 Point get_y_min_point(vector<Point>& pt_vec)
 {
 	Point pt_y_min = Point(0, 9999);
@@ -505,4 +543,16 @@ bool check_bounds_small(Point& pt)
 		return false;
 
 	return true;
+}
+
+void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness)
+{
+	Point pt_old = Point(-1, -1);
+	for (Point& pt : contour)
+	{
+		if (pt_old.x != -1)
+			line(image, pt, pt_old, Scalar(gray), thickness);
+
+		pt_old = pt;
+	}
 }

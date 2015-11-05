@@ -29,9 +29,9 @@ float alpha = 1;
 bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  const int y_ref, float pitch,
 								 bool construct_background, string name,     bool visualize)
 {
-	if (value_store->get_bool("first_pass", false) == false)
+	if (value_store.get_bool("first_pass", false) == false)
 	{
-		value_store->set_bool("first_pass", true);
+		value_store.set_bool("first_pass", true);
 		algo_name += name;
 	}
 
@@ -39,7 +39,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	Mat image_small;
 	resize(image_in, image_small, Size(WIDTH_SMALL_HALF, HEIGHT_SMALL_HALF), 0, 0, INTER_LINEAR);
-	Mat image_background_small = value_store->get_mat("image_background_small", true);
+	Mat image_background_small = value_store.get_mat("image_background_small", true);
 
 	Mat image_subtraction_small = Mat::zeros(HEIGHT_SMALL_HALF, WIDTH_SMALL_HALF, CV_8UC1);
 	uchar diff_max_small = 0;
@@ -54,15 +54,15 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			image_subtraction_small.ptr<uchar>(j, i)[0] = diff;
 		}
 
-	value_store->set_mat("image_background_small", image_small);
+	value_store.set_mat("image_background_small", image_small);
 	threshold(image_subtraction_small, image_subtraction_small, diff_max_small * subtraction_threshold_ratio, 254, THRESH_BINARY);
 
-	BlobDetectorNew* blob_detector_image_subtraction_small = value_store->get_blob_detector("blob_detector_image_subtraction_small");
+	BlobDetectorNew* blob_detector_image_subtraction_small = value_store.get_blob_detector("blob_detector_image_subtraction_small");
 	blob_detector_image_subtraction_small->compute(image_subtraction_small, 254, 0, WIDTH_SMALL_HALF, 0, HEIGHT_SMALL_HALF, true);
 
 	if (blob_detector_image_subtraction_small->blobs->size() > 50)
 	{
-		bool ret_val = value_store->get_bool("result", false);
+		bool ret_val = value_store.get_bool("result", false);
 		if (ret_val)
 			algo_name_vec.push_back(algo_name);
 
@@ -84,16 +84,14 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	image_ptr = image_in;
 
-	LowPassFilter* low_pass_filter = value_store->get_low_pass_filter("low_pass_filter");
+	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
 	bool both_moving_temp = false;
 	both_moving = false;
 
 	if (compute_background_static == false && construct_background == true)
 	{
-		delete value_store;
-		value_store = new ValueStore();
-
+		value_store.reset();
 		low_pass_filter->reset();
 
 		gray_threshold_left = 9999;
@@ -111,8 +109,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	const int target_frame = value_store->get_int("target_frame", 1);
-	int current_frame = value_store->get_int("current_frame", 0);
+	int current_frame = value_store.get_int("current_frame", 0);
 
 	++current_frame;
 	will_compute_next_frame = current_frame == target_frame - 1;
@@ -123,11 +120,11 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 	else if (current_frame == target_frame + 1)
 		current_frame = 0;
 
-	value_store->set_int("current_frame", current_frame);
+	value_store.set_int("current_frame", current_frame);
 
 	if (to_return)
 	{
-		bool ret_val = value_store->get_bool("result", false);
+		bool ret_val = value_store.get_bool("result", false);
 		if (ret_val)
 			algo_name_vec.push_back(algo_name);
 
@@ -136,7 +133,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	Mat image_background_unbiased = value_store->get_mat("image_background_unbiased", true);
+	Mat image_background_unbiased = value_store.get_mat("image_background_unbiased", true);
 	Mat image_subtraction_unbiased = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 	uchar diff_max_unbiased = 0;
@@ -152,7 +149,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	if (diff_max_unbiased < 32)
 	{
-		bool ret_val = value_store->get_bool("result", false);
+		bool ret_val = value_store.get_bool("result", false);
 		if (ret_val)
 			algo_name_vec.push_back(algo_name);
 
@@ -161,14 +158,14 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 	threshold(image_subtraction_unbiased, image_subtraction_unbiased, diff_max_unbiased * subtraction_threshold_ratio, 254, THRESH_BINARY);
 
-	value_store->set_mat("image_background_unbiased", image_in);
+	value_store.set_mat("image_background_unbiased", image_in);
 
 	//------------------------------------------------------------------------------------------------------------------------
 
 	int entropy_left = 0;
 	int entropy_right = 0;
 
-	BlobDetectorNew* blob_detector_image_subtraction_unbiased = value_store->get_blob_detector("blob_detector_image_subtraction_unbiased");
+	BlobDetectorNew* blob_detector_image_subtraction_unbiased = value_store.get_blob_detector("blob_detector_image_subtraction_unbiased");
 	blob_detector_image_subtraction_unbiased->compute(image_subtraction_unbiased, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
 	for (BlobNew& blob : *blob_detector_image_subtraction_unbiased->blobs)
@@ -180,7 +177,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 	int entropy_left_biased = 1;
 	int entropy_right_biased = 1;
 
-	BlobDetectorNew* blob_detector_image_subtraction = value_store->get_blob_detector("blob_detector_image_subtraction");
+	BlobDetectorNew* blob_detector_image_subtraction = value_store.get_blob_detector("blob_detector_image_subtraction");
 	for (BlobNew& blob : *blob_detector_image_subtraction->blobs)
 		if (blob.x < x_separator_middle)
 			entropy_left_biased += blob.count;
@@ -196,8 +193,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 		int y_min = blob_detector_image_subtraction_unbiased->y_min_result;
 		int y_max = blob_detector_image_subtraction_unbiased->y_max_result;
 
-		float x_seed_vec0_max = value_store->get_float("x_seed_vec0_max");
-		float x_seed_vec1_min = value_store->get_float("x_seed_vec1_min");
+		float x_seed_vec0_max = value_store.get_float("x_seed_vec0_max");
+		float x_seed_vec1_min = value_store.get_float("x_seed_vec1_min");
 
 		int intensity_array[WIDTH_SMALL] { 0 };
 		for (BlobNew& blob : *blob_detector_image_subtraction_unbiased->blobs)
@@ -275,10 +272,10 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			low_pass_filter->compute_if_smaller(x_seed_vec0_max, 0.5, "x_seed_vec0_max");
 			low_pass_filter->compute_if_larger(x_seed_vec1_min, 0.5, "x_seed_vec1_min");
 
-			value_store->set_float("x_seed_vec0_max", x_seed_vec0_max);
-			value_store->set_float("x_seed_vec1_min", x_seed_vec1_min);
+			value_store.set_float("x_seed_vec0_max", x_seed_vec0_max);
+			value_store.set_float("x_seed_vec1_min", x_seed_vec1_min);
 
-			value_store->set_bool("x_min_max_set", true);
+			value_store.set_bool("x_min_max_set", true);
 
 			#if 0
 			{
@@ -366,7 +363,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			if (compute_x_separator_middle)
 			{
-				vector<int>* x_separator_middle_vec = value_store->get_int_vec("x_separator_middle_vec");
+				vector<int>* x_separator_middle_vec = value_store.get_int_vec("x_separator_middle_vec");
 				if (x_separator_middle_vec->size() < 1000)
 				{
 					x_separator_middle_vec->push_back((x_seed_vec1_min + x_seed_vec0_max) / 2);
@@ -400,7 +397,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 		if (both_moving_0_set && both_moving_1_set)
 		{
-			Mat image_background = value_store->get_mat("image_background", true);
+			Mat image_background = value_store.get_mat("image_background", true);
 			Mat image_subtraction = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
 			uchar diff_max = 0;
@@ -433,13 +430,13 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 							image_background.ptr<uchar>(j, i)[0] +=
 								(image_in.ptr<uchar>(j, i)[0] - image_background.ptr<uchar>(j, i)[0]) * alpha;
 
-			value_store->set_mat("image_background", image_background);
+			value_store.set_mat("image_background", image_background);
 
 			//------------------------------------------------------------------------------------------------------------------------
 
 			blob_detector_image_subtraction->compute(image_subtraction, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
-			if ((left_moving || right_moving) && value_store->get_bool("x_min_max_set"))
+			if ((left_moving || right_moving) && value_store.get_bool("x_min_max_set"))
 			{
 				if (both_moving)
 				{
@@ -489,20 +486,20 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			for (Point& pt : hist_pt_vec0)
 				line(image_histogram, pt, Point(0, pt.y), Scalar(254), 1);
 
-			BlobDetectorNew* blob_detector_image_histogram = value_store->get_blob_detector("blob_detector_image_histogram");
+			BlobDetectorNew* blob_detector_image_histogram = value_store.get_blob_detector("blob_detector_image_histogram");
 			blob_detector_image_histogram->compute(image_histogram, 254, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
 			if (both_moving)
 			{
 				y_separator_down = blob_detector_image_histogram->blob_max_size->y_max;
-				value_store->set_int("y_separator_down", y_separator_down);
+				value_store.set_int("y_separator_down", y_separator_down);
 
 				y_separator_down_median = y_separator_down;
 				value_accumulator.compute(y_separator_down_median, "y_separator_down_median", 1000, HEIGHT_SMALL_MINUS, 0.1, true);
 			}
 			else if (left_moving || right_moving)
 			{
-				y_separator_down = value_store->get_int("y_separator_down");
+				y_separator_down = value_store.get_int("y_separator_down");
 				int y_separator_down_new = blob_detector_image_histogram->blob_max_size->y_max;
 				if (y_separator_down_new > y_separator_down)
 					y_separator_down = y_separator_down_new;
@@ -510,7 +507,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 			//------------------------------------------------------------------------------------------------------------------------
 
-			if ((((left_moving || right_moving) && value_store->get_bool("result", true)) || both_moving))
+			if ((((left_moving || right_moving) && value_store.get_bool("result", true)) || both_moving))
 			{
 				if (both_moving)
 				{
@@ -529,18 +526,18 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 				//------------------------------------------------------------------------------------------------------------------------
 
-				Point pt_intersection_down_left = value_store->get_point("pt_intersection_down_left");
-				Point pt_intersection_down_right = value_store->get_point("pt_intersection_down_right");
-				Point pt_intersection_up_left = value_store->get_point("pt_intersection_up_left");
-				Point pt_intersection_up_right = value_store->get_point("pt_intersection_up_right");
+				Point pt_intersection_down_left = value_store.get_point("pt_intersection_down_left");
+				Point pt_intersection_down_right = value_store.get_point("pt_intersection_down_right");
+				Point pt_intersection_up_left = value_store.get_point("pt_intersection_up_left");
+				Point pt_intersection_up_right = value_store.get_point("pt_intersection_up_right");
 
 				//------------------------------------------------------------------------------------------------------------------------
 
 				if (value_accumulator.ready && construct_background)
 				{
-					if (y_separator_up > 0 && !value_store->get_bool("triangle_fill_complete", false))
+					if (y_separator_up > 0 && !value_store.get_bool("triangle_fill_complete", false))
 					{
-						value_store->set_bool("triangle_fill_complete", true);
+						value_store.set_bool("triangle_fill_complete", true);
 
 						Point pt_center = Point(x_separator_middle, y_separator_up);
 						Mat image_flood_fill = Mat::zeros(pt_center.y + 1, WIDTH_SMALL, CV_8UC1);
@@ -668,21 +665,21 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					//------------------------------------------------------------------------------------------------------------------------
 
-					Mat image_borders = value_store->get_mat("image_borders", true);
+					Mat image_borders = value_store.get_mat("image_borders", true);
 					bool image_borders_set = false;
 
-					const int borders_x_offset = value_store->get_bool("image_borders_public_set", false) ? 10 : 20;
+					const int borders_x_offset = value_store.get_bool("image_borders_public_set", false) ? 10 : 20;
 
 					while ((left_moving || right_moving) && value_accumulator.ready)
 					{
 						int x_separator_left_temp = x_separator_left - borders_x_offset;
 						int x_separator_right_temp = x_separator_right + borders_x_offset;
 
-						if (!value_store->get_bool("border_first_pass", false))
+						if (!value_store.get_bool("border_first_pass", false))
 						{
 							x_separator_left_temp = x_separator_left_median;
 							x_separator_right_temp = x_separator_right_median;
-							value_store->set_bool("border_first_pass", true);
+							value_store.set_bool("border_first_pass", true);
 						}
 
 						float width_diff = cubic(pitch, 7.214493, 0.4996785, 0.0002563892, -0.00003657664) * 3 / 4;
@@ -734,20 +731,20 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 							image_borders_set = true;
 						}
 
-						if (value_store->get_bool("result", false) && !value_store->get_bool("image_borders_public_set", false))
+						if (value_store.get_bool("result", false) && !value_store.get_bool("image_borders_public_set", false))
 						{
-							value_store->set_bool("image_borders_public_set", true);
+							value_store.set_bool("image_borders_public_set", true);
 							image_borders_public = image_borders.clone();
 						}
 
-						value_store->set_mat("image_borders", image_borders);
+						value_store.set_mat("image_borders", image_borders);
 						break;
 					}
 
 					//------------------------------------------------------------------------------------------------------------------------
 
 					BlobDetectorNew* blob_detector_image_in_thresholded =
-						value_store->get_blob_detector("blob_detector_image_in_thresholded");
+						value_store.get_blob_detector("blob_detector_image_in_thresholded");
 						
 					blob_detector_image_in_thresholded->compute(image_in_thresholded, 127, 0, WIDTH_SMALL, 0, HEIGHT_SMALL, true);
 
@@ -792,7 +789,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					//------------------------------------------------------------------------------------------------------------------------
 
-					if (both_moving && !value_store->get_bool("result", false))
+					if (both_moving && !value_store.get_bool("result", false))
 					{
 						float hole_count_left = 0;
 						float hole_count_right = 0;
@@ -904,18 +901,17 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (ratio_max < 1)
 						{
 							alpha = 0.10;
-							value_store->set_bool("result", true);
-							value_store->set_int("target_frame", 10);
+							value_store.set_bool("result", true);
 						}
 					}
 				}
 
 				//------------------------------------------------------------------------------------------------------------------------
 
-				value_store->get_point("pt_intersection_down_left", pt_intersection_down_left);
-				value_store->get_point("pt_intersection_down_right", pt_intersection_down_right);
-				value_store->get_point("pt_intersection_up_left", pt_intersection_up_left);
-				value_store->get_point("pt_intersection_up_right", pt_intersection_up_right);
+				value_store.get_point("pt_intersection_down_left", pt_intersection_down_left);
+				value_store.get_point("pt_intersection_down_right", pt_intersection_down_right);
+				value_store.get_point("pt_intersection_up_left", pt_intersection_up_left);
+				value_store.get_point("pt_intersection_up_right", pt_intersection_up_right);
 
 				//------------------------------------------------------------------------------------------------------------------------
 
@@ -939,7 +935,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			}
 		}
 	}
-	bool ret_val = value_store->get_bool("result", false);
+	bool ret_val = value_store.get_bool("result", false);
 	if (ret_val)
 		algo_name_vec.push_back(algo_name);
 

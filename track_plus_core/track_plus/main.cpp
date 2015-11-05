@@ -120,7 +120,6 @@ int point_vec_pool_count = 0;
 vector<Point>* point_vec_ptr = NULL;
 
 bool serial_verified = false;
-bool point_vec_pool_initialized = false;
 bool updated = false;
 
 int wait_count = 0;
@@ -517,22 +516,21 @@ void compute()
     if (proceed)
     {
         proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
-        // proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
-        // proceed = proceed0 && proceed1;
+        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        proceed = proceed0 && proceed1;
     }
-
-    proceed = false;
 
     if (proceed)
     {
+        motion_processor0.target_frame = 10;
+        motion_processor1.target_frame = 10;
+        
         point_vec_pool[point_vec_pool_count] = mono_processor0.pose_estimation_points;
         point_vec_ptr = &point_vec_pool[point_vec_pool_count];
         
         ++point_vec_pool_count;
         if (point_vec_pool_count == pool_size_max)
            point_vec_pool_count = 0;
-
-        point_vec_pool_initialized = true;
 
         // stereo_processor_new.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
         // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
@@ -548,8 +546,12 @@ void pose_estimator_thread_function()
 {
     while (true)
     {
-        if (point_vec_pool_initialized)
+        static vector<Point>* point_vec_ptr_old = NULL;
+
+        if (point_vec_ptr_old != point_vec_ptr)
             pose_estimator.compute(*point_vec_ptr);
+
+        point_vec_ptr_old = point_vec_ptr;
 
         Sleep(200);
     }
@@ -615,32 +617,32 @@ void input_thread_function()
 
         if (str == "set pose name")
         {
-            console_log("please enter name of the pose");
+            cout << "please enter name of the pose" << endl;
 
             getline(cin, str);
             target_pose_name = str;
 
-            console_log("pose name set to: " + target_pose_name);
+            cout << "pose name set to: " << target_pose_name << endl;
         }
         else if (str == "show pose name")
         {
-            console_log("started showing pose name");
+            cout << "started showing pose name" << endl;
 
             pose_estimator.show = true;
             getline(cin, str);
 
-            console_log("stopped showing pose name");
+            cout << "stopped showing pose name" << endl;
 
             pose_estimator.show = false;
         }
         else if (str == "set exposure")
         {
-            console_log("please enter exposure value");
+            cout << "please enter exposure value" << endl;
 
             getline(cin, str);
             camera->setExposureTime(Camera::both, atoi(str.c_str()));
 
-            console_log("exposure value set to: " + str);
+            cout << "exposure value set to: " << str << endl;
         }
     }
 }

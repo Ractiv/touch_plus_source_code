@@ -28,6 +28,7 @@ public:
 	string algo_name = "motion_processor";
 
 	int entropy_threshold = 300;
+	int target_frame = 1;
 
 	float y_separator_down = HEIGHT_SMALL_MINUS;
 	float y_separator_up = 0;
@@ -60,7 +61,7 @@ public:
 	Mat image_ptr;
 	Mat image_borders_public = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-	ValueStore* value_store = new ValueStore();
+	ValueStore value_store;
 
 	ValueAccumulator value_accumulator;
 

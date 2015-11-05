@@ -30,7 +30,7 @@ public:
 
 	ThinningComputer thinning_computer;
 
-	ValueStore* value_store = new ValueStore();
+	ValueStore value_store;
 	ValueStore value_store_permanent;
 
 	ValueAccumulator value_accumulator;

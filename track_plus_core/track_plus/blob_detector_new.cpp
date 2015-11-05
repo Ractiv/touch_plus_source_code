@@ -271,7 +271,8 @@ void BlobDetectorNew::compute_region(Mat& image_in, uchar gray_in, vector<Point>
 			blob.fill(image_clone, gray_in);
 }
 
-void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const int i, const int j, bool shallow, bool in_process, bool octal)
+void BlobDetectorNew::compute_location(Mat& image_in, const uchar gray_in, const int i, const int j,
+									   bool shallow, bool in_process, bool octal)
 {
 	if (in_process == false)
 	{
@@ -442,10 +443,9 @@ struct compare_blob_angle
 
 	bool operator() (const BlobNew& blob0, const BlobNew& blob1)
 	{
-		float theta0 = get_angle(blob0.x, blob0.y, pivot.x, pivot.y);
-		float theta1 = get_angle(blob1.x, blob1.y, pivot.x, pivot.y);
-
-		return theta0 > theta1;
+		float theta0 = get_angle(pivot, Point(blob0.x, blob0.y), false);
+		float theta1 = get_angle(pivot, Point(blob1.x, blob1.y), false);
+		return theta0 < theta1;
 	}
 };
 

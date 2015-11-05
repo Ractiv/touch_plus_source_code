@@ -19,6 +19,18 @@
 #include "value_store.h"
 #include "console_log.h"
 
+void ValueStore::reset()
+{
+	int_vec_pool_index = 0;
+	float_vec_pool_index = 0;
+	point_vec_pool_index = 0;
+	blob_vec_pool_index = 0;
+	mat_vec_pool_index = 0;
+	blob_detector_pool_index = 0;
+	histogram_builder_pool_index = 0;
+	low_pass_filter_pool_index = 0;
+}
+
 void ValueStore::set_bool(string name, bool value)
 {
 	bool_map[name] = value;

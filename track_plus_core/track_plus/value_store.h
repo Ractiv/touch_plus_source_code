@@ -64,6 +64,7 @@ public:
 	int histogram_builder_pool_index = 0;
 	int low_pass_filter_pool_index = 0;
 
+	void reset();
 	void set_bool(string name, bool value);
 	void set_float(string name, float value);
 	void set_int(string name, int value);

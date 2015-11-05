@@ -40,7 +40,6 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	int index = 0;
 	for (vector<Point>& points : points_collection)
 	{
-		// float dist = matchShapes(points_current, points, CV_CONTOURS_MATCH_I1, 0);
 		Mat cost_mat = compute_cost_mat(points_current, points, false);
 		float dist = compute_dtw(cost_mat);
 
@@ -50,14 +49,13 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			points_dist_min = points;
 			pose_name_dist_min = names_collection[index];
 		}
-
 		++index;
 	}
 
 	if (record_pose && target_pose_name != "" && (pose_name_dist_min != target_pose_name/* || dist_min > 1000*/))
 	{
 		save(target_pose_name);
-		console_log(pose_name_dist_min + "->" + target_pose_name + " " + to_string(dist_min));
+		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
 	}
 
 	if (dist_min != FLT_MAX)
@@ -73,17 +71,18 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			pt_old = pt;
 		}
 
-		imshow("image_dist_min", image_dist_min);
+		if (show)
+			imshow("image_dist_min", image_dist_min);
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 5, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
 
 	if (pose_name_temp != "")
 		pose_name = pose_name_temp;
 
 	if (show)
-		console_log(pose_name_temp);
+		cout << pose_name_temp << endl;
 
 	Mat image_current = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
@@ -96,52 +95,47 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		pt_old = pt;
 	}
 
-	imshow("image_current", image_current);
-	waitKey(1);
+	if (show)
+	{
+		imshow("image_current", image_current);
+		waitKey(1);
+	}
 }
 
 bool PoseEstimator::accumulate_pose(const string name_in, const int count_max, string& name_out)
 {
-	if (count_max > 2)
+	bool result = false;
+
+	static int count = 0;
+	static map<const string, int> val_map;
+
+	if (count == count_max)
 	{
-		static int count = 0;
-		static map<const string, int> val_map;
-
-		if (count < count_max)
+		int val_max = 0;
+		string name_val_max;
+		for (pair<const string, int>& pair : val_map)
 		{
-			if (!val_map.count(name_in))
-				val_map[name_in] = 0;
-			else
-				++val_map[name_in];
-
-			++count;
-			return false;
-		}
-		else
-		{
-			int val_max = 0;
-			string name_val_max;
-			for (pair<const string, int>& pair : val_map)
+			int val = pair.second;
+			if (val > val_max)
 			{
-				int val = pair.second;
-				if (val > val_max)
-				{
-					val_max = val;
-					name_val_max = pair.first;
-				}
+				val_max = val;
+				name_val_max = pair.first;
 			}
-			name_out = name_val_max;
-
-			count = 0;
-			val_map.clear();
-			return true;
 		}
+		name_out = name_val_max;
+		count = 0;
+		val_map.clear();
+		result = true;
 	}
+
+	if (!val_map.count(name_in))
+		val_map[name_in] = 1;
 	else
-	{
-		name_out = name_in;
-		return true;
-	}
+		++val_map[name_in];
+
+	++count;
+
+	return result;
 }
 
 void PoseEstimator::save(const string name)
@@ -184,7 +178,7 @@ void PoseEstimator::save(const string name)
 	points_collection.push_back(points_current);
 	names_collection.push_back(name);
 
-	console_log("pose data saved: " + name);
+	cout << "pose data saved: " + name << endl;
 }
 
 void PoseEstimator::load()
