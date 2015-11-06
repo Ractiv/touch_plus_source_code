@@ -522,6 +522,11 @@ bool HandSplitterNew::compute(ForegroundExtractorNew& foreground_extractor, Moti
 		imshow("image_visualizationsdlkfjhasdf" + name, image_visualization);
 	}
 
+	int width_result_left = x_max_result_left - x_min_result_left;
+	int width_result_right = x_max_result_right - x_min_result_right;
+	if (width_result_left > WIDTH_SMALL * 0.7 || width_result_right > WIDTH_SMALL * 0.7)
+		return false;
+
 	if (blobs_right.size() > 0 || blobs_left.size() > 0)
 	{
 		algo_name_vec.push_back(algo_name);

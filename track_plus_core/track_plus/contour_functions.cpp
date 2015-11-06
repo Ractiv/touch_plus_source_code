@@ -80,163 +80,6 @@ void approximate_contour(vector<Point>& points, vector<Point>& points_approximat
 		points_approximated.push_back(pt_end);
 }
 
-void compute_unwrap(vector<Point>& points, Point pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,
-					vector<Point>& points_unwrapped)
-{
-	if (points.size() == 0)
-		return;
-
-	const int points_size = points.size();
-
-	Mat image_out = Mat::zeros(300, points_size, CV_8UC1);
-	int dist_max = 0;
-	int dist_min = 9999;
-
-	int index = 0;
-	points_unwrapped = vector<Point>(points_size);
-
-	for (Point& pt : points)
-	{
-		const int dist = get_distance(pt, pivot, false);
-
-		if (dist > dist_max)
-			dist_max = dist;
-		if (dist < dist_min)
-			dist_min = dist;
-
-		if (index > 0)
-		{
-			Point pt_current = Point(index, dist);
-			line(image_out, pt_current, Point(index, 0), Scalar(254), 1);
-			points_unwrapped[index] = pt_current;
-		}
-
-		++index;
-	}
-
-	const int dist_max_const = dist_max;
-	const int dist_min_const = dist_min;
-	for (int j = dist_min_const; j < dist_max_const; j += 4)
-	{
-		if (j >= image_out.rows)
-			break;
-
-		bool white_old = false;
-		int index0;
-
-		for (int i = 0; i < points_size; ++i)
-		{
-			if (i >= image_out.cols)
-				continue;
-
-			bool white_new = image_out.ptr<uchar>(j, i)[0] > 0;
-
-			if (white_new && !white_old)
-				index0 = i;
-			else if (!white_new && white_old)
-			{
-				int y_max = 0;
-				int index_y_max;
-
-				const int index1 = i;
-				for (int a = index0; a <= index1; ++a)
-				{
-					int y_current = points_unwrapped[a].y;
-					if (y_current > y_max)
-					{
-						y_max = y_current;
-						index_y_max = a;
-					}
-				}
-
-				bool index_found = false;
-
-				for (int& index_convex : convex_indexes)
-					if (index_convex == index_y_max)
-						index_found = true;
-
-				if (!index_found)
-					convex_indexes.push_back(index_y_max);
-			}
-
-			white_old = white_new;
-		}
-	}
-
-	sort(convex_indexes.begin(), convex_indexes.end(), compare_index_point_x(&points_unwrapped));
-
-	const int convex_indexes_size = convex_indexes.size();
-	for (int i = 1; i < convex_indexes_size; ++i)
-	{
-		const int index0 = convex_indexes[i - 1];
-		const int index1 = convex_indexes[i];
-
-		Point pt0 = points_unwrapped[index0];
-		Point pt1 = points_unwrapped[index1];
-
-		if (pt0.x == pt1.x && pt0.y == pt1.y)
-			continue;
-
-		int y_min = 9999;
-		int index_y_min;
-
-		for (int a = index0; a < index1; ++a)
-		{
-			const int y_current = points_unwrapped[a].y;
-			if (y_current < y_min)
-			{
-				y_min = y_current;
-				index_y_min = a;
-			}
-		}
-
-		bool index_found = false;
-
-		for (int& index_concave : concave_indexes)
-			if (index_concave == index_y_min)
-				index_found = true;
-
-		if (!index_found)
-			concave_indexes.push_back(index_y_min);
-	}
-}
-
-void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_unwrapped)
-{
-	if (points.size() == 0)
-		return;
-
-	const int points_size = points.size();
-
-	int dist_max = 0;
-	int dist_min = 9999;
-
-	int index = 0;
-	int x_current = 0;
-	Point pt_old = Point(-1, -1);
-	points_unwrapped = vector<Point>(points_size - 1);
-
-	for (Point& pt : points)
-	{
-		const int dist = get_distance(pt, pivot, false);
-
-		if (dist > dist_max)
-			dist_max = dist;
-		if (dist < dist_min)
-			dist_min = dist;
-
-		if (index > 0)
-		{
-			Point pt_current = Point(x_current, dist);
-			points_unwrapped[index - 1] = pt_current;
-			x_current += get_distance(pt_old, pt, false);
-		}
-
-		++index;
-		pt_old = pt;
-	}
-}
-
 void midpoint_circle_push_pixel(int x, int y, int x_c, int y_c, vector<PointIndex>& result_out,
 						        int& c00, int& c01, int& c10, int& c11, int& c20, int& c21, int& c30, int& c31)
 {
@@ -554,5 +397,37 @@ void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thicknes
 			line(image, pt, pt_old, Scalar(gray), thickness);
 
 		pt_old = pt;
+	}
+}
+
+void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot)
+{
+	float dist_min = 9999;
+	int index_dist_min;
+
+	int index = 0;
+	for (Point& pt : points)
+	{
+		float dist = get_distance(pt, pivot, false);
+		if (dist < dist_min /*&& pt.x < pivot.x*/)
+		{
+			dist_min = dist;
+			index_dist_min = index;
+		}
+		++index;
+	}
+
+	if (dist_min == 9999)
+		return;
+
+	const int points_size = points.size();
+	for (int i = index_dist_min; i < points_size + index_dist_min; ++i)
+	{
+		int index_current = i;
+		if (index_current >= points_size)
+			index_current -= points_size;
+
+		Point pt_current = points[index_current];
+		points_sorted.push_back(pt_current);
 	}
 }

@@ -25,7 +25,7 @@
 using namespace cv;
 using namespace std;
 
-Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool center_and_resize);
+Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool favor_parallel);
 
 float compute_dtw(Mat& cost_mat);
 vector<Point> compute_dtw_indexes(Mat& cost_mat);

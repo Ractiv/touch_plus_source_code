@@ -30,11 +30,6 @@ vector<vector<Point>> legacyFindContours(Mat& Segmented);
 
 void approximate_contour(vector<Point>& points, vector<Point>& points_approximated, int theta_threshold, int skip_count);
 
-void compute_unwrap(vector<Point>& points, Point pivot, vector<int>& convex_indexes, vector<int>& concave_indexes,
-					vector<Point>& points_unwrapped);
-
-void compute_unwrap2(vector<Point>& points, Point pivot, vector<Point>& points_unwrapped);
-
 void midpoint_circle(int x_in, int y_in, int radius_in, vector<Point>& result_out);
 
 void bresenham_line(int x1_in, int y1_in, int const x2_in, int const y2_in, vector<Point>& result_out, const uchar count_threshold);
@@ -58,3 +53,5 @@ void get_bounds(vector<Point>& pt_vec, int& x_min, int& x_max, int& y_min, int& 
 bool check_bounds_small(Point& pt);
 
 void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness);
+
+void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);

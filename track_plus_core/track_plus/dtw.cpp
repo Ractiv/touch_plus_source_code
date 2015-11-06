@@ -18,67 +18,28 @@
 
 #include "dtw.h"
 
-Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool center_and_resize)
+Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool favor_parallel)
 {
 	const int vec0_size = vec0.size();
 	const int vec1_size = vec1.size();
 	Mat cost_mat = Mat(vec1_size, vec0_size, CV_32FC1);
 
-	if (center_and_resize)
+	for (int i = 0; i < vec0_size; ++i)
 	{
-		int x_min0;
-		int x_max0;
-		int y_min0;
-		int y_max0;
-		get_bounds(vec0, x_min0, x_max0, y_min0, y_max0);
-
-		int x_min1;
-		int x_max1;
-		int y_min1;
-		int y_max1;
-		get_bounds(vec1, x_min1, x_max1, y_min1, y_max1);
-
-		vector<Point> vec0_adjusted;
-		for (Point& pt : vec0)
+		Point pt0 = vec0[i];
+		for (int j = 0; j < vec1_size; ++j)
 		{
-			int x_adjusted = map_val(pt.x, x_min0, x_max0, 0, WIDTH_SMALL);
-			int y_adjusted = map_val(pt.y, y_min0, y_max0, 0, HEIGHT_SMALL);
-			vec0_adjusted.push_back(Point(x_adjusted, y_adjusted));
-		}
+			Point pt1 = vec1[j];
 
-		vector<Point> vec1_adjusted;
-		for (Point& pt : vec1)
-		{
-			int x_adjusted = map_val(pt.x, x_min1, x_max1, 0, WIDTH_SMALL);
-			int y_adjusted = map_val(pt.y, y_min1, y_max1, 0, HEIGHT_SMALL);
-			vec1_adjusted.push_back(Point(x_adjusted, y_adjusted));
-		}
+			float dist;
+			if (favor_parallel)
+				dist = pow(abs(pt1.y - pt0.y), 3) + abs(pt1.x - pt0.x);
+			else
+				dist = abs(pt1.y - pt0.y) + abs(pt1.x - pt0.x);
 
-		for (int i = 0; i < vec0_size; ++i)
-		{
-			Point pt0_raw = vec0_adjusted[i];
-			for (int j = 0; j < vec1_size; ++j)
-			{
-				Point pt1_raw = vec1_adjusted[j];
-				float dist = pow(abs(pt1_raw.y - pt0_raw.y), 2) + abs(pt1_raw.x - pt0_raw.x);
-				cost_mat.ptr<float>(j, i)[0] = dist;
-			}
+			cost_mat.ptr<float>(j, i)[0] = dist;
 		}
 	}
-	else
-	{
-		for (int i = 0; i < vec0_size; ++i)
-		{
-			Point pt0 = vec0[i];
-			for (int j = 0; j < vec1_size; ++j)
-			{
-				Point pt1 = vec1[j];
-				float dist = abs(pt1.y - pt0.y) + abs(pt1.x - pt0.x);
-				cost_mat.ptr<float>(j, i)[0] = dist;
-			}
-		}
-	}
-
 	return cost_mat;
 }
 

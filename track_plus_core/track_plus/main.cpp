@@ -34,6 +34,7 @@
 #include "stereo_processor.h"
 #include "stereo_processor_new.h"
 #include "stereo_processor_permutation.h"
+#include "stereo_processor_dtw.h"
 #include "temporal_processor_new.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
@@ -95,6 +96,8 @@ MonoProcessorNew mono_processor1;
 StereoProcessor stereo_processor;
 
 StereoProcessorNew stereo_processor_new;
+
+StereoProcessorDTW stereo_processor_dtw;
 
 TemporalProcessor temporal_processor;
 
@@ -532,6 +535,7 @@ void compute()
         if (point_vec_pool_count == pool_size_max)
            point_vec_pool_count = 0;
 
+        // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
         // stereo_processor_new.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
         // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
         // stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);

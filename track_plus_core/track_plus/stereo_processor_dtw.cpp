@@ -76,11 +76,15 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 	vector<int> y_diff_vec;
 	vector<int> x_diff_vec;
 
+	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
+
 	int index = 0;
 	for (Point& index_pair : indexes)
 	{
 		Point pt0 = (*vec0)[index_pair.x];
 		Point pt1 = (*vec1)[index_pair.y];
+
+		line(image_visualization, pt0, pt1, Scalar(254), 1);
 
 		points0.push_back(Point4f(pt0.x, pt0.y, index, -1));
 		points1.push_back(Point4f(pt1.x, pt1.y, index, -1));
@@ -96,7 +100,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 		++index;
 	}
 
-	if (angle_vec.size() == 0)
+	/*if (angle_vec.size() == 0)
 		return false;
 
 	const float angle_median = angle_vec[angle_vec.size() / 2];
@@ -181,8 +185,6 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 		checker1[key1] = 1;
 	}
 
-	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
-
 	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_processor0.pt_palm, 0, 4);
 	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_processor1.pt_palm, 1, 4);
 
@@ -208,7 +210,7 @@ bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 			circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
 		}
 #endif
-	}
+	}*/
 
 	imshow("image_visualizationadsfasdfasdf", image_visualization);
 
