@@ -177,8 +177,10 @@ void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessor
 		BlobNew* blob0 = stereo_pair_current.side_flipped ? blob_small : blob_large;
 		BlobNew* blob1 = stereo_pair_current.side_flipped ? blob_large : blob_small;
 
-		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip, stereo_pair_current.mono_data0.image, stereo_pair_current.mono_data0.side);
-		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip, stereo_pair_current.mono_data1.image, stereo_pair_current.mono_data1.side);
+		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip,
+							       stereo_pair_current.mono_data0.image, stereo_pair_current.mono_data0.side);
+		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip,
+								   stereo_pair_current.mono_data1.image, stereo_pair_current.mono_data1.side);
 
 #if 0
 		circle(image_visualization, pt_resolved0, 5, Scalar(127), 2);

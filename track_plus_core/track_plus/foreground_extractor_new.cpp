@@ -90,7 +90,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 	for (BlobNew& blob : *blob_detector.blobs)
 		if (blob.y > y_separator_down || blob.y_min > y_separator_down_median || /*blob.y_max < y_separator_up_median ||*/
 			blob.x_max < x_separator_left || blob.x_max < x_separator_left_median ||
-			blob.x_min > x_separator_right || blob.x_min > x_separator_right_median)
+			blob.x_min > x_separator_right || blob.x_min > x_separator_right_median /*||
+			blob.count < blob_detector.blob_max_size->count / 20*/)
 		{
 			blob.active = false;
 			blob.fill(image_foreground, 0);

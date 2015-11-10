@@ -557,7 +557,10 @@ void pose_estimator_thread_function()
 
         point_vec_ptr_old = point_vec_ptr;
 
-        Sleep(200);
+        if (!record_pose)
+            Sleep(200);
+        else
+            Sleep(1);
     }
 }
 
@@ -605,7 +608,6 @@ void keyboard_hook_thread_function()
         DispatchMessage(&msg);
         Sleep(1000);
     }
-
     UnhookWindowsHookEx(keyboard_hook_handle);
 }
 #elif __APPLE__
@@ -655,7 +657,7 @@ void guardian_thread_function()
 {
     while (true)
     {
-        if (wait_count >= (serial_verified ? 5 : 10))
+        if (wait_count >= /*(serial_verified ? 5 : 10)*/2 || camera != NULL && camera->device_not_detected)
             wait_for_device();
 
         ++wait_count;

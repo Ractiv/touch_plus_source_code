@@ -519,7 +519,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					y_separator_up = blobs_y_min;
 
 					y_separator_up_median = y_separator_up;
-					value_accumulator.compute(y_separator_up_median, "y_separator_up_median", 1000, 0, 0.5, true);
+					value_accumulator.compute(y_separator_up_median, "y_separator_up_median", 1000, 0, 0.9, true);
 
 					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9, true);
 				}

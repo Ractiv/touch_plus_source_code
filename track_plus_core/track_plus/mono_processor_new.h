@@ -44,6 +44,8 @@ public:
 	Point pt_palm;
 	Point pt_alignment;
 
+	float palm_radius;
+
 	vector<Point> fingertip_points;
 	vector<BlobNew> fingertip_blobs;
 

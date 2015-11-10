@@ -31,7 +31,7 @@ class SurfaceComputer
 public:
 	LowPassFilter low_pass_filter;
 
-	int y_reflection;
+	int y_reflection = HEIGHT_SMALL;
 
 	void init(Mat& image0);
 };

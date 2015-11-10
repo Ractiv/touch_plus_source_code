@@ -19,198 +19,83 @@
 #include "stereo_processor_dtw.h"
 #include "dtw.h"
 
-struct Point4f
+struct PointPair
 {
-	float x;
-	float y;
-	float z;
-	float w;
+	Point pt0;
+	Point pt1;
+	int y_diff;
 
-	Point4f(float _x, float _y, float _z, float _w)
+	PointPair(Point& _pt0, Point& _pt1, int _y_diff)
 	{
-		x = _x;
-		y = _y;
-		z = _z;
-		w = _w;
-	};
-};
-
-struct BlobPairAngleDiff
-{
-	BlobNew* blob0;
-	BlobNew* blob1;
-	float angle_diff;
-
-	BlobPairAngleDiff(BlobNew* _blob0, BlobNew* _blob1, float _angle_diff)
-	{
-		blob0 = _blob0;
-		blob1 = _blob1;
-		angle_diff = _angle_diff;
-	};
-};
-
-struct compare_blob_pair_angle_diff
-{
-	bool operator() (const BlobPairAngleDiff& blob_pair0, const BlobPairAngleDiff& blob_pair1)
-	{
-		return (blob_pair0.angle_diff < blob_pair1.angle_diff);
+		pt0 = _pt0;
+		pt1 = _pt1;
+		y_diff = _y_diff;
 	}
 };
+
+void center_pt_vec(vector<Point>& contour_processed, vector<Point>& stereo_matching_points,
+						    Point& pt_y_max, Point& pt_palm, int palm_radius)
+{
+	int x_diff = (WIDTH_SMALL / 2) - (pt_palm.x - palm_radius);
+	int y_diff = (HEIGHT_SMALL / 2) - pt_y_max.y;
+
+	for (Point& pt : contour_processed)
+	{
+		Point pt_new = Point(pt.x + x_diff, pt.y + y_diff);
+		stereo_matching_points.push_back(pt_new);
+	}
+}
 
 bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1, PointResolver& point_resolver,
 							     PointerMapper& pointer_mapper,     Mat& image0,                       Mat& image1)
 {
-	vector<Point>* vec0 = &mono_processor0.stereo_matching_points;
-	vector<Point>* vec1 = &mono_processor1.stereo_matching_points;
+	vector<Point> vec0_raw = mono_processor0.stereo_matching_points;
+	vector<Point> vec1_raw = mono_processor1.stereo_matching_points;
 
-	vector<BlobNew>* blob_vec0 = &mono_processor0.fingertip_blobs;
-	vector<BlobNew>* blob_vec1 = &mono_processor1.fingertip_blobs;
+	Point y_max_point0 = get_y_max_point(vec0_raw);
+	Point y_max_point1 = get_y_max_point(vec1_raw);
 
-	Mat cost_mat = compute_cost_mat(*vec0, *vec1, true);
+	vector<Point> vec0;
+	center_pt_vec(vec0_raw, vec0, y_max_point0, mono_processor0.pt_palm, mono_processor0.palm_radius);
+
+	vector<Point> vec1;
+	center_pt_vec(vec1_raw, vec1, y_max_point1, mono_processor1.pt_palm, mono_processor1.palm_radius);
+
+	Mat cost_mat = compute_cost_mat(vec0, vec1, true);
 	vector<Point> indexes = compute_dtw_indexes(cost_mat);
-
-	vector<Point4f> points0; //x and y are point positions, z is DTW matched index in points1, w is index of touching blob
-	vector<Point4f> points1;
-
-	vector<float> angle_vec;
-	vector<int> y_diff_vec;
-	vector<int> x_diff_vec;
 
 	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
 
-	int index = 0;
 	for (Point& index_pair : indexes)
 	{
-		Point pt0 = (*vec0)[index_pair.x];
-		Point pt1 = (*vec1)[index_pair.y];
+		Point pt0_raw = vec0_raw[index_pair.x];
+		Point pt1_raw = vec1_raw[index_pair.y];
 
-		line(image_visualization, pt0, pt1, Scalar(254), 1);
+		Point pt0 = vec0[index_pair.x];
+		Point pt1 = vec1[index_pair.y];
 
-		points0.push_back(Point4f(pt0.x, pt0.y, index, -1));
-		points1.push_back(Point4f(pt1.x, pt1.y, index, -1));
+		// int y_diff = abs(pt0.y - pt1.y);
+		// if (y_diff >= 3)
+			// continue;
 
-		if (angle_vec.size() < 1000)
-		{
-			float angle = get_angle(pt0, pt1, false);
-			angle_vec.push_back(angle);
-			y_diff_vec.push_back(pt0.y - pt1.y);
-			x_diff_vec.push_back(pt0.x - pt1.x);
-		}
+		// line(image_visualization, pt0_raw, pt1_raw, Scalar(254), 1);
 
-		++index;
+		Point2f pt_resolved0 = point_resolver.compute(pt0_raw, image0, 0);
+		Point2f pt_resolved1 = point_resolver.compute(pt1_raw, image1, 1);
+
+		if (pt_resolved0.x == 9999 || pt_resolved1.x == 9999)
+			continue;
+
+		Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
+		// circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / (pt3d.z + 1), 2), Scalar(254), 1);
+
+		if (pt3d.z < 0)
+			pt3d.z = 0;
+		else if (pt3d.z > 255)
+			pt3d.z = 255;
+
+		image_visualization.ptr<uchar>(pt0_raw.y, pt0_raw.x)[0] = pt3d.z;
 	}
-
-	/*if (angle_vec.size() == 0)
-		return false;
-
-	const float angle_median = angle_vec[angle_vec.size() / 2];
-	const int y_diff_median = y_diff_vec[y_diff_vec.size() / 2];
-	const int x_diff_median = x_diff_vec[x_diff_vec.size() / 2];
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	index = 0;
-	for (BlobNew& blob : *blob_vec0)
-	{
-		for (Point4f& pt : points0)
-			if (blob.image_atlas.ptr<ushort>(pt.y, pt.x)[0] == blob.atlas_id)
-				pt.w = index;
-
-		++index;
-	}
-
-	index = 0;
-	for (BlobNew& blob : *blob_vec1)
-	{
-		for (Point4f& pt : points1)
-			if (blob.image_atlas.ptr<ushort>(pt.y, pt.x)[0] == blob.atlas_id)
-				pt.w = index;
-
-		++index;
-	}
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	vector<BlobPairAngleDiff> blob_pair_vec;
-
-	index = 0;
-	for (BlobNew& blob : *blob_vec0)
-	{
-		int score_board[100] { 0 };
-		for (Point4f& pt0 : points0)
-			if (pt0.w == index)
-			{
-				Point4f pt1 = points1[pt0.z];
-				++score_board[(int)pt1.w];
-			}
-		int max_score = -1;
-		int max_score_index;
-		for (int a = 0; a < 100; ++a)
-			if (score_board[a] > max_score)
-			{
-				max_score = score_board[a];
-				max_score_index = a;
-			}
-
-		if (max_score != -1)
-		{
-			BlobNew* blob0 = &blob;
-			BlobNew* blob1 = &(*blob_vec1)[max_score_index];
-
-			float angle = get_angle(blob0->pt_y_max, blob1->pt_y_max, false);
-			float angle_diff = abs(angle - angle_median);
-			blob_pair_vec.push_back(BlobPairAngleDiff(blob0, blob1, angle_diff));
-		}
-
-		++index;
-	}
-
-	sort(blob_pair_vec.begin(), blob_pair_vec.end(), compare_blob_pair_angle_diff());
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	unordered_map<string, uchar> checker0;
-	unordered_map<string, uchar> checker1;
-
-	vector<BlobPairAngleDiff> blob_pair_vec_filtered;
-	for (BlobPairAngleDiff& pair : blob_pair_vec)
-	{
-		string key0 = to_string(pair.blob0->pt_y_max.x) + "," + to_string(pair.blob0->pt_y_max.y);
-		string key1 = to_string(pair.blob1->pt_y_max.x) + "," + to_string(pair.blob1->pt_y_max.y);
-
-		if (checker0.count(key0) == 0 && checker1.count(key1) == 0)
-			blob_pair_vec_filtered.push_back(pair);
-
-		checker0[key0] = 1;
-		checker1[key1] = 1;
-	}
-
-	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_processor0.pt_palm, 0, 4);
-	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_processor1.pt_palm, 1, 4);
-
-	for (BlobPairAngleDiff& pair : blob_pair_vec_filtered)
-	{
-		BlobNew* blob0 = pair.blob0;
-		BlobNew* blob1 = pair.blob1;
-
-		Point2f pt_resolved0 = point_resolver.compute(blob0->pt_tip, image0, 0);
-		Point2f pt_resolved1 = point_resolver.compute(blob1->pt_tip, image1, 1);
-
-#if 0
-		circle(image_visualization, pt_resolved0, 5, Scalar(127), 2);
-		circle(image_visualization, pt_resolved1, 5, Scalar(254), 2);
-		circle(image_visualization, pt_resolved_pivot0, 10, Scalar(127), 2);
-		circle(image_visualization, pt_resolved_pivot1, 10, Scalar(254), 2);
-#endif
-
-#if 1
-		if (pt_resolved0.x != 9999 && pt_resolved1.x != 9999)
-		{
-			Point3f pt3d = point_resolver.reprojector->reproject_to_3d(pt_resolved0.x, pt_resolved0.y, pt_resolved1.x, pt_resolved1.y);
-			circle(image_visualization, Point(320 + pt3d.x, 240 + pt3d.y), pow(1000 / pt3d.z, 2), Scalar(127), 1);
-		}
-#endif
-	}*/
 
 	imshow("image_visualizationadsfasdfasdf", image_visualization);
 

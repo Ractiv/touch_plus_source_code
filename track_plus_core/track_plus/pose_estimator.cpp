@@ -52,7 +52,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		++index;
 	}
 
-	if (record_pose && target_pose_name != "" && (pose_name_dist_min != target_pose_name/* || dist_min > 1000*/))
+	if (record_pose && target_pose_name != "" && (/*pose_name_dist_min != target_pose_name || */dist_min > 500))
 	{
 		save(target_pose_name);
 		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
@@ -76,7 +76,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 3, pose_name_temp);
 
 	if (pose_name_temp != "")
 		pose_name = pose_name_temp;

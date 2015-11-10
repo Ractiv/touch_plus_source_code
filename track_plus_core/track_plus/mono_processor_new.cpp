@@ -59,9 +59,9 @@ struct compare_point_angle
 
 	bool operator() (const Point& point0, const Point& point1)
 	{
-		float theta0 = get_angle(point0.x, point0.y, anchor.x, anchor.y);
-		float theta1 = get_angle(point1.x, point1.y, anchor.x, anchor.y);
-		return theta0 > theta1;
+		float theta0 = get_angle(anchor, point0, false);
+		float theta1 = get_angle(anchor, point1, false);
+		return theta0 < theta1;
 	}
 };
 
@@ -87,6 +87,18 @@ struct compare_point_dist
 		float dist0 = get_distance(point0, anchor, false);
 		float dist1 = get_distance(point1, anchor, false);
 		return dist0 < dist1;
+	}
+};
+
+struct IndexedPoint
+{
+	int index;
+	Point pt;
+
+	IndexedPoint(int _index, Point _pt)
+	{
+		index = _index;
+		pt = _pt;
 	}
 };
 
@@ -303,6 +315,106 @@ Point rotate_point_normal(Point& pt)
 	return pt_rotated;
 }
 
+void compute_convexity(vector<Point>& contour_processed_approximated,
+					   vector<int>& convex_indexes,
+					   vector<int>& concave_indexes,
+					   Point pt_anchor)
+{
+	vector<Point> histogram_vec;
+
+	int dist_max = 0;
+	int cotour_index = -1;
+	for (Point& pt : contour_processed_approximated)
+	{
+		++cotour_index;
+
+		int dist = get_distance(pt, pt_anchor, false);
+		if (dist > dist_max)
+			dist_max = dist;
+
+		histogram_vec.push_back(Point(cotour_index, dist));
+	}
+	const int hist_width = cotour_index + 1;
+	const int hist_height = dist_max + 1;
+
+	Mat image_histogram = Mat::zeros(hist_height, hist_width, CV_8UC1);
+	draw_contour(histogram_vec, image_histogram, 254, 1);
+
+	for (int i = 0; i < hist_width; ++i)
+		for (int j = hist_height - 1; j >= 0; --j)
+			if (image_histogram.ptr<uchar>(j, i)[0] > 0)
+			{
+				line(image_histogram, Point(i, j), Point(i, 0), Scalar(254), 1);
+				break;
+			}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	for (int j = 0; j < hist_height; j += 1)
+	{
+		int entry_x = -1;
+		for (int i = 0; i < hist_width; ++i)
+			if (image_histogram.ptr<uchar>(j, i)[0] == 0 && entry_x == -1)
+				entry_x = i;
+			else if (image_histogram.ptr<uchar>(j, i)[0] == 254 && entry_x != -1)
+			{
+				const int exit_x = i - 1;
+
+				int y_min = 9999;
+				int x_y_min = 9999;
+				for (int x = entry_x; x <= exit_x; ++x)
+				{
+					int y = histogram_vec[x].y;
+					if (y < y_min)
+					{
+						y_min = y;
+						x_y_min = x;
+					}
+				}
+				if (find(concave_indexes.begin(), concave_indexes.end(), x_y_min) == concave_indexes.end())
+					concave_indexes.push_back(x_y_min);
+
+				entry_x = -1;
+			}
+	}
+	sort(concave_indexes.begin(), concave_indexes.end());
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	for (int j = 0; j < hist_height; j += 1)
+	{
+		int entry_x = -1;
+		for (int i = 0; i < hist_width; ++i)
+			if (image_histogram.ptr<uchar>(j, i)[0] == 254 && entry_x == -1)
+				entry_x = i;
+			else if (image_histogram.ptr<uchar>(j, i)[0] == 0 && entry_x != -1)
+			{
+				const int exit_x = i - 1;
+
+				int y_max = -1;
+				int x_y_max = -1;
+				for (int x = entry_x; x <= exit_x; ++x)
+				{
+					int y = histogram_vec[x].y;
+					if (y > y_max)
+					{
+						y_max = y;
+						x_y_max = x;
+					}
+				}
+				if (find(convex_indexes.begin(), convex_indexes.end(), x_y_max) == convex_indexes.end())
+					convex_indexes.push_back(x_y_max);
+
+				entry_x = -1;
+			}
+	}
+}
+
+void draw_small_circle(Mat& image, Point pt, bool is_empty = false)
+{
+	circle(image, pt, 3, Scalar(127), is_empty ? 1 : -1);
+}
+
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
 {
 	int frame_count = value_store.get_int("frame_count", -1);
@@ -347,11 +459,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	Mat image_active_hand = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	Mat image_palm_segmented = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_find_contours = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 	Mat image_visualization = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
 
-	float palm_radius = value_store.get_float("palm_radius", 1);
+	palm_radius = value_store.get_float("palm_radius", 1);
 	palm_point = value_store.get_point("palm_point");
 
 	Point2f palm_point_raw = Point2f(0, 0);
@@ -363,7 +474,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	{
 		blob.fill(image_find_contours, 254);
 		blob.fill(image_active_hand, 254);
-		blob.fill(image_palm_segmented, 254);
 		blob.fill(image_visualization, 254);
 
 		for (Point& pt : blob.data)
@@ -538,163 +648,121 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	Mat image_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-	for (BlobNew& blob : blobs_hand)
-		blob.fill(image_skeleton, 254);
-
-	vector<Point> subject_points;
-	for (BlobNew& blob : blobs_hand)
-		for (Point& pt : blob.data)
-			subject_points.push_back(pt);
-
-	{
-		Point attach_pivot = Point(pt_palm.x, 0);
-
-		BlobNew blob0;
-		int count_max = 0;
-
-		for (BlobNew& blob : blobs_hand)
-			if (blob.count > count_max)
-			{
-				count_max = blob.count;
-				blob0 = blob;
-			}
-
-		Point pt_attach0;
-		float dist0 = blob0.compute_min_dist(attach_pivot, &pt_attach0, false);
-		for (BlobNew& blob1 : blobs_hand)
-			if (blob0.atlas_id != blob1.atlas_id)
-			{
-				Point pt_attach1;
-				float dist1 = blob1.compute_min_dist(attach_pivot, &pt_attach1, false);
-
-				Point pt_attach;
-				Point pt_base;
-				if (dist0 < dist1)
-				{
-					pt_attach = pt_attach1;
-					blob0.compute_min_dist(pt_attach, &pt_base, false);
-				}
-				else
-				{
-					pt_attach = pt_attach0;
-					blob1.compute_min_dist(pt_attach, &pt_base, false);
-				}
-
-				line(image_skeleton, pt_attach, pt_base, Scalar(254), 1);
-
-				vector<Point> line_vec;
-				bresenham_line(pt_attach.x, pt_attach.y, pt_base.x, pt_base.y, line_vec, 1000);
-
-				for (Point& pt : line_vec)
-				{
-					subject_points.push_back(pt);
-					image_skeleton.ptr<uchar>(pt.y, pt.x)[0] = 254;
-				}
-			}
-	}
-
-	vector<Point> skeleton_points = thinning_computer.compute_thinning(image_skeleton, subject_points, 10);
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	Mat image_skeleton_segmented = Mat::zeros(image_skeleton.size(), CV_8UC1);
-	for (Point& pt : skeleton_points)
-		image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 254;
-
-	for (Point& pt : skeleton_points)
-	{
-		const bool a = image_skeleton.ptr<uchar>(pt.y - 1, pt.x)[0] > 0;
-		const bool b = image_skeleton.ptr<uchar>(pt.y + 1, pt.x)[0] > 0;
-		const bool c = image_skeleton.ptr<uchar>(pt.y, pt.x - 1)[0] > 0;
-		const bool d = image_skeleton.ptr<uchar>(pt.y, pt.x + 1)[0] > 0;
-
-		const bool e = image_skeleton.ptr<uchar>(pt.y - 1, pt.x - 1)[0] > 0;
-		const bool f = image_skeleton.ptr<uchar>(pt.y - 1, pt.x + 1)[0] > 0;
-		const bool g = image_skeleton.ptr<uchar>(pt.y + 1, pt.x - 1)[0] > 0;
-		const bool h = image_skeleton.ptr<uchar>(pt.y + 1, pt.x + 1)[0] > 0;
-
-		const bool b0 = c && f && h;
-		const bool b1 = e && d && g;
-		const bool b2 = a && g && h;
-		const bool b3 = e && f && b;
-		const bool b4 = a && d && g;
-		const bool b5 = e && d && b;
-		const bool b6 = f && b && c;
-		const bool b7 = c && a && h;
-
-		if ((a + b + c + d) >= 3 || (e + f + g + h) >= 3 || b0 || b1 || b2 || b3 || b4 || b5 || b6 || b7)
-			circle(image_skeleton_segmented, pt, 3, Scalar(127), -1);
-	}
-	circle(image_skeleton_segmented, pt_palm, palm_radius, Scalar(127), -1);
-
-	/*if (value_store.get_bool("image_palm_set", false))
-	{
-		Mat image_palm = value_store.get_mat("image_palm", true);
-		for (Point& pt : skeleton_points)
-			if (image_palm.ptr<uchar>(pt.y, pt.x)[0] == 0)
-				circle(image_skeleton_segmented, pt, 5, Scalar(127), -1);
-	}*/
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
-	blob_detector_image_skeleton_segmented->compute(image_skeleton_segmented, 254,
-													x_min_hand_right, x_max_hand_right,
-										            y_min_hand_right, y_max_hand_right, false, true);
-
-	BlobDetectorNew* blob_detector_image_skeleton_parts = value_store.get_blob_detector("blob_detector_image_skeleton_parts");
-	unordered_map<ushort, vector<Point>> skeleton_extensions_map;
+	static float hand_angle_static;
 
 	vector<vector<Point>> extension_lines;
+	vector<Point> tip_points;
 
-	float dist_to_palm_max = -1;
-	for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
+	if (true)
+	// if (name == "0")
 	{
-		Point pt_origin = Point(-1, -1);
-		for (Point& pt : blob.data)
+		Mat image_skeleton = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+		for (BlobNew& blob : blobs_hand)
+			blob.fill(image_skeleton, 254);
+
+		vector<Point> subject_points;
+		for (BlobNew& blob : blobs_hand)
+			for (Point& pt : blob.data)
+				subject_points.push_back(pt);
+
 		{
-			bool to_break = false;
-			for (int a = -1; a <= 1; ++a)
-			{
-				int x = pt.x + a;
-				if (x < 0)
-					x = 0;
-				if (x >= WIDTH_SMALL)
-					x = WIDTH_SMALL - 1;
+			Point attach_pivot = Point(pt_palm.x, 0);
 
-				for (int b = -1; b <= 1; ++b)
+			BlobNew blob0;
+			int count_max = 0;
+
+			for (BlobNew& blob : blobs_hand)
+				if (blob.count > count_max)
 				{
-					int y = pt.y + b;
-					if (y < 0)
-						y = 0;
-					if (y >= HEIGHT_SMALL)
-						y = HEIGHT_SMALL - 1;
+					count_max = blob.count;
+					blob0 = blob;
+				}
 
-					if (image_skeleton_segmented.ptr<uchar>(y, x)[0] == 127)
+			Point pt_attach0;
+			float dist0 = blob0.compute_min_dist(attach_pivot, &pt_attach0, false);
+			for (BlobNew& blob1 : blobs_hand)
+				if (blob0.atlas_id != blob1.atlas_id)
+				{
+					Point pt_attach1;
+					float dist1 = blob1.compute_min_dist(attach_pivot, &pt_attach1, false);
+
+					Point pt_attach;
+					Point pt_base;
+					if (dist0 < dist1)
 					{
-						pt_origin = pt;
-						a = 9999;
-						to_break = true;
-						break;
+						pt_attach = pt_attach1;
+						blob0.compute_min_dist(pt_attach, &pt_base, false);
+					}
+					else
+					{
+						pt_attach = pt_attach0;
+						blob1.compute_min_dist(pt_attach, &pt_base, false);
+					}
+
+					line(image_skeleton, pt_attach, pt_base, Scalar(254), 1);
+
+					vector<Point> line_vec;
+					bresenham_line(pt_attach.x, pt_attach.y, pt_base.x, pt_base.y, line_vec, 1000);
+
+					for (Point& pt : line_vec)
+					{
+						subject_points.push_back(pt);
+						image_skeleton.ptr<uchar>(pt.y, pt.x)[0] = 254;
 					}
 				}
-			}
-			if (to_break)
-				break;
 		}
 
-		if (pt_origin.x != -1)
+		vector<Point> skeleton_points = thinning_computer.compute_thinning(image_skeleton, subject_points, 10);
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		Mat image_skeleton_segmented = Mat::zeros(image_skeleton.size(), CV_8UC1);
+		for (Point& pt : skeleton_points)
+			image_skeleton_segmented.ptr<uchar>(pt.y, pt.x)[0] = 254;
+
+		for (Point& pt : skeleton_points)
 		{
-			blob_detector_image_skeleton_parts->
-				compute_location(image_skeleton_segmented, 254, pt_origin.x, pt_origin.y, true, false, true);
+			const bool a = image_skeleton.ptr<uchar>(pt.y - 1, pt.x)[0] > 0;
+			const bool b = image_skeleton.ptr<uchar>(pt.y + 1, pt.x)[0] > 0;
+			const bool c = image_skeleton.ptr<uchar>(pt.y, pt.x - 1)[0] > 0;
+			const bool d = image_skeleton.ptr<uchar>(pt.y, pt.x + 1)[0] > 0;
 
-			bool caught_between_2_centers = false;
+			const bool e = image_skeleton.ptr<uchar>(pt.y - 1, pt.x - 1)[0] > 0;
+			const bool f = image_skeleton.ptr<uchar>(pt.y - 1, pt.x + 1)[0] > 0;
+			const bool g = image_skeleton.ptr<uchar>(pt.y + 1, pt.x - 1)[0] > 0;
+			const bool h = image_skeleton.ptr<uchar>(pt.y + 1, pt.x + 1)[0] > 0;
 
-			const int i_max = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
-			for (int i = /*blob_detector_image_skeleton_parts->blob_max_size->count / 2*/ i_max; i <= i_max; ++i)
+			const bool b0 = c && f && h;
+			const bool b1 = e && d && g;
+			const bool b2 = a && g && h;
+			const bool b3 = e && f && b;
+			const bool b4 = a && d && g;
+			const bool b5 = e && d && b;
+			const bool b6 = f && b && c;
+			const bool b7 = c && a && h;
+
+			if ((a + b + c + d) >= 3 || (e + f + g + h) >= 3 || b0 || b1 || b2 || b3 || b4 || b5 || b6 || b7)
+				circle(image_skeleton_segmented, pt, 3, Scalar(127), -1);
+		}
+		// circle(image_skeleton_segmented, pt_palm, palm_radius, Scalar(127), -1);
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		BlobDetectorNew* blob_detector_image_skeleton_segmented = value_store.get_blob_detector("blob_detector_image_skeleton_segmented");
+		blob_detector_image_skeleton_segmented->compute(image_skeleton_segmented, 254,
+														x_min_hand_right, x_max_hand_right,
+											            y_min_hand_right, y_max_hand_right, false, true);
+
+		BlobDetectorNew* blob_detector_image_skeleton_parts = value_store.get_blob_detector("blob_detector_image_skeleton_parts");
+		unordered_map<ushort, vector<Point>> skeleton_extensions_map;
+
+		float dist_to_palm_max = -1;
+		for (BlobNew& blob : *blob_detector_image_skeleton_segmented->blobs)
+		{
+			Point pt_origin = Point(-1, -1);
+			for (Point& pt : blob.data)
 			{
-				Point pt = 	blob_detector_image_skeleton_parts->blob_max_size->data[i];
+				bool to_break = false;
 				for (int a = -1; a <= 1; ++a)
 				{
 					int x = pt.x + a;
@@ -713,94 +781,125 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 						if (image_skeleton_segmented.ptr<uchar>(y, x)[0] == 127)
 						{
-							caught_between_2_centers = true;
-							i = 9999;
+							pt_origin = pt;
 							a = 9999;
+							to_break = true;
 							break;
 						}
 					}
 				}
+				if (to_break)
+					break;
 			}
-			if (!caught_between_2_centers)
+
+			if (pt_origin.x != -1)
 			{
-				const int index_start = blob_detector_image_skeleton_parts->blob_max_size->count >= 10 ? 
-										blob_detector_image_skeleton_parts->blob_max_size->count * 0.7 : 0;
+				blob_detector_image_skeleton_parts->
+					compute_location(image_skeleton_segmented, 254, pt_origin.x, pt_origin.y, true, false, true);
 
-				const int index_end = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
+				bool caught_between_2_centers = false;
 
-				if (index_start != index_end)
+				const int i_max = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
+				for (int i = /*blob_detector_image_skeleton_parts->blob_max_size->count / 2*/ i_max; i <= i_max; ++i)
 				{
-					Point pt_start = blob_detector_image_skeleton_parts->blob_max_size->data[index_start];
-					Point pt_end = blob_detector_image_skeleton_parts->blob_max_size->data[index_end];
+					Point pt = 	blob_detector_image_skeleton_parts->blob_max_size->data[i];
+					for (int a = -1; a <= 1; ++a)
+					{
+						int x = pt.x + a;
+						if (x < 0)
+							x = 0;
+						if (x >= WIDTH_SMALL)
+							x = WIDTH_SMALL - 1;
 
-					vector<Point> extension_line_vec;
-					extension_line(pt_end, pt_start, 20, extension_line_vec, false);
-					extension_lines.push_back(extension_line_vec);
+						for (int b = -1; b <= 1; ++b)
+						{
+							int y = pt.y + b;
+							if (y < 0)
+								y = 0;
+							if (y >= HEIGHT_SMALL)
+								y = HEIGHT_SMALL - 1;
 
-					//---------------------------------------------------------------------------------------------------
+							if (image_skeleton_segmented.ptr<uchar>(y, x)[0] == 127)
+							{
+								caught_between_2_centers = true;
+								i = 9999;
+								a = 9999;
+								break;
+							}
+						}
+					}
+				}
+				if (!caught_between_2_centers)
+				{
+					const int index_start = blob_detector_image_skeleton_parts->blob_max_size->count >= 10 ? 
+											blob_detector_image_skeleton_parts->blob_max_size->count * 0.7 : 0;
 
-					Point pt_first = blob_detector_image_skeleton_parts->blob_max_size->data[0];
-					float dist_to_palm = get_distance(pt_first, pt_palm, true);
-					dist_to_palm = dist_to_palm + blob_detector_image_skeleton_parts->blob_max_size->count - palm_radius;
+					const int index_end = blob_detector_image_skeleton_parts->blob_max_size->count - 1;
 
-					if (dist_to_palm > dist_to_palm_max)
-						dist_to_palm_max = dist_to_palm;
+					if (index_start != index_end)
+					{
+						Point pt_start = blob_detector_image_skeleton_parts->blob_max_size->data[index_start];
+						Point pt_end = blob_detector_image_skeleton_parts->blob_max_size->data[index_end];
+
+						tip_points.push_back(pt_end);
+
+						vector<Point> extension_line_vec;
+						extension_line(pt_end, pt_start, 20, extension_line_vec, false);
+						extension_lines.push_back(extension_line_vec);
+
+						//---------------------------------------------------------------------------------------------------
+
+						Point pt_first = blob_detector_image_skeleton_parts->blob_max_size->data[0];
+						float dist_to_palm = get_distance(pt_first, pt_palm, true);
+						dist_to_palm = dist_to_palm + blob_detector_image_skeleton_parts->blob_max_size->count - palm_radius;
+
+						if (dist_to_palm > dist_to_palm_max)
+							dist_to_palm_max = dist_to_palm;
+					}
 				}
 			}
 		}
-	}
 
-	//------------------------------------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------------------------------------
 
-	if (extension_lines.size() > 0)
-	{
-		int y_max = -1;
-		for (vector<Point>& line_vec : extension_lines)
+		if (extension_lines.size() > 0)
 		{
-			Point pt = line_vec[0];
-			Point pt_rotated = rotate_point_upright(pt);
-			Point pt_selected = hand_angle >= -20 ? pt : pt_rotated;
-
-			if (pt_selected.y > y_max)
-				y_max = pt_selected.y;
-		}
-
-		float angle_mean = 0;
-		int angle_count = 0;
-		for (vector<Point>& line_vec : extension_lines)
-		{
-			Point pt = line_vec[0];
-			Point pt_rotated = rotate_point_upright(pt);
-			Point pt_selected = hand_angle >= -20 ? pt : pt_rotated;
-
-			if (abs(pt_selected.y - y_max) <= 10)
+			int y_max = -1;
+			for (vector<Point>& line_vec : extension_lines)
 			{
-				float angle = get_angle(line_vec[0], line_vec[line_vec.size() - 1], false) - 180;
-				angle_mean += angle;
-				++angle_count;
+				Point pt = line_vec[0];
+				Point pt_rotated = rotate_point_upright(pt);
+				Point pt_selected = hand_angle >= -20 ? pt : pt_rotated;
+
+				if (pt_selected.y > y_max)
+					y_max = pt_selected.y;
 			}
+
+			float angle_mean = 0;
+			int angle_count = 0;
+			for (vector<Point>& line_vec : extension_lines)
+			{
+				Point pt = line_vec[0];
+				Point pt_rotated = rotate_point_upright(pt);
+				Point pt_selected = hand_angle >= -20 ? pt : pt_rotated;
+
+				if (abs(pt_selected.y - y_max) <= 10)
+				{
+					float angle = get_angle(line_vec[0], line_vec[line_vec.size() - 1], false) - 180;
+					angle_mean += angle;
+					++angle_count;
+				}
+			}
+			angle_mean /= angle_count;
+			hand_angle = angle_mean;
+			low_pass_filter->compute(hand_angle, 0.5, "hand_angle");
+			hand_angle_static = hand_angle;
 		}
-		angle_mean /= angle_count;
-		hand_angle = angle_mean;
-		
-		low_pass_filter->compute(hand_angle, 0.5, "hand_angle");
-		value_store.set_float("hand_angle", hand_angle);
 	}
+	else
+		hand_angle = hand_angle_static;
 
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	/*vector<Point> contour_rotated;
-	for (Point& pt : contours[0])
-	{
-		Point pt_rotated = rotate_point_upright(pt);
-		contour_rotated.push_back(pt_rotated);
-	}
-
-	Point pt_rotated_y_min = get_y_min_point(contour_rotated);
-	Point pivot = rotate_point_normal(pt_rotated_y_min);
-
-	vector<Point> contour_sorted;
-	sort_contour(contours[0], contour_sorted, pivot);*/
+	value_store.set_float("hand_angle", hand_angle);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 	//mask arm part of image so that only palm and fingers are left
@@ -817,7 +916,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	int vertices_0_0_y = (vertices0[0].y - vertices0[1].y) / 2 + vertices0[1].y - palm_radius;
 
 	line(image_palm, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(254), 1);
-	line(image_palm_segmented, Point(vertices_0_3_x, vertices_0_3_y), Point(vertices_0_0_x, vertices_0_0_y), Scalar(0), 1);
 
 	RotatedRect r_rect1 = RotatedRect(palm_point, Size2f(palm_radius * 2, 500), -hand_angle);
 	Point2f vertices1[4];
@@ -833,15 +931,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	line(image_palm, vertices1[2], Point(vertices_1_3_x, vertices_1_3_y), Scalar(254), 1);
 	line(image_palm, Point(vertices_1_3_x, vertices_1_3_y), Point(vertices_1_0_x, vertices_1_0_y), Scalar(254), 1);
 
-	line(image_palm_segmented, Point(vertices_1_0_x, vertices_1_0_y), vertices1[1], Scalar(0), 1);
-	line(image_palm_segmented, vertices1[1], vertices1[2], Scalar(0), 1);
-	line(image_palm_segmented, vertices1[2], Point(vertices_1_3_x, vertices_1_3_y), Scalar(0), 1);
-	line(image_palm_segmented, Point(vertices_1_3_x, vertices_1_3_y), Point(vertices_1_0_x, vertices_1_0_y), Scalar(0), 1);
-
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	circle(image_palm, palm_point, palm_radius, Scalar(254), 1);
-	circle(image_palm_segmented, palm_point, palm_radius, Scalar(0), 1);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -850,13 +942,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	else
 		floodFill(image_palm, Point(WIDTH_SMALL_MINUS, HEIGHT_SMALL_MINUS), Scalar(127));
 
-	value_store.set_mat("image_palm", image_palm);
-	value_store.set_bool("image_palm_set", true);
-
 	//------------------------------------------------------------------------------------------------------------------------------
 	//unwrap contour for DTW processes
 
 	vector<Point> contour_processed;
+	vector<Point> contour_processed_approximated;
 
 	while (true)
 	{
@@ -918,177 +1008,158 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			if (!first_hit || !last_hit)
 				break;
 		}
+		approxPolyDP(Mat(contour_processed), contour_processed_approximated, 1, false);
+		if (contour_processed_approximated[0] != contour_processed[0])
+			contour_processed_approximated.insert(contour_processed_approximated.begin(), contour_processed[0]);
+		if (contour_processed_approximated[contour_processed_approximated.size() - 1] != contour_processed[contour_processed.size() - 1])
+			contour_processed_approximated.push_back(contour_processed[contour_processed.size() - 1]);
 
 		//--------------------------------------------------------------------------------------------------------------------------
-
-		vector<Point> pose_estimation_points_raw;
-
-		for (Point& pt : contour_processed)
-			pose_estimation_points_raw.push_back(pt);
 
 		int points_x_min;
 		int points_x_max;
 		int points_y_min;
 		int points_y_max;
-		get_bounds(pose_estimation_points_raw, points_x_min, points_x_max, points_y_min, points_y_max);
+		get_bounds(contour_processed_approximated, points_x_min, points_x_max, points_y_min, points_y_max);
 
-		vector<Point> pose_estimation_points_normalized;
-		for (Point& pt : pose_estimation_points_raw)
+		vector<Point> contour_processed_approximated_scaled;
+		for (Point& pt : contour_processed_approximated)
 		{
 			int x_normalized = map_val(pt.x, points_x_min, points_x_max, 0, WIDTH_SMALL_MINUS);
 			int y_normalized = map_val(pt.y, points_y_min, points_y_max, 0, HEIGHT_SMALL_MINUS);
-			pose_estimation_points_normalized.push_back(Point(x_normalized, y_normalized));
+			contour_processed_approximated_scaled.push_back(Point(x_normalized, y_normalized));
 		}
 
-		vector<Point> pose_estimation_points_approximated;
-		approxPolyDP(Mat(pose_estimation_points_normalized), pose_estimation_points_approximated, 2, false);
-
-		pose_estimation_points = pose_estimation_points_approximated;
-		stereo_matching_points = pose_estimation_points_normalized;
-
+		pose_estimation_points = contour_processed_approximated_scaled;
 		break;
 	}
 
 	if (contour_processed.size() == 0)
 		return false;
 
+	stereo_matching_points = contour_processed;
+
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	vector<Point> concave_points;
+	for (int skip_count = 3; skip_count <= 3; ++skip_count)
 	{
-		vector<Point> histogram_vec;
+		const int i_max = contour_processed.size() - skip_count;
 
-		int dist_max = 0;
-		int index = -1;
-		for (Point& pt : contour_processed)
+		if (i_max <= 0)
+			break;
+
+		for (int i = skip_count; i < i_max; ++i)
 		{
-			++index;
+			Point pt0 = contour_processed[i];
+			Point pt1 = contour_processed[i + skip_count];
+			Point pt2 = contour_processed[i - skip_count];
 
-			int dist = get_distance(pt, pt_palm, false);
-			if (dist > dist_max)
-				dist_max = dist;
-
-			histogram_vec.push_back(Point(index, dist));
-		}
-		const int hist_width = index + 1;
-		const int hist_height = dist_max + 1;
-
-		Mat image_histogram = Mat::zeros(hist_height, hist_width, CV_8UC1);
-		draw_contour(histogram_vec, image_histogram, 254, 1);
-
-		for (int i = 0; i < hist_width; ++i)
-			for (int j = hist_height - 1; j >= 0; --j)
-				if (image_histogram.ptr<uchar>(j, i)[0] > 0)
-				{
-					line(image_histogram, Point(i, j), Point(i, 0), Scalar(254), 1);
-					break;
-				}
-
-		/*vector<int> convex_indexes;
-		for (int j = 0; j < hist_height; j += 2)
-		{
-			int entry_x = -1;
-			for (int i = 0; i < hist_width; ++i)
-				if (image_histogram.ptr<uchar>(j, i)[0] == 254 && entry_x == -1)
-					entry_x = i;
-				else if (image_histogram.ptr<uchar>(j, i)[0] == 0 && entry_x != -1)
-				{
-					const int exit_x = i - 1;
-
-					int y_max = -1;
-					int x_y_max = -1;
-					for (int x = entry_x; x <= exit_x; ++x)
-					{
-						int y = histogram_vec[x].y;
-						if (y > y_max)
-						{
-							y_max = y;
-							x_y_max = x;
-						}
-					}
-					if (find(convex_indexes.begin(), convex_indexes.end(), x_y_max) == convex_indexes.end())
-						convex_indexes.push_back(x_y_max);
-
-					entry_x = -1;
-				}
-		}*/
-
-		vector<int> concave_indexes;
-		for (int j = 0; j < hist_height; j += 2)
-		{
-			int entry_x = -1;
-			for (int i = 0; i < hist_width; ++i)
-				if (image_histogram.ptr<uchar>(j, i)[0] == 0 && entry_x == -1)
-					entry_x = i;
-				else if (image_histogram.ptr<uchar>(j, i)[0] == 254 && entry_x != -1)
-				{
-					const int exit_x = i - 1;
-
-					int y_min = 9999;
-					int x_y_min = 9999;
-					for (int x = entry_x; x <= exit_x; ++x)
-					{
-						int y = histogram_vec[x].y;
-						if (y < y_min)
-						{
-							y_min = y;
-							x_y_min = x;
-						}
-					}
-					if (find(concave_indexes.begin(), concave_indexes.end(), x_y_min) == concave_indexes.end())
-						concave_indexes.push_back(x_y_min);
-
-					entry_x = -1;
-				}
-		}
-
-		vector<Point> contour_processed_rotated;
-		for (Point& pt : contour_processed)
-		{
-			Point pt_rotated = rotate_point_upright(pt);
-			contour_processed_rotated.push_back(pt_rotated);
-		}
-
-		Mat image_contour_processed_rotated = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-		draw_contour(contour_processed_rotated, image_contour_processed_rotated, 254, 1);
-
-		/*for (int i : convex_indexes)
-			circle(image_visualization, contour_processed[i], 3, Scalar(127), -1);*/
-
-		for (int i : concave_indexes)
-		{
-			Point pt = contour_processed[i];
-			Point pt_rotated = rotate_point_upright(pt);
-
-			if (pt_rotated.x < 1)
-				continue;
-
-			bool is_white_old = false;
-			int contour_hit_count = 0;
-			for (int i = pt_rotated.x; i >= 0; --i)
+			float angle = get_angle(pt0, pt1, pt2);
+			if (angle < 120)
 			{
-				bool is_white = image_contour_processed_rotated.ptr<uchar>(pt_rotated.y, i)[0] > 0;
-				if (!is_white && is_white_old)
-					++contour_hit_count;
+				Point pt3 = Point((pt1.x + pt2.x) / 2, (pt1.y + pt2.y) / 2);
+				Point pt3_rotated = rotate_point_upright(pt3);
+				Point pt0_rotated = rotate_point_upright(pt0);
 
-				is_white_old = is_white;
+				if (pt3_rotated.y <= pt0_rotated.y)
+					continue;
+
+				float dist0 = get_distance(pt0, pt_palm, false);
+				float dist3 = get_distance(pt3, pt_palm, false);
+
+				if (dist3 <= dist0)
+					continue;
+
+				concave_points.push_back(pt0);
 			}
-
-			if (contour_hit_count <= 1)
-				continue;
-
-			line(image_visualization, contour_processed[i], pt_palm, Scalar(127), 1);
 		}
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	if (name == "0")
+	vector<int> tip_indexes;
+	for (Point& pt_tip : tip_points)
 	{
-		circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
+		float dist_min = 9999;
+		int index_dist_min;
+
+		int index = -1;
+		for (Point& pt_contour : contours[0])
+		{
+			++index;
+
+			float dist = get_distance(pt_contour, pt_tip, false);
+			if (dist < dist_min)
+			{
+				dist_min = dist;
+				index_dist_min = index;
+			}
+		}
+		tip_indexes.push_back(index_dist_min);
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	if (tip_indexes.size() > 1)
+	{
+		for (int i = 1; i < tip_indexes.size(); ++i)
+		{
+			float dist_min = 9999;
+			Point pt_dist_min;
+
+			int index0 = tip_indexes[i - 1];
+			int index1 = tip_indexes[i];
+
+			if (index0 > index1)
+				continue;
+
+			for (int a = index0; a <= index1; ++a)
+			{
+				Point pt = contours[0][a];
+				float dist = get_distance(pt, pt_palm, false);
+				if (dist < dist_min)
+				{
+					dist_min = dist;
+					pt_dist_min = pt;
+				}
+			}
+
+			Point pt0 = contours[0][index0];
+			Point pt1 = contours[0][index1];
+			float angle = get_angle(pt_dist_min, pt0, pt1);
+
+			if (angle < 120)
+				concave_points.push_back(pt_dist_min);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	for (Point& pt : concave_points)
+		draw_small_circle(image_visualization, pt);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	/*{
+		Point pt_old = Point(-1, -1);
+		for (Point& pt : contour_processed_approximated)
+		{
+			Point pt_rotated = rotate_point_upright(pt);
+			if (pt_old.x != -1)
+				line(image_visualization, pt_old, pt_rotated, Scalar(254), 1);
+
+			pt_old = pt_rotated;
+		}
+	}*/
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	// if (name == "0")
+	{
+		// circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
 		imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
-		imshow("image_skeleton" + name, image_skeleton);
-		imshow("image_skeleton_segmented" + name, image_skeleton_segmented);
-		imshow("image_palm_segmented" + name, image_palm_segmented);
+		// imshow("image_test" + name, image_test);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
