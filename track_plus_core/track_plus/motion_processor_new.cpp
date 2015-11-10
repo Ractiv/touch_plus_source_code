@@ -516,7 +516,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						if (blob.y_min < blobs_y_min)
 							blobs_y_min = blob.y_min;
 
-					y_separator_up = blobs_y_min;
+					y_separator_up = blobs_y_min + 10;
 
 					y_separator_up_median = y_separator_up;
 					value_accumulator.compute(y_separator_up_median, "y_separator_up_median", 1000, 0, 0.9, true);
