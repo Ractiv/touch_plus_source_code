@@ -67,6 +67,8 @@ extern string child_module_path;
 extern bool play;
 extern bool enable_imshow;
 extern bool record_pose;
+extern bool overwrite_pose;
+extern bool enhance_pose;
 extern bool pinch_to_zoom;
 extern bool has_plate;
 extern bool has_pen;

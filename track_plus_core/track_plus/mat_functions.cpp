@@ -395,7 +395,7 @@ void put_text(string text, Mat& img, Point pt)
 	cv::putText(img, text, textOrg, fontFace, fontScale, Scalar::all(255), 1, 8);
 }
 
-void fill_mat(vector<Point>& pt_vec, Mat& image, uchar gray)
+void fill_mat(Mat& image, vector<Point>& pt_vec, uchar gray)
 {
 	const int i_max = image.cols;
 	const int j_max = image.rows;

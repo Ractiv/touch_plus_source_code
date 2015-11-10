@@ -52,7 +52,9 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		++index;
 	}
 
-	if (record_pose && target_pose_name != "" && (/*pose_name_dist_min != target_pose_name || */dist_min > 500))
+	if (record_pose && target_pose_name != "" &&
+		((pose_name_dist_min != target_pose_name && overwrite_pose) ||
+		dist_min > (enhance_pose ? 500 : 700)))
 	{
 		save(target_pose_name);
 		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;

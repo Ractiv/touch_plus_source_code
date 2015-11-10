@@ -468,7 +468,7 @@ void compute()
         proceed0 = motion_processor0.compute(image_preprocessed0,  image_small0, surface_computer.y_reflection, imu.pitch,
                                              construct_background, "0",          true);
         proceed1 = motion_processor1.compute(image_preprocessed1,  image_small1, surface_computer.y_reflection, imu.pitch,
-                                             construct_background, "1",          false);
+                                             construct_background, "1",          true);
     }
 
     if (first_pass && motion_processor0.both_moving && motion_processor1.both_moving)
@@ -528,7 +528,7 @@ void compute()
         motion_processor0.target_frame = 10;
         motion_processor1.target_frame = 10;
         
-        point_vec_pool[point_vec_pool_count] = mono_processor0.pose_estimation_points;
+        point_vec_pool[point_vec_pool_count] = mono_processor1.pose_estimation_points;
         point_vec_ptr = &point_vec_pool[point_vec_pool_count];
         
         ++point_vec_pool_count;
@@ -569,9 +569,29 @@ void on_key_down(int code)
     if (target_pose_name != "")
     {
         if (code == 192)
+        {
+            overwrite_pose = false;
             record_pose = true;
+            enhance_pose = false;
+            cout << "record_pose enabled" << endl;
+            cout << "overwrite_pose disabled" << endl;
+            cout << "enhance_pose disabled" << endl;
+        }
         else if (code == 49)
+        {
             record_pose = false;
+            cout << "record_pose disabled" << endl;
+        }
+        else if (code == 50)
+        {
+            overwrite_pose = true;
+            cout << "overwrite_pose enabled" << endl;
+        }
+        else if (code == 51)
+        {
+            enhance_pose = true;
+            cout << "enhance_pose enabled" << endl;
+        }
     }
     else
         pose_name = "";
