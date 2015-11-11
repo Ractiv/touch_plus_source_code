@@ -115,7 +115,7 @@ void SurfaceComputer::init(Mat& image0)
         {
             int x_diff_before = before_x_max - concave_pt_index.x;
             int x_diff_after = after_x_max - concave_pt_index.x;
-            int x_diff_sum = (x_diff_before * x_diff_after) + (concave_pt_index.z * 10);
+            int x_diff_sum = (x_diff_before * x_diff_after) + (concave_pt_index.z * 100);
 
             if (x_diff_sum > x_diff_sum_max)
             {
