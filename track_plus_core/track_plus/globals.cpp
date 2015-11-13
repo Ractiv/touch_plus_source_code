@@ -48,6 +48,7 @@ string child_module_name = "";
 string child_module_path = "";
 
 bool play = true;
+bool waiting_for_image = true;
 bool enable_imshow = true;
 bool record_pose = false;
 bool overwrite_pose = false;
@@ -57,7 +58,6 @@ bool has_plate = false;
 bool has_pen = false;
 bool motion_detected = false;
 
-int frame_skip_count = 1;
 int actuate_dist_raw = 8;
 int actuate_dist = actuate_dist_raw;
 

@@ -78,7 +78,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 3, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
 
 	if (pose_name_temp != "")
 		pose_name = pose_name_temp;

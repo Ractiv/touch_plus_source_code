@@ -207,17 +207,20 @@ void wait_for_device()
     }
 }
 
-void update(Mat& image_in)
+void update(Mat& image_in, bool dummy_tick)
 {
-    image_pool[image_pool_count] = image_in;
-    image_current_frame = image_pool[image_pool_count];
-    
-    ++image_pool_count;
-    if (image_pool_count == pool_size_max)
-        image_pool_count = 0;
+    if (!dummy_tick)
+    {
+        image_pool[image_pool_count] = image_in;
+        image_current_frame = image_pool[image_pool_count];
+        
+        ++image_pool_count;
+        if (image_pool_count == pool_size_max)
+            image_pool_count = 0;
 
+        updated = true;
+    }
     wait_count = 0;
-    updated = true;
 }
 
 void init_paths()
@@ -341,15 +344,16 @@ void left_mouse_cb(int event, int x, int y, int flags, void* userdata)
         console_log(to_string(x) + ", " + to_string(y) + " " + to_string(imu.pitch));
 }
 
-void compute()
+bool compute()
 {
-    ++frame_count;
+    bool waiting_for_image_set = false;
     updated = false;
+    ++frame_count;
 
     if (image_current_frame.cols == 0)
     {
         console_log("bad frame");
-        return;
+        return false;
     }
 
     Mat image_flipped;
@@ -366,7 +370,7 @@ void compute()
         if (enable_imshow)
             waitKey(1);
 
-        return;
+        return false;
     }
 
     int x_accel;
@@ -400,7 +404,7 @@ void compute()
             surface_computer.init(image0);
 
         ++step_count;
-        return;
+        return false;
     }
 
     exposure_set = true;
@@ -450,7 +454,7 @@ void compute()
 
         // setMouseCallback("image_preprocessed1", left_mouse_cb, NULL);
         // waitKey(1);
-        // return;
+        // return false;
     }
 
     algo_name_vec_old = algo_name_vec;
@@ -518,6 +522,9 @@ void compute()
 
     if (proceed)
     {
+        waiting_for_image = true;
+        waiting_for_image_set = true;
+
         proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
         proceed = proceed0 && proceed1;
@@ -525,8 +532,8 @@ void compute()
 
     if (proceed)
     {
-        motion_processor0.target_frame = 30;
-        motion_processor1.target_frame = 30;
+        motion_processor0.target_frame = 10;
+        motion_processor1.target_frame = 10;
         
         point_vec_pool[point_vec_pool_count] = mono_processor1.pose_estimation_points;
         point_vec_ptr = &point_vec_pool[point_vec_pool_count];
@@ -544,6 +551,8 @@ void compute()
 
     if (enable_imshow)
         waitKey(1);
+
+    return waiting_for_image_set;
 }
 
 void pose_estimator_thread_function()
@@ -777,7 +786,9 @@ int main()
             continue;
         }
 
-        compute();
+        if (!compute())
+            waiting_for_image = true;
+
         Sleep(1);
     }
         

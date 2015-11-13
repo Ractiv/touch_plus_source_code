@@ -23,7 +23,7 @@
 #define TP_CAMERA_PID   "0107"
 #define USE_DIRECT_SHOW 0
 
-function<void (Mat& image_in)> Camera::callback;
+function<void (Mat& image_in, bool dummy_tick)> Camera::callback;
 
 unsigned char * myBuffer;
 Mat image_out = Mat(480, 1280, CV_8UC3);
@@ -32,7 +32,7 @@ void * pHandle = NULL;
 
 Camera::Camera(){}
 
-Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in)
+Camera::Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in, bool dummy_tick)> callback_in)
 {
     height = _height;
     width = _width;
@@ -126,21 +126,16 @@ int Camera::readFlash(unsigned char* data, int length)
 
 void cb(uvc_frame_t *frame, void *ptr)
 {
-    uvc_error_t ret;
-    /* Do the BGR conversion */
-    
-    if (decompressJPEG == 0)
-        ret = uvc_any2bgr(frame, bgr);
-    else
+    bool dummy_tick = true;
+    while (waiting_for_image)
     {
-        ret = uvc_mjpeg2rgb(frame, bgr);
+        uvc_error_t ret = uvc_mjpeg2rgb(frame, bgr);
         if (ret)
         {
             uvc_perror(ret, "change to BGR error");
             uvc_free_frame(bgr);
-            return;
+            break;
         }
-        
         Mat image_received = Mat(480, 1280, CV_8UC3);
         image_received.data = (uchar*)bgr->data;
         
@@ -153,9 +148,11 @@ void cb(uvc_frame_t *frame, void *ptr)
                 image_out.ptr<uchar>(j, i)[1] = image_received.ptr<uchar>(j, i)[1];
                 image_out.ptr<uchar>(j, i)[2] = image_received.ptr<uchar>(j, i)[0];
             }
-        
-        Camera::callback(image_out);
+        dummy_tick = false;
+        waiting_for_image = false;
+        break;
     }
+    Camera::callback(image_out, dummy_tick);
 }
 
 int Camera::startVideoStream(int width, int height, int framerate, int format)
@@ -228,15 +225,14 @@ JPEGDecompressor jpeg_decompressor;
 #ifdef _WIN32
 static void frameCallback(BYTE* pBuffer, long lBufferSize)
 {
-    static int frame_current = 0;
-    ++frame_current;
-
-    if (frame_current >= frame_skip_count)
+    bool dummy_tick = true;
+    if (waiting_for_image)
         if (jpeg_decompressor.compute(pBuffer, lBufferSize, myBuffer, 1280, 480))
         {
-            frame_current = 0;
-            Camera::callback(image_out);
+            dummy_tick = false;
+            waiting_for_image = false;
         }
+    Camera::callback(image_out, dummy_tick);
 }
 #endif
 

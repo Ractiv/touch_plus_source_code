@@ -196,11 +196,12 @@ void match_blobs_by_permutation(vector<BlobNew>& blobs0, vector<BlobNew>& blobs1
 			BlobNew blob_large_array = (*large_array)[large_array_index];
 
 			float dist_tip_rotated = get_distance(blob_small_array.pt_tip_rotated, blob_large_array.pt_tip_rotated, false);
+			float dist_tip = get_distance(blob_small_array.pt_tip, blob_large_array.pt_tip, false);
 
 			int width_diff = abs(blob_small_array.width - blob_large_array.width);
 			int height_diff = abs(blob_small_array.height - blob_large_array.height);
 
-			dist_sigma += (dist_tip_rotated + width_diff + height_diff) * 1000;
+			dist_sigma += (pow(dist_tip_rotated, 2) + pow(dist_tip, 2) + width_diff + height_diff) * 1000;
 
 			int overlap_count = 0;
 			if (!flipped)
@@ -247,9 +248,9 @@ float hand_angle;
 Point palm_point;
 Point palm_point_rotated;
 
-Point rotate_point_upright(Point& pt)
+Point rotate_point_upright(Point& pt, float hand_angle_overwrite = 9999)
 {
-	Point pt_rotated = rotate_point(-hand_angle, pt, palm_point);
+	Point pt_rotated = rotate_point(hand_angle_overwrite == 9999 ? -hand_angle : -hand_angle_overwrite, pt, palm_point);
 	pt_rotated.x += x_diff_rotation;
 	pt_rotated.y += y_diff_rotation;
 	return pt_rotated;
@@ -308,9 +309,6 @@ BlobNew* find_thumb(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	if (candidate->matching_blob != NULL && candidate->matching_blob->name == "1")
-		selected = false;
-
 	Point pt_thumb_reference = value_store->get_point("pt_thumb_reference", Point(-1, -1));
 	Point pt_index_reference = value_store->get_point("pt_index_reference", Point(-1, -1));
 	if (pt_thumb_reference.x != -1 && pt_index_reference.x != -1)
@@ -331,6 +329,9 @@ BlobNew* find_thumb(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 		selected = false;
 
 	if (candidate->matching_blob != NULL && candidate->matching_blob->track_index != candidate->track_index)
+		selected = false;
+
+	if (candidate->matching_blob != NULL && candidate->matching_blob->name == "1")
 		selected = false;
 
 	//------------------------------------------------------------------------------------------------------------------------
@@ -381,31 +382,53 @@ BlobNew* find_thumb(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 BlobNew* find_index(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_palm_rotated, float palm_radius,
 					BlobNew* blob_y_max, BlobNew* blob_thumb, float hand_angle, ValueStore* value_store, Mat& image_visualization)
 {
-	BlobNew* candidate = NULL;
 
-	if (blob_thumb != NULL)
+	{
+		BlobNew* candidate = NULL;
+
+		if (blob_thumb != NULL)
+			for (BlobNew& blob : fingertip_blobs)
+				if (blob.index == blob_thumb->index + 1)
+				{
+					candidate = &blob;
+					break;
+				}
+
+		bool selected = false;
+		if (candidate != NULL)
+			selected = true;
+
+		if (selected)
+			if (candidate->matching_blob != NULL && candidate->matching_blob->track_index != candidate->track_index)
+				selected = false;
+
+		if (selected)
+			candidate->name = "1";
+
+		// if (selected)
+		// 	fill_mat(image_visualization, candidate->data_rotated, 127);
+	}
+
+	{
+		Point pt_search = Point(pt_palm_rotated.x, HEIGHT_SMALL);
+		float dist_min = 9999;
+		BlobNew* candidate = NULL;
 		for (BlobNew& blob : fingertip_blobs)
-			if (blob.index == blob_thumb->index + 1)
+		{
+			Point pt_tip_rotated = blob.pt_tip_rotated;
+			float dist = get_distance(pt_tip_rotated, pt_search, false);
+			if (dist < dist_min)
 			{
+				dist_min = dist;
 				candidate = &blob;
-				break;
 			}
+		}
+		// if (candidate != NULL)
+			// fill_mat(image_visualization, candidate->data_rotated, 127);
+	}
 
-	bool selected = false;
-	if (candidate != NULL)
-		selected = true;
-
-	if (selected)
-		if (candidate->matching_blob != NULL && candidate->matching_blob->track_index != candidate->track_index)
-			selected = false;
-
-	if (selected)
-		candidate->name = "1";
-
-	if (selected)
-		fill_mat(image_visualization, candidate->data_rotated, 127);
-
-	return candidate;
+	// return candidate;
+	return NULL;
 }
 
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
@@ -893,8 +916,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 			angle_mean /= angle_count;
 			hand_angle = angle_mean;
+
 			if (pose_name == "point")
-				hand_angle += 30;
+				hand_angle += 20;
 
 			low_pass_filter->compute(hand_angle, 0.5, "hand_angle_first_pass");
 		}
@@ -906,7 +930,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	else
 		hand_angle = hand_angle_static;
 
-	value_store.set_float("hand_angle", hand_angle);
+	value_store.set_float("hand_angle", pose_name == "point" ? hand_angle - 20 : hand_angle);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1360,31 +1384,29 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 									 hand_angle, &value_store, image_visualization);
 
 	//------------------------------------------------------------------------------------------------------------------------------
-
-	//mark
-
-	//------------------------------------------------------------------------------------------------------------------------------
-	//set point to false when 2 fingers are too close to each other
+	//compute the number of blobs big enough to be fingers; this number will be used to disable point pose
 
 	{
-		BlobNew* blob_y_max0 = NULL;
-		BlobNew* blob_y_max1 = NULL;
-
+		int blob_count_max = 0;
 		for (BlobNew& blob : fingertip_blobs)
-			if (blob_y_max0 == NULL || blob.pt_tip_rotated.y > blob_y_max0->pt_tip_rotated.y)
-				blob_y_max0 = &blob;
+			if (blob.count > blob_count_max)
+				blob_count_max = blob.count;
 
+		int significant_blob_count = 0;
+
+		int blob_count_threshold = blob_count_max / 2;
 		for (BlobNew& blob : fingertip_blobs)
-			if ((blob_y_max1 == NULL || blob.pt_tip_rotated.y > blob_y_max1->pt_tip_rotated.y) && blob_y_max0 != &blob)
-				blob_y_max1 = &blob;
+			if (blob.count > blob_count_threshold)
+				++significant_blob_count;
 
-		if (blob_y_max0 != NULL && blob_y_max1 != NULL)
-		{
-			int y_diff = blob_y_max0->pt_tip_rotated.y - blob_y_max1->pt_tip_rotated.y;
-
-			// if (name == "1")
-				// cout << y_diff << endl;
-		}
+		if (significant_blob_count >= 4)
+			pose_name = "";
+	}
+	{
+		vector<Point> contour_processed_complexity;
+		approxPolyDP(Mat(contour_processed), contour_processed_complexity, 10, false);
+		if (contour_processed_complexity.size() >= 8)
+			pose_name = "";
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------

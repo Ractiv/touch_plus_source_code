@@ -51,7 +51,7 @@ class Camera
     
 public:
 	Camera();
-	Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in)> callback_in);
+	Camera(bool _useMJPEG, int _width, int _height, function<void (Mat& image_in, bool dummy_tick)> callback_in);
 	~Camera();
 
 	unsigned char* frame;
@@ -62,7 +62,7 @@ public:
 	unsigned static const right = 1;
 	unsigned static const both = 2;
 
-	static function<void (Mat& image_in)> callback;
+	static function<void (Mat& image_in, bool dummy_tick)> callback;
 	
 	//accelerometer acquisition
 	int getAccelerometerValues(int *x, int *y, int *z);
