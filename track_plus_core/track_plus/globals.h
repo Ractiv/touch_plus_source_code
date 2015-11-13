@@ -73,6 +73,7 @@ extern bool pinch_to_zoom;
 extern bool has_plate;
 extern bool has_pen;
 
+extern int frame_skip_count;
 extern int actuate_dist_raw;
 extern int actuate_dist;
 

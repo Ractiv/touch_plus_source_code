@@ -57,6 +57,7 @@ bool has_plate = false;
 bool has_pen = false;
 bool motion_detected = false;
 
+int frame_skip_count = 1;
 int actuate_dist_raw = 8;
 int actuate_dist = actuate_dist_raw;
 

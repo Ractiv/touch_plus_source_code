@@ -314,13 +314,14 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 			int entropy_min = min(entropy_left, entropy_right) + 1;
 			int entropy_max = max(entropy_left, entropy_right) + 1;
 
+			bool bool0 = ((float)(x_max - x_min) / (y_max - y_min)) > 1;
 			bool bool1 = entropy_max / entropy_min == 1;
 			bool bool2 =  gap_ratio > 0.3;
 			bool bool3 = width_min >= 20;
 			bool bool4 = gap_size >= 5;
 			bool bool5 = x_seed_vec0_max < x_seed_vec1_min;
 
-			both_moving_temp = bool1 && bool2 && bool3 && bool4 && bool5;
+			both_moving_temp = bool0 && bool1 && bool2 && bool3 && bool4 && bool5;
 
 			if (both_moving_temp)
 			{

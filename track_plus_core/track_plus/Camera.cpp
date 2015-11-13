@@ -228,10 +228,15 @@ JPEGDecompressor jpeg_decompressor;
 #ifdef _WIN32
 static void frameCallback(BYTE* pBuffer, long lBufferSize)
 {
-    if (jpeg_decompressor.compute(pBuffer, lBufferSize, myBuffer, 1280, 480))
-        Camera::callback(image_out);
-    // else
-        // console_log("bad image caught");
+    static int frame_current = 0;
+    ++frame_current;
+
+    if (frame_current >= frame_skip_count)
+        if (jpeg_decompressor.compute(pBuffer, lBufferSize, myBuffer, 1280, 480))
+        {
+            frame_current = 0;
+            Camera::callback(image_out);
+        }
 }
 #endif
 
@@ -296,6 +301,7 @@ int Camera::isCameraPresent()
             eSPAEAWB_SetSensorType(1);
             deviceWasSelected = 1;
             console_log("Touch+ Camera found");
+            break;
         }
         
     }

@@ -197,7 +197,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ETRON_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(LIBJPEG-TURBO_DIR)\include;$(SFML_DIR)\include;$(SolutionDir)\..\track_plus_core\daemon_plus;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBJPEG-TURBO_DIR)\include;$(ETRON_DIR)\;$(OPENCV_DIR)\..\..\include;$(VCInstallDir)PlatformSDK\include;$(DIRECTSHOW_DIR)\include;$(SFML_DIR)\include;$(SolutionDir)\..\track_plus_core\daemon_plus;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointModel>Precise</FloatingPointModel>
       <MinimalRebuild>false</MinimalRebuild>

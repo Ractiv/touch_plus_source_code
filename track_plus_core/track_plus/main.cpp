@@ -518,15 +518,15 @@ void compute()
 
     if (proceed)
     {
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
         proceed = proceed0 && proceed1;
     }
 
     if (proceed)
     {
-        motion_processor0.target_frame = 10;
-        motion_processor1.target_frame = 10;
+        motion_processor0.target_frame = 30;
+        motion_processor1.target_frame = 30;
         
         point_vec_pool[point_vec_pool_count] = mono_processor1.pose_estimation_points;
         point_vec_ptr = &point_vec_pool[point_vec_pool_count];
@@ -778,11 +778,7 @@ int main()
         }
 
         compute();
-
-        if (settings.power_saving_mode != "1")
-            Sleep(1);
-        else
-            Sleep(50);
+        Sleep(1);
     }
         
     return 0;
