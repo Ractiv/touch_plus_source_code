@@ -18,6 +18,7 @@
 
 #include "pointer_mapper.h"
 #include "console_log.h"
+#include "pose_estimator.h"
 
 void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojector)
 {
@@ -31,7 +32,7 @@ void PointerMapper::compute(HandResolver& hand_resolver, Reprojector& reprojecto
 
 	if (pt_cursor_index.y > 1500)
 	{
-		pose_name = "";
+		PoseEstimator::pose_name = "";
 		index_down = false;
 	}
 

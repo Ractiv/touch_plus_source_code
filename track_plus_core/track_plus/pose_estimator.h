@@ -36,15 +36,12 @@ class PoseEstimator
 public:
 	bool show = false;
 
-	vector<Point> points_current;
-	vector<vector<Point>> points_collection;
-	vector<string> names_collection;
+	static vector<Point> points_dist_min;
+	static vector<Point> labels_dist_min;
 
-	ValueStore value_store;
+	static string pose_name;
+	static string target_pose_name;
 
 	void init();
 	void compute(vector<Point>& points_in);
-	bool accumulate_pose(const string name_in, const int count_max, string& name_out);
-	void save(const string name);
-	void load();
 };

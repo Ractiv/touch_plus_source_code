@@ -42,8 +42,6 @@ string ipc_path = "";
 string processes_temp_path = "";
 string pose_database_path = "";
 
-string pose_name = "";
-string target_pose_name = "";
 string child_module_name = "";
 string child_module_path = "";
 

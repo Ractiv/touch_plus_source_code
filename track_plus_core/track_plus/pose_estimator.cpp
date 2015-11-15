@@ -19,92 +19,18 @@
 #include "pose_estimator.h"
 #include "console_log.h"
 
-void PoseEstimator::init()
-{
-	if (!directory_exists(pose_database_path))
-		create_directory(pose_database_path);
+vector<Point> points_current;
+vector<vector<Point>> points_collection;
+vector<vector<Point>> labels_collection;
+vector<string> names_collection;
 
-	load();
+vector<Point> PoseEstimator::points_dist_min;
+vector<Point> PoseEstimator::labels_dist_min;
 
-	console_log("pose estimator initialized");
-}
+string PoseEstimator::pose_name = "";
+string PoseEstimator::target_pose_name = "";
 
-void PoseEstimator::compute(vector<Point>& points_in)
-{
-	points_current = points_in;
-
-	string pose_name_dist_min = "";
-	vector<Point> points_dist_min;
-	float dist_min = FLT_MAX;
-
-	int index = 0;
-	for (vector<Point>& points : points_collection)
-	{
-		Mat cost_mat = compute_cost_mat(points_current, points, false);
-		float dist = compute_dtw(cost_mat);
-
-		if (dist < dist_min)
-		{
-			dist_min = dist;
-			points_dist_min = points;
-			pose_name_dist_min = names_collection[index];
-		}
-		++index;
-	}
-
-	if (record_pose && target_pose_name != "" &&
-		((pose_name_dist_min != target_pose_name && overwrite_pose) ||
-		dist_min > (enhance_pose ? 500 : 700)))
-	{
-		save(target_pose_name);
-		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
-	}
-
-	if (dist_min != FLT_MAX)
-	{
-		Mat image_dist_min = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
-		Point pt_old = Point(-1, -1);
-		for (Point& pt : points_dist_min)
-		{
-			if (pt_old.x != -1)
-				line(image_dist_min, pt, pt_old, Scalar(254), 1);
-
-			pt_old = pt;
-		}
-
-		if (show)
-			imshow("image_dist_min", image_dist_min);
-	}
-
-	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
-
-	if (pose_name_temp != "")
-		pose_name = pose_name_temp;
-
-	if (show)
-		cout << pose_name_temp << endl;
-
-	Mat image_current = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
-
-	Point pt_old = Point(-1, -1);
-	for (Point& pt : points_current)
-	{
-		if (pt_old.x != -1)
-			line(image_current, pt, pt_old, Scalar(254), 1);
-
-		pt_old = pt;
-	}
-
-	if (show)
-	{
-		imshow("image_current", image_current);
-		waitKey(1);
-	}
-}
-
-bool PoseEstimator::accumulate_pose(const string name_in, const int count_max, string& name_out)
+bool accumulate_pose(const string name_in, const int count_max, string& name_out)
 {
 	bool result = false;
 
@@ -140,7 +66,7 @@ bool PoseEstimator::accumulate_pose(const string name_in, const int count_max, s
 	return result;
 }
 
-void PoseEstimator::save(const string name)
+void save(const string name)
 {
 	const string extension = "nrocinunerrad";
 
@@ -183,7 +109,7 @@ void PoseEstimator::save(const string name)
 	cout << "pose data saved: " + name << endl;
 }
 
-void PoseEstimator::load()
+void load()
 {
 	vector<string> file_name_vec = list_files_in_directory(pose_database_path);
 
@@ -234,11 +160,131 @@ void PoseEstimator::load()
 
 			points_collection.push_back(points);
 			names_collection.push_back(pose_name_loaded);
+
+			const string label_path = pose_database_path + slash + "labels" + slash + name_current;
+			vector<string> label_data = read_text_file(label_path);
+
+			vector<Point> labels;
+			for (String& str : label_data)
+			{
+				vector<string> str_pair = split_string(str, "!");
+				labels.push_back(Point(atoi(str_pair[0].c_str()), atoi(str_pair[1].c_str())));
+			}
+			labels_collection.push_back(labels);
 		}
 		else if (name_extension_vec.size() > 1 && name_extension_vec[1] == "png")
 		{
 			const string path = pose_database_path + slash + name_current;
 			Mat image_loaded = imread(path);
 		}
+	}
+}
+
+void PoseEstimator::init()
+{
+	if (!directory_exists(pose_database_path))
+		create_directory(pose_database_path);
+
+	load();
+
+	console_log("pose estimator initialized");
+}
+
+void PoseEstimator::compute(vector<Point>& points_in)
+{
+	points_current = points_in;
+
+	string pose_name_dist_min = "";
+	float dist_min = FLT_MAX;
+
+	int index = 0;
+	for (vector<Point>& points : points_collection)
+	{
+		Mat cost_mat = compute_cost_mat(points_current, points, false);
+		float dist = compute_dtw(cost_mat);
+
+		if (dist < dist_min)
+		{
+			dist_min = dist;
+			PoseEstimator::points_dist_min = points;
+			pose_name_dist_min = names_collection[index];
+			PoseEstimator::labels_dist_min = labels_collection[index];
+		}
+		++index;
+	}
+
+	if (record_pose && target_pose_name != "" &&
+		((pose_name_dist_min != target_pose_name && overwrite_pose) ||
+		dist_min > (enhance_pose ? 500 : 700)))
+	{
+		save(target_pose_name);
+		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
+	}
+
+	if (dist_min != FLT_MAX)
+	{
+		Mat image_dist_min = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+
+		vector<Scalar> colors;
+		colors.push_back(Scalar(255, 0, 0));
+		colors.push_back(Scalar(0, 153, 0));
+		colors.push_back(Scalar(0, 0, 255));
+		colors.push_back(Scalar(153, 0, 102));
+		colors.push_back(Scalar(102, 102, 102));
+
+		int label_indexes[1000];
+
+		{
+			int label_index = -1;
+			for (Point& pt : PoseEstimator::labels_dist_min)
+			{
+				++label_index;
+				for (int i = pt.x; i <= pt.y; ++i)
+					label_indexes[i] = label_index;
+			}
+		}
+		{
+			int index = -1;
+			Point pt_old = Point(-1, -1);
+			for (Point& pt : PoseEstimator::points_dist_min)
+			{
+				++index;
+				int label_index = label_indexes[index];
+
+				if (pt_old.x != -1)
+					line(image_dist_min, pt, pt_old, colors[label_index], 1);
+
+				pt_old = pt;
+			}
+		}
+
+		if (show)
+			imshow("image_dist_min", image_dist_min);
+	}
+
+	string pose_name_temp;
+	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
+
+	if (pose_name_temp != "")
+		pose_name = pose_name_temp;
+
+	if (show)
+		cout << pose_name_temp << endl;
+
+	Mat image_current = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+
+	Point pt_old = Point(-1, -1);
+	for (Point& pt : points_current)
+	{
+		if (pt_old.x != -1)
+			line(image_current, pt, pt_old, Scalar(254), 1);
+
+		pt_old = pt;
+	}
+
+	if (show)
+	{
+		imshow("image_current", image_current);
+		waitKey(1);
 	}
 }

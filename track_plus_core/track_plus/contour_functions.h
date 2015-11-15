@@ -52,6 +52,6 @@ void get_bounds(vector<Point>& pt_vec, int& x_min, int& x_max, int& y_min, int& 
 
 bool check_bounds_small(Point& pt);
 
-void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness);
+void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness, int x_offset = 0);
 
 void sort_contour(vector<Point>& points, vector<Point>& points_sorted, Point& pivot);

@@ -71,8 +71,6 @@ struct Settings
 
 Settings settings;
 
-Mat image_current_frame;
-
 IPC* ipc = NULL;
 
 Camera* camera = NULL;
@@ -117,6 +115,7 @@ const int pool_size_max = 100;
 
 Mat image_pool[pool_size_max];
 int image_pool_count = 0;
+Mat image_current_frame;
 
 vector<Point> point_vec_pool[pool_size_max];
 int point_vec_pool_count = 0;
@@ -575,7 +574,7 @@ void pose_estimator_thread_function()
 
 void on_key_down(int code)
 {
-    if (target_pose_name != "")
+    if (PoseEstimator::target_pose_name != "")
     {
         if (code == 192)
         {
@@ -603,7 +602,7 @@ void on_key_down(int code)
         }
     }
     else
-        pose_name = "";
+       PoseEstimator::pose_name = "";
 }
 
 void on_key_up(int code)
@@ -655,9 +654,9 @@ void input_thread_function()
             cout << "please enter name of the pose" << endl;
 
             getline(cin, str);
-            target_pose_name = str;
+            PoseEstimator::target_pose_name = str;
 
-            cout << "pose name set to: " << target_pose_name << endl;
+            cout << "pose name set to: " << PoseEstimator::target_pose_name << endl;
         }
         else if (str == "show pose name")
         {

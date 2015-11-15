@@ -22,6 +22,7 @@
 #include "dtw.h"
 #include "thinning_computer_new.h"
 #include "permutation.h"
+#include "pose_estimator.h"
 
 struct compare_blob_angle
 {
@@ -304,7 +305,7 @@ BlobNew* find_thumb(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 	if (fingertip_blobs.size() >= 5)
 		selected = true;
 
-	if (pose_name == "point")
+	if (PoseEstimator::pose_name == "point")
 		selected = true;
 
 	//------------------------------------------------------------------------------------------------------------------------
@@ -318,7 +319,7 @@ BlobNew* find_thumb(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 
 		if (dist_index_reference > dist_thumb_reference)
 		{
-			if (pose_name == "point")
+			if (PoseEstimator::pose_name == "point")
 				selected = true;
 		}
 		else
@@ -370,9 +371,6 @@ BlobNew* find_thumb(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 	if (selected)
 		fill_mat(image_visualization, candidate->data_rotated, 254);
 
-	draw_circle(image_visualization, pt_thumb_reference);
-	draw_circle(image_visualization, pt_index_reference);
-
 	if (selected)
 		return candidate;
 
@@ -405,26 +403,30 @@ BlobNew* find_index(vector<BlobNew>& fingertip_blobs, Point& pt_palm, Point& pt_
 		if (selected)
 			candidate->name = "1";
 
-		// if (selected)
-		// 	fill_mat(image_visualization, candidate->data_rotated, 127);
+		if (selected)
+			fill_mat(image_visualization, candidate->data_rotated, 127);
 	}
 
+	if (PoseEstimator::pose_name == "point")
 	{
 		Point pt_search = Point(pt_palm_rotated.x, HEIGHT_SMALL);
 		float dist_min = 9999;
 		BlobNew* candidate = NULL;
 		for (BlobNew& blob : fingertip_blobs)
 		{
-			Point pt_tip_rotated = blob.pt_tip_rotated;
-			float dist = get_distance(pt_tip_rotated, pt_search, false);
+			Point pt_blob = Point(blob.x_max_rotated, blob.y_max_rotated);
+			float dist = get_distance(pt_blob, pt_search, false);
 			if (dist < dist_min)
 			{
 				dist_min = dist;
 				candidate = &blob;
 			}
 		}
-		// if (candidate != NULL)
-			// fill_mat(image_visualization, candidate->data_rotated, 127);
+		if (candidate != NULL)
+		{
+			candidate->name = "1";
+			fill_mat(image_visualization, candidate->data_rotated, 127);
+		}
 	}
 
 	// return candidate;
@@ -916,10 +918,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			}
 			angle_mean /= angle_count;
 			hand_angle = angle_mean;
-
-			if (pose_name == "point")
-				hand_angle += 20;
-
 			low_pass_filter->compute(hand_angle, 0.5, "hand_angle_first_pass");
 		}
 	}
@@ -930,7 +928,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	else
 		hand_angle = hand_angle_static;
 
-	value_store.set_float("hand_angle", pose_name == "point" ? hand_angle - 20 : hand_angle);
+	value_store.set_float("hand_angle", PoseEstimator::pose_name == "point" ? hand_angle - 20 : hand_angle);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1079,7 +1077,67 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	int convex_index_min = -1;
+	{
+		vector<Point> pose_model_points = PoseEstimator::points_dist_min;
+		vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
+
+		vector<Scalar> colors;
+		colors.push_back(Scalar(255, 0, 0));
+		colors.push_back(Scalar(0, 153, 0));
+		colors.push_back(Scalar(0, 0, 255));
+		colors.push_back(Scalar(153, 0, 102));
+		colors.push_back(Scalar(102, 102, 102));
+
+		int label_indexes[1000];
+
+		{
+			int label_index = -1;
+			for (Point& pt : pose_model_labels)
+			{
+				++label_index;
+				for (int i = pt.x; i <= pt.y; ++i)
+					label_indexes[i] = label_index;
+			}
+		}
+
+		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, false);
+		vector<Point> indexes = compute_dtw_indexes(cost_mat);
+
+		Mat image_test = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC3);
+
+		for (Point& index_pair : indexes)
+		{
+			Point pt0 = pose_model_points[index_pair.x];
+			Point pt1 = pose_estimation_points[index_pair.y];
+			pt1.x += 160;
+
+			Scalar color = colors[label_indexes[index_pair.x]];
+
+			circle(image_test, pt1, 3, color, -1);
+			// line(image_test, pt0, pt1, color, 1);
+		}
+
+		{
+			int index = -1;
+			Point pt_old = Point(-1, -1);
+			for (Point& pt : pose_model_points)
+			{
+				++index;
+				int label_index = label_indexes[index];
+
+				if (pt_old.x != -1)
+					line(image_test, pt, pt_old, colors[label_index], 1);
+
+				pt_old = pt;
+			}
+		}
+
+		imshow("image_test" + name, image_test);
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	/*int convex_index_min = -1;
 
 	{
 		float dist_min = 9999;
@@ -1377,11 +1435,11 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	BlobNew* blob_thumb = find_thumb(fingertip_blobs, pt_palm, pt_palm_rotated, palm_radius, blob_y_max,
-									 hand_angle, &value_store, image_visualization);
+	// BlobNew* blob_thumb = find_thumb(fingertip_blobs, pt_palm, pt_palm_rotated, palm_radius, blob_y_max,
+	// 								 hand_angle, &value_store, image_visualization);
 
-	BlobNew* blob_index = find_index(fingertip_blobs, pt_palm, pt_palm_rotated, palm_radius, blob_y_max, blob_thumb,
-									 hand_angle, &value_store, image_visualization);
+	// BlobNew* blob_index = find_index(fingertip_blobs, pt_palm, pt_palm_rotated, palm_radius, blob_y_max, blob_thumb,
+	// 								 hand_angle, &value_store, image_visualization);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 	//compute the number of blobs big enough to be fingers; this number will be used to disable point pose
@@ -1400,13 +1458,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				++significant_blob_count;
 
 		if (significant_blob_count >= 4)
-			pose_name = "";
+			PoseEstimator::pose_name = "";
 	}
 	{
 		vector<Point> contour_processed_complexity;
 		approxPolyDP(Mat(contour_processed), contour_processed_complexity, 10, false);
 		if (contour_processed_complexity.size() >= 8)
-			pose_name = "";
+			PoseEstimator::pose_name = "";
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -1432,7 +1490,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	for (BlobNew& blob : fingertip_blobs)
 		if (blob.name != "")
-			put_text(blob.name, image_visualization, get_y_max_point(blob.data_rotated));
+			put_text(blob.name, image_visualization, get_y_max_point(blob.data_rotated));*/
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1441,7 +1499,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
 		circle(image_visualization, pt_palm_rotated, palm_radius, Scalar(127), 1);
 		imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
-		// imshow("image_test" + name, image_test);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------

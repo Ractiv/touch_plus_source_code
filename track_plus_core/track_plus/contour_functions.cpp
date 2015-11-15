@@ -388,11 +388,12 @@ bool check_bounds_small(Point& pt)
 	return true;
 }
 
-void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness)
+void draw_contour(vector<Point>& contour, Mat& image, uchar gray, uchar thickness, int x_offset)
 {
 	Point pt_old = Point(-1, -1);
-	for (Point& pt : contour)
+	for (Point pt : contour)
 	{
+		pt.x += x_offset;
 		if (pt_old.x != -1)
 			line(image, pt, pt_old, Scalar(gray), thickness);
 
