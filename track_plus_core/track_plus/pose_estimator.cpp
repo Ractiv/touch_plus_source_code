@@ -30,6 +30,14 @@ vector<Point> PoseEstimator::labels_dist_min;
 string PoseEstimator::pose_name = "";
 string PoseEstimator::target_pose_name = "";
 
+struct decreasing
+{
+	bool operator() (float& f0, float& f1)
+	{
+		return f0 > f1;
+	}
+};
+
 bool accumulate_pose(const string name_in, const int count_max, string& name_out)
 {
 	bool result = false;
@@ -75,7 +83,11 @@ void save(const string name)
 
 	for (string& name_current : file_name_vec)
 	{
-		if (split_string(name_current, ".")[1] != extension)
+		vector<string> name_extension_vec = split_string(name_current, ".");
+		if (name_extension_vec.size() <= 1)
+			continue;
+
+		if (name_extension_vec[1] != extension)
 			continue;
 
 		string name_without_num = "";
@@ -91,8 +103,25 @@ void save(const string name)
 		}
 
 		if (name_without_num == name)
-			++name_count;
+		{
+			string num_without_name = "";
+			for (char& c : name_current)
+			{
+				string char_str = "";
+				char_str += c;
+
+				if (char_str == "0" || atoi(char_str.c_str()) != 0)
+					num_without_name += c;
+				else
+					continue;
+			}
+
+			int num = atoi(num_without_name.c_str());
+			if (num > name_count)
+				name_count = num;
+		}
 	}
+	name_count += 1;
 
 	string data = "";
 	for (Point& pt : points_current)
@@ -100,8 +129,8 @@ void save(const string name)
 
 	data.pop_back();
 
-	const string path = pose_database_path + slash + name + to_string(name_count) + ".";
-	write_string_to_file(path + extension, data);
+	const string path = pose_database_path + slash + name + to_string(name_count) + "." + extension;
+	write_string_to_file(path, data);
 
 	points_collection.push_back(points_current);
 	names_collection.push_back(name);
@@ -190,16 +219,127 @@ void PoseEstimator::init()
 	console_log("pose estimator initialized");
 }
 
+float compute_dtw_dist(vector<Point>& new_points, vector<Point>& database_points)
+{
+	Mat cost_mat = compute_cost_mat(new_points, database_points, false);
+	return compute_dtw(cost_mat);
+}
+
+void compute_optimized()
+{
+	const int divisions = 5;
+	const int generations = 10;
+	const int initial_seed_num = 10;
+	const int min_seed_num = 1;
+	const int max_seed_num = 10;
+
+	const int items_in_each_division = points_collection.size() / divisions;
+	const int points_collection_size = points_collection.size();
+
+	int total_iterations = 0;
+
+	bool checker[1000] { 0 };
+	unordered_map<int, float> division_dist_min_checker;
+	unordered_map<float, int> dist_min_division_checker;
+	unordered_map<float, bool> dist_min_checker;
+	unordered_map<float, int> dist_min_index_checker;
+
+	float dist_min_selected = FLT_MAX;
+	vector<Point> database_points_selected;
+
+	for (int i = 0; i < generations; ++i)
+	{
+		for (int a = 0; a < (points_collection_size - 1); a += items_in_each_division)
+		{
+			int index_min = a;
+			int index_max = a + items_in_each_division;
+
+			vector<int> seed_indexes;
+			for (int b = index_min; b <= index_max; ++b)
+				seed_indexes.push_back(b);
+
+			if (seed_indexes.size() == 0)
+				continue;
+
+			int seed_num = initial_seed_num;
+			if (i > 0)
+			{
+				float dist_min = division_dist_min_checker[a];
+				int index_division = dist_min_index_checker[dist_min];
+				seed_num = map_val(index_division, 0, divisions - 1, min_seed_num, max_seed_num);
+			}
+
+			for (int b = 0; b < seed_num; ++b)
+			{
+				int k = get_random(0, seed_indexes.size() - 1);
+				int seed_index = seed_indexes[k];
+
+				if (checker[seed_index] == true)
+					continue;
+
+				checker[seed_index] = true;
+
+				vector<Point> database_points = points_collection[seed_index];
+				float dist = compute_dtw_dist(points_current, database_points);
+
+				if (dist < dist_min_selected)
+				{
+					dist_min_selected = dist;
+					database_points_selected = database_points;
+				}
+
+				++total_iterations;
+
+				float dist_min = division_dist_min_checker.count(a) > 0 ? division_dist_min_checker[a] : FLT_MAX;
+				if (dist >= dist_min)
+					continue;
+
+				dist_min = dist;
+				while (dist_min_checker.count(dist_min) > 0)
+					dist_min += 0.001;
+
+				dist_min_checker[dist_min] = true;
+				division_dist_min_checker[a] = dist_min;
+				dist_min_division_checker[dist_min] = a;
+			}
+		}
+
+		vector<float> dist_min_vec;
+		for (int a = 0; a < (points_collection_size - 1); a += items_in_each_division)
+			dist_min_vec.push_back(division_dist_min_checker[a]);
+
+		std::sort(dist_min_vec.begin(), dist_min_vec.end(), decreasing());
+
+		int index = -1;
+		for (float& dist_min : dist_min_vec)
+		{
+			++index;
+			dist_min_index_checker[dist_min] = index;
+		}
+	}
+
+	Mat image_haha = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
+	draw_contour(database_points_selected, image_haha, 254, 1, 0);
+	imshow("image_haha", image_haha);
+
+	waitKey(1);
+
+	cout << total_iterations << endl;
+}
+
 void PoseEstimator::compute(vector<Point>& points_in)
 {
 	points_current = points_in;
+	// compute_optimized();
 
 	string pose_name_dist_min = "";
 	float dist_min = FLT_MAX;
 
-	int index = 0;
+	int index = -1;
 	for (vector<Point>& points : points_collection)
 	{
+		++index;
+
 		Mat cost_mat = compute_cost_mat(points_current, points, false);
 		float dist = compute_dtw(cost_mat);
 
@@ -208,31 +348,39 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			dist_min = dist;
 			PoseEstimator::points_dist_min = points;
 			pose_name_dist_min = names_collection[index];
-			PoseEstimator::labels_dist_min = labels_collection[index];
+
+			if (labels_collection.size() > index)
+				PoseEstimator::labels_dist_min = labels_collection[index];
 		}
-		++index;
 	}
 
-	if (record_pose && target_pose_name != "" &&
-		((pose_name_dist_min != target_pose_name && overwrite_pose) ||
-		dist_min > (enhance_pose ? 500 : 700)))
+	bool boolean0 = record_pose;
+	bool boolean1 = target_pose_name != "";
+	bool boolean2 = (PoseEstimator::points_dist_min.size() * 100 / dist_min) <= 4;
+	bool boolean3 = dist_min > 500;
+
+	if (boolean0 && boolean1 && boolean2 && boolean3)
 	{
 		save(target_pose_name);
 		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
 	}
 
-	if (dist_min != FLT_MAX)
+	/*if (dist_min != FLT_MAX)
 	{
 		Mat image_dist_min = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
-		vector<Scalar> colors;
-		colors.push_back(Scalar(255, 0, 0));
-		colors.push_back(Scalar(0, 153, 0));
-		colors.push_back(Scalar(0, 0, 255));
-		colors.push_back(Scalar(153, 0, 102));
-		colors.push_back(Scalar(102, 102, 102));
+		static vector<Scalar> colors;
+		if (colors.size() == 0)
+		{
+			colors.push_back(Scalar(255, 0, 0));
+			colors.push_back(Scalar(0, 153, 0));
+			colors.push_back(Scalar(0, 0, 255));
+			colors.push_back(Scalar(153, 0, 102));
+			colors.push_back(Scalar(102, 102, 102));
+		}
 
 		int label_indexes[1000];
+		int label_indexes_count = 0;
 
 		{
 			int label_index = -1;
@@ -240,7 +388,10 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			{
 				++label_index;
 				for (int i = pt.x; i <= pt.y; ++i)
+				{
 					label_indexes[i] = label_index;
+					++label_indexes_count;
+				}
 			}
 		}
 		{
@@ -249,6 +400,9 @@ void PoseEstimator::compute(vector<Point>& points_in)
 			for (Point& pt : PoseEstimator::points_dist_min)
 			{
 				++index;
+				if (index >= label_indexes_count)
+					continue;
+
 				int label_index = label_indexes[index];
 
 				if (pt_old.x != -1)
@@ -263,7 +417,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 2, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 5, pose_name_temp);
 
 	if (pose_name_temp != "")
 		pose_name = pose_name_temp;
@@ -286,5 +440,5 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	{
 		imshow("image_current", image_current);
 		waitKey(1);
-	}
+	}*/
 }

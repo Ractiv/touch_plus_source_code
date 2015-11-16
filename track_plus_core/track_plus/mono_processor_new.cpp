@@ -1077,18 +1077,23 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	while (true)
 	{
 		vector<Point> pose_model_points = PoseEstimator::points_dist_min;
 		vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
 
-		vector<Scalar> colors;
-		colors.push_back(Scalar(255, 0, 0));
-		colors.push_back(Scalar(0, 153, 0));
-		colors.push_back(Scalar(0, 0, 255));
-		colors.push_back(Scalar(153, 0, 102));
-		colors.push_back(Scalar(102, 102, 102));
+		static vector<Scalar> colors;
+		if (colors.size() == 0)
+		{
+			colors.push_back(Scalar(255, 0, 0));
+			colors.push_back(Scalar(0, 153, 0));
+			colors.push_back(Scalar(0, 0, 255));
+			colors.push_back(Scalar(153, 0, 102));
+			colors.push_back(Scalar(102, 102, 102));
+		}
 
 		int label_indexes[1000];
+		int label_indexes_count = 0;
 
 		{
 			int label_index = -1;
@@ -1096,43 +1101,43 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			{
 				++label_index;
 				for (int i = pt.x; i <= pt.y; ++i)
+				{
 					label_indexes[i] = label_index;
+					++label_indexes_count;
+				}
 			}
 		}
 
 		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, false);
 		vector<Point> indexes = compute_dtw_indexes(cost_mat);
 
-		Mat image_test = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC3);
+		Mat image_labelled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
+		Point pt_old = Point(-1, -1);
+		Scalar color_old;
 		for (Point& index_pair : indexes)
 		{
-			Point pt0 = pose_model_points[index_pair.x];
-			Point pt1 = pose_estimation_points[index_pair.y];
-			pt1.x += 160;
+			Point pt = pose_estimation_points[index_pair.y];
+			if (index_pair.x >= label_indexes_count)
+				continue;
 
-			Scalar color = colors[label_indexes[index_pair.x]];
+			int label_index = label_indexes[index_pair.x];
 
-			circle(image_test, pt1, 3, color, -1);
-			// line(image_test, pt0, pt1, color, 1);
-		}
+			Scalar color = colors[label_index];
 
-		{
-			int index = -1;
-			Point pt_old = Point(-1, -1);
-			for (Point& pt : pose_model_points)
+			if (pt_old.x != -1)
 			{
-				++index;
-				int label_index = label_indexes[index];
-
-				if (pt_old.x != -1)
-					line(image_test, pt, pt_old, colors[label_index], 1);
-
-				pt_old = pt;
+				Point pt_middle = Point((pt.x + pt_old.x) / 2, (pt.y + pt_old.y) / 2);
+				line(image_labelled, pt_old, pt_middle, color_old, 2);
+				line(image_labelled, pt_middle, pt, color, 2);
 			}
+
+			pt_old = pt;
+			color_old = color;
 		}
 
-		imshow("image_test" + name, image_test);
+		imshow("image_labelled" + name, image_labelled);
+		break;
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------

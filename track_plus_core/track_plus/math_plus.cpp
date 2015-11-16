@@ -17,9 +17,18 @@
  */
 
 #include <iostream>
+#include <random>
 #include "math_plus.h"
 
 using namespace std;
+
+int get_random(int min, int max)
+{
+	static random_device rd;
+	static mt19937 eng(rd());
+	uniform_int_distribution<> distr(min, max);
+	return distr(eng);
+}
 
 float get_distance(float x0, float y0, float x1, float y1, bool accurate)
 {

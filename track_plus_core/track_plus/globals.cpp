@@ -50,7 +50,6 @@ bool waiting_for_image = true;
 bool enable_imshow = true;
 bool record_pose = false;
 bool overwrite_pose = false;
-bool enhance_pose = false;
 bool pinch_to_zoom = false;
 bool has_plate = false;
 bool has_pen = false;

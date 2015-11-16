@@ -103,7 +103,7 @@
 					{
 						image_frame.visible = true;
 
-						if (!mouse_down)
+						// if (!mouse_down)
 							image_frame.load_data();
 					}
 					else

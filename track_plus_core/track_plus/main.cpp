@@ -565,9 +565,9 @@ void pose_estimator_thread_function()
 
         point_vec_ptr_old = point_vec_ptr;
 
-        if (!record_pose)
-            Sleep(200);
-        else
+        // if (!record_pose)
+            // Sleep(200);
+        // else
             Sleep(1);
     }
 }
@@ -580,10 +580,8 @@ void on_key_down(int code)
         {
             overwrite_pose = false;
             record_pose = true;
-            enhance_pose = false;
             cout << "record_pose enabled" << endl;
             cout << "overwrite_pose disabled" << endl;
-            cout << "enhance_pose disabled" << endl;
         }
         else if (code == 49)
         {
@@ -594,11 +592,6 @@ void on_key_down(int code)
         {
             overwrite_pose = true;
             cout << "overwrite_pose enabled" << endl;
-        }
-        else if (code == 51)
-        {
-            enhance_pose = true;
-            cout << "enhance_pose enabled" << endl;
         }
     }
     else
@@ -726,6 +719,8 @@ void ipc_thread_function()
         Sleep(500);
     }
 }
+
+#include "math_plus.h"
 
 int main()
 {

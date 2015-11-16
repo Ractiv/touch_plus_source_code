@@ -23,6 +23,7 @@
 
 using namespace cv;
 
+int get_random(int min, int max);
 float get_distance(float x0, float y0, float x1, float y1, bool accurate);
 float get_distance(int x0, int y0, int x1, int y1, bool accurate);
 float get_distance(Point pt0, Point pt1, bool accurate);
