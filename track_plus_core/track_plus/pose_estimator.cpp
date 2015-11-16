@@ -365,7 +365,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
 	}
 
-	/*if (dist_min != FLT_MAX)
+	if (dist_min != FLT_MAX)
 	{
 		Mat image_dist_min = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
@@ -440,5 +440,5 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	{
 		imshow("image_current", image_current);
 		waitKey(1);
-	}*/
+	}
 }

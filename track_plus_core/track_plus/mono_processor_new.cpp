@@ -1052,17 +1052,22 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 		//--------------------------------------------------------------------------------------------------------------------------
 
-		int points_x_min;
-		int points_x_max;
-		int points_y_min;
-		int points_y_max;
-		get_bounds(contour_processed_approximated, points_x_min, points_x_max, points_y_min, points_y_max);
+		int x_min_pose;
+		int x_max_pose;
+		int y_min_pose;
+		int y_max_pose;
+		get_bounds(contour_processed_approximated, x_min_pose, x_max_pose, y_min_pose, y_max_pose);
+
+		value_store.set_int("x_min_pose", x_min_pose);
+		value_store.set_int("x_max_pose", x_max_pose);
+		value_store.set_int("y_min_pose", y_min_pose);
+		value_store.set_int("y_max_pose", y_max_pose);
 
 		vector<Point> contour_processed_approximated_scaled;
 		for (Point& pt : contour_processed_approximated)
 		{
-			int x_normalized = map_val(pt.x, points_x_min, points_x_max, 0, WIDTH_SMALL_MINUS);
-			int y_normalized = map_val(pt.y, points_y_min, points_y_max, 0, HEIGHT_SMALL_MINUS);
+			int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
+			int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
 			contour_processed_approximated_scaled.push_back(Point(x_normalized, y_normalized));
 		}
 
@@ -1077,7 +1082,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	while (true)
+	Mat image_labelled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+	// Mat image_visualization_articulation = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+
 	{
 		vector<Point> pose_model_points = PoseEstimator::points_dist_min;
 		vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
@@ -1107,11 +1114,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			}
 		}
-
 		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, false);
 		vector<Point> indexes = compute_dtw_indexes(cost_mat);
 
-		Mat image_labelled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+		int x_min_pose = value_store.get_int("x_min_pose");
+		int x_max_pose = value_store.get_int("x_max_pose");
+		int y_min_pose = value_store.get_int("y_min_pose");
+		int y_max_pose = value_store.get_int("y_max_pose");
 
 		Point pt_old = Point(-1, -1);
 		Scalar color_old;
@@ -1128,17 +1137,32 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 			if (pt_old.x != -1)
 			{
 				Point pt_middle = Point((pt.x + pt_old.x) / 2, (pt.y + pt_old.y) / 2);
-				line(image_labelled, pt_old, pt_middle, color_old, 2);
-				line(image_labelled, pt_middle, pt, color, 2);
+
+				int pt_x_normalized = map_val(pt.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+				int pt_y_normalized = map_val(pt.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+				int pt_middle_x_normalized = map_val(pt_middle.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+				int pt_middle_y_normalized = map_val(pt_middle.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+				int pt_old_x_normalized = map_val(pt_old.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+				int pt_old_y_normalized = map_val(pt_old.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+
+				Point pt_normalized = Point(pt_x_normalized, pt_y_normalized);
+				Point pt_middle_normalized = Point(pt_middle_x_normalized, pt_middle_y_normalized);
+				Point pt_old_normalized = Point(pt_old_x_normalized, pt_old_y_normalized);
+
+				// line(image_visualization_articulation, pt_old, pt_middle, color_old, 2);
+				// line(image_visualization_articulation, pt_middle, pt, color, 2);
+
+				line(image_labelled, pt_old_normalized, pt_middle_normalized, color_old, 2);
+				line(image_labelled, pt_middle_normalized, pt_normalized, color, 2);
 			}
 
 			pt_old = pt;
 			color_old = color;
 		}
-
-		imshow("image_labelled" + name, image_labelled);
-		break;
 	}
+
+	imshow("image_labelled" + name, image_labelled);
+	// imshow("image_visualization_articulation" + name, image_visualization_articulation);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
