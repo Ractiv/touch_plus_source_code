@@ -67,6 +67,7 @@ extern bool waiting_for_image;
 extern bool enable_imshow;
 extern bool record_pose;
 extern bool overwrite_pose;
+extern bool force_record_pose;
 extern bool pinch_to_zoom;
 extern bool has_plate;
 extern bool has_pen;

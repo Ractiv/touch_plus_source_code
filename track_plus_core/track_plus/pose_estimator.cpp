@@ -359,8 +359,9 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	bool boolean2 = (PoseEstimator::points_dist_min.size() * 100 / dist_min) <= 4;
 	bool boolean3 = dist_min > 500;
 
-	if (boolean0 && boolean1 && boolean2 && boolean3)
+	if ((boolean0 && boolean1 && boolean2 && boolean3) || force_record_pose)
 	{
+		force_record_pose = false;
 		save(target_pose_name);
 		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
 	}
@@ -417,7 +418,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	}
 
 	string pose_name_temp;
-	accumulate_pose(pose_name_dist_min, 5, pose_name_temp);
+	accumulate_pose(pose_name_dist_min, 10, pose_name_temp);
 
 	if (pose_name_temp != "")
 		pose_name = pose_name_temp;

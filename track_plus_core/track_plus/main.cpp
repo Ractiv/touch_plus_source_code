@@ -574,6 +574,11 @@ void pose_estimator_thread_function()
 
 void on_key_down(int code)
 {
+    
+}
+
+void on_key_up(int code)
+{
     if (PoseEstimator::target_pose_name != "")
     {
         if (code == 192)
@@ -593,14 +598,13 @@ void on_key_down(int code)
             overwrite_pose = true;
             cout << "overwrite_pose enabled" << endl;
         }
+        else if (code  == 51)
+        {
+            force_record_pose = true;
+        }
     }
     else
        PoseEstimator::pose_name = "";
-}
-
-void on_key_up(int code)
-{
-    
 }
 
 #ifdef _WIN32
