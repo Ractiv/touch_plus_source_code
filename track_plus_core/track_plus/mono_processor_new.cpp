@@ -775,6 +775,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 	}
 
 	vector<ColoredPoint> contour_labeled;
+	Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 	// Mat image_visualization_articulation = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
 	{
@@ -796,7 +797,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 				}
 			}
 		}
-		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, false);
+		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, true);
 		vector<Point> indexes = compute_dtw_indexes(cost_mat);
 
 		int x_min_pose = value_store.get_int("x_min_pose");
@@ -845,6 +846,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 				for (Point& pt_line : line_vec1)
 					contour_labeled.push_back(ColoredPoint(color[0], color[1], color[2], pt_line.x, pt_line.y));
+
+				if (color_old == colors[1])
+					line(image_labeled, pt_old_normalized, pt_middle_normalized, color_old, 3);
+
+				if (color == colors[1])
+					line(image_labeled, pt_middle_normalized, pt_normalized, color, 3);
 			}
 			pt_old = pt;
 			color_old = color;
@@ -854,57 +861,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	{
-		Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
-
-		ColoredPoint* pt_old = NULL;
-		int index_dist_min_old = contours[0].size() - 1;
-		int index_current = -1;
-		for (ColoredPoint& pt : contour_labeled)
-		{
-			++index_current;
-			if ((pt_old != NULL && pt_old->color != pt.color) || index_current == contour_labeled.size() - 1)
-			{
-				int index = -1;
-				int index_dist_min;
-				if (!(index_current == contour_labeled.size() - 1))
-				{
-					float dist_min = 9999;
-					for (Point& pt_contour : contours[0])
-					{
-						++index;
-						float dist = get_distance(pt_contour, pt.pt, false);
-						if (dist < dist_min)
-						{
-							dist_min = dist;
-							index_dist_min = index;
-						}
-					}
-				}
-				else
-					index_dist_min = 0;
-
-				if (pt_old->b == colors[1][0] && pt_old->g == colors[1][1] && pt_old->r == colors[1][2])
-					for (int i = index_dist_min_old; i >= index_dist_min; --i)
-					{
-						Point pt_current = contours[0][i];
-						image_labeled.ptr<uchar>(pt_current.y, pt_current.x)[0] = pt_old->b;
-						image_labeled.ptr<uchar>(pt_current.y, pt_current.x)[1] = pt_old->g;
-						image_labeled.ptr<uchar>(pt_current.y, pt_current.x)[2] = pt_old->r;
-					}
-				index_dist_min_old = index_dist_min;
-			}
-			pt_old = &pt;
-		}
-
-		imshow("image_labeled" + name, image_labeled);
-	}
-
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-
-
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	if (visualize)
@@ -912,6 +868,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
 		circle(image_visualization, pt_palm_rotated, palm_radius, Scalar(127), 1);
 		imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
+
+		if (PoseEstimator::pose_name == "point")
+			imshow("image_labeledadlfkjhasdlkf" + name, image_labeled);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
