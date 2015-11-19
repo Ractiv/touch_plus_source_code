@@ -46,27 +46,27 @@ struct ColoredPoint
 	}
 };
 
-struct ColorBlobPair
+struct ColorPointPair
 {
 	Scalar color;
-	BlobNew blob;
+	Point point;
 	int overlap;
 	int color_index;
-	int blob_index;
+	int point_index;
 
-	ColorBlobPair(Scalar& _color, BlobNew& _blob, int _overlap, int _color_index, int _blob_index)
+	ColorPointPair(Scalar& _color, Point& _point, int _overlap, int _color_index, int _point_index)
 	{
 		color = _color;
-		blob = _blob;
+		point = _point;
 		overlap = _overlap;
 		color_index = _color_index;
-		blob_index = _blob_index;
+		point_index = _point_index;
 	}
 };
 
-struct compare_color_blob_pair_overlap
+struct compare_color_point_pair_overlap
 {
-	bool operator() (const ColorBlobPair& pair0, const ColorBlobPair& pair1)
+	bool operator() (const ColorPointPair& pair0, const ColorPointPair& pair1)
 	{
 		return (pair0.overlap > pair1.overlap);
 	}
@@ -892,10 +892,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 					for (Point& pt_line : line_vec1)
 						contour_labeled.push_back(ColoredPoint(color[0], color[1], color[2], pt_line.x, pt_line.y));
 
-					if (color_old == colors[1] || color_old == colors[0])
+					// if (color_old == colors[1] || color_old == colors[0])
 						line(image_labeled, pt_old_normalized, pt_middle_normalized, color_old, 2);
 
-					if (color == colors[1] || color_old == colors[0])
+					// if (color == colors[1] || color_old == colors[0])
 						line(image_labeled, pt_middle_normalized, pt_normalized, color, 2);
 				}
 				pt_old = pt;
@@ -903,6 +903,75 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 			}
 		}
 		// imshow("image_visualization_articulation" + name, image_visualization_articulation);
+
+		const int scan_radius = 3;
+
+		vector<ColorPointPair> color_point_pair_vec;
+
+		int point_index = -1;
+		for (Point& pt : tip_points)
+		{
+			++point_index;
+
+			const int scan_x_min = pt.x - scan_radius < 0 ? 0 : pt.x - scan_radius;
+			const int scan_x_max = pt.x + scan_radius > WIDTH_SMALL_MINUS ? WIDTH_SMALL_MINUS : pt.x + scan_radius;
+			const int scan_y_min = pt.y - scan_radius < 0 ? 0 : pt.y - scan_radius;
+			const int scan_y_max = pt.y + scan_radius > HEIGHT_SMALL_MINUS ? HEIGHT_SMALL_MINUS : pt.y + scan_radius;
+
+			unordered_map<string, int> color_count_checker;
+			for (Scalar& color : colors)
+			{
+				const uchar b = color[0];
+				const uchar g = color[1];
+				const uchar r = color[2];
+				string key = to_string(b) + "," + to_string(g) + "," + to_string(r);
+				color_count_checker[key] = 0;
+			}
+
+			for (int i = scan_x_min; i <= scan_x_max; ++i)
+				for (int j = scan_y_min; j <= scan_y_max; ++j)
+				{
+					const uchar b = image_labeled.ptr<uchar>(j, i)[0];
+					const uchar g = image_labeled.ptr<uchar>(j, i)[1];
+					const uchar r = image_labeled.ptr<uchar>(j, i)[2];
+
+					if (b == 0 && g == 0 && r == 0)
+						continue;
+
+					string key = to_string(b) + "," + to_string(g) + "," + to_string(r);
+					++color_count_checker[key];
+				}
+
+			int color_index = -1;
+			for (Scalar& color : colors)
+			{
+				++color_index;
+
+				const uchar b = color[0];
+				const uchar g = color[1];
+				const uchar r = color[2];
+				string key = to_string(b) + "," + to_string(g) + "," + to_string(r);
+				int overlap = color_count_checker[key];
+
+				color_point_pair_vec.push_back(ColorPointPair(color, pt, overlap, color_index, point_index));
+			}
+		}
+
+		sort(color_point_pair_vec.begin(), color_point_pair_vec.end(), compare_color_point_pair_overlap());
+
+		bool color_index_checker[1000];
+		bool point_index_checker[1000];
+		for (ColorPointPair& pair : color_point_pair_vec)
+		{
+			if (color_index_checker[pair.color_index] == true || point_index_checker[pair.point_index] == true)
+				continue;
+
+			color_index_checker[pair.color_index] = true;
+			point_index_checker[pair.point_index] = true;
+
+			circle(image_labeled, pair.point, 5, pair.color, 1);
+		}
+
 		imshow("image_labeled" + name, image_labeled);
 	}
 
