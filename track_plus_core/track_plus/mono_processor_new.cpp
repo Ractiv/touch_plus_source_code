@@ -172,6 +172,14 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
+	pt_thumb = Point(-1, -1);
+	pt_index = Point(-1, -1);
+	pt_middle = Point(-1, -1);
+	pt_ring = Point(-1, -1);
+	pt_pinky = Point(-1, -1);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	if (hand_splitter.blobs_right.size() == 0)
 		return false;
 
@@ -883,8 +891,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 					vector<Point> line_vec0;
 					vector<Point> line_vec1;
-					bresenham_line(pt_old_normalized.x, pt_old_normalized.y, pt_middle_normalized.x, pt_middle_normalized.y, line_vec0, 1000);
-					bresenham_line(pt_middle_normalized.x, pt_middle_normalized.y, pt_normalized.x, pt_normalized.y, line_vec1, 1000);
+					bresenham_line(pt_old_normalized.x, pt_old_normalized.y,
+						pt_middle_normalized.x, pt_middle_normalized.y, line_vec0, 1000);
+					bresenham_line(pt_middle_normalized.x, pt_middle_normalized.y,
+						pt_normalized.x, pt_normalized.y, line_vec1, 1000);
 
 					for (Point& pt_line : line_vec0)
 						contour_labeled.push_back(ColoredPoint(color_old[0], color_old[1], color_old[2], pt_line.x, pt_line.y));
@@ -970,6 +980,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 			point_index_checker[pair.point_index] = true;
 
 			circle(image_labeled, pair.point, 5, pair.color, 1);
+			//mark
 		}
 
 		imshow("image_labeled" + name, image_labeled);

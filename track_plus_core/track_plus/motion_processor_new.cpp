@@ -899,7 +899,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 						// float ratio_max = max(max(max(max(max(ratio0, ratio1), ratio2), ratio3), ratio4), ratio5);
 						float ratio_max = max(max(max(ratio2, ratio3), ratio4), ratio5);
 
-						if (ratio_max < 1)
+						if (ratio_max < 2)
 						{
 							alpha = 0.10;
 							value_store.set_bool("result", true);

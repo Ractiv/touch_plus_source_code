@@ -657,7 +657,7 @@ void guardian_thread_function()
 {
     while (true)
     {
-        if (wait_count >= /*(serial_verified ? 5 : 10)*/2 || camera != NULL && camera->device_not_detected)
+        if (wait_count >= (serial_verified ? 5 : 10) || camera != NULL && camera->device_not_detected)
             wait_for_device();
 
         ++wait_count;

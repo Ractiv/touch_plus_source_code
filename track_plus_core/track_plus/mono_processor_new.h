@@ -36,8 +36,11 @@ public:
 
 	ValueAccumulator value_accumulator;
 
-	Point pt_index;
 	Point pt_thumb;
+	Point pt_index;
+	Point pt_middle;
+	Point pt_ring;
+	Point pt_pinky;
 
 	Point pt_index_root;
 	Point pt_thumb_root;
