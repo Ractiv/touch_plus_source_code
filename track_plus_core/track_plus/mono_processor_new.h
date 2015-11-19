@@ -22,6 +22,7 @@
 #include "value_store.h"
 #include "value_accumulator.h"
 #include "thinning_computer_new.h"
+#include "pose_estimator.h"
 
 class MonoProcessorNew
 {
@@ -52,5 +53,5 @@ public:
 	vector<Point> pose_estimation_points;
 	vector<Point> stereo_matching_points;
 
-	bool compute(HandSplitterNew& hand_splitter, const string name, bool visualize);
+	bool compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize);
 };

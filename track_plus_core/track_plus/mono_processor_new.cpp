@@ -46,6 +46,32 @@ struct ColoredPoint
 	}
 };
 
+struct ColorBlobPair
+{
+	Scalar color;
+	BlobNew blob;
+	int overlap;
+	int color_index;
+	int blob_index;
+
+	ColorBlobPair(Scalar& _color, BlobNew& _blob, int _overlap, int _color_index, int _blob_index)
+	{
+		color = _color;
+		blob = _blob;
+		overlap = _overlap;
+		color_index = _color_index;
+		blob_index = _blob_index;
+	}
+};
+
+struct compare_color_blob_pair_overlap
+{
+	bool operator() (const ColorBlobPair& pair0, const ColorBlobPair& pair1)
+	{
+		return (pair0.overlap > pair1.overlap);
+	}
+};
+
 struct compare_blob_angle
 {
 	Point pivot;
@@ -115,7 +141,7 @@ void draw_circle(Mat& image, Point pt, bool is_empty = false)
 	circle(image, pt, 3, Scalar(127), is_empty ? 1 : -1);
 }
 
-bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name, bool visualize)
+bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
 {
 	int frame_count = value_store.get_int("frame_count", -1);
 	++frame_count;
@@ -754,6 +780,9 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		}
 
 		pose_estimation_points = contour_processed_approximated_scaled;
+		if (name == "1")
+			pose_estimator.compute(pose_estimation_points);
+
 		break;
 	}
 
@@ -764,102 +793,118 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	static vector<Scalar> colors;
-	if (colors.size() == 0)
+	if (name == "1")
 	{
-		colors.push_back(Scalar(255, 0, 0));
-		colors.push_back(Scalar(0, 153, 0));
-		colors.push_back(Scalar(0, 0, 255));
-		colors.push_back(Scalar(153, 0, 102));
-		colors.push_back(Scalar(102, 102, 102));
-	}
+		static vector<Scalar> colors;
+		if (colors.size() == 0)
+		{
+			colors.push_back(Scalar(255, 0, 0));
+			colors.push_back(Scalar(0, 153, 0));
+			colors.push_back(Scalar(0, 0, 255));
+			colors.push_back(Scalar(153, 0, 102));
+			colors.push_back(Scalar(102, 102, 102));
+		}
 
-	vector<ColoredPoint> contour_labeled;
-	Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
-	// Mat image_visualization_articulation = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
-
-	{
-		vector<Point> pose_model_points = PoseEstimator::points_dist_min;
-		vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
-
-		int label_indexes[1000];
-		int label_indexes_count = 0;
+		vector<ColoredPoint> contour_labeled;
+		Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+		// Mat image_visualization_articulation = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
 		{
-			int label_index = -1;
-			for (Point& pt : pose_model_labels)
+			vector<Point> pose_model_points = PoseEstimator::points_dist_min;
+			vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
+
+			int label_indexes[1000];
+			int label_indexes_count = 0;
+
 			{
-				++label_index;
-				for (int i = pt.x; i <= pt.y; ++i)
+				int label_index = -1;
+				for (Point& pt : pose_model_labels)
 				{
-					label_indexes[i] = label_index;
-					++label_indexes_count;
+					++label_index;
+					for (int i = pt.x; i <= pt.y; ++i)
+					{
+						label_indexes[i] = label_index;
+						++label_indexes_count;
+					}
 				}
 			}
-		}
-		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, true);
-		vector<Point> indexes = compute_dtw_indexes(cost_mat);
 
-		int x_min_pose = value_store.get_int("x_min_pose");
-		int x_max_pose = value_store.get_int("x_max_pose");
-		int y_min_pose = value_store.get_int("y_min_pose");
-		int y_max_pose = value_store.get_int("y_max_pose");
+			int x_min_pose = value_store.get_int("x_min_pose");
+			int x_max_pose = value_store.get_int("x_max_pose");
+			int y_min_pose = value_store.get_int("y_min_pose");
+			int y_max_pose = value_store.get_int("y_max_pose");
 
-		Scalar color_old;
-		Point pt_old = Point(-1, -1);
-
-		for (Point& index_pair : indexes)
-		{
-			Point pt = pose_estimation_points[index_pair.y];
-			if (index_pair.x >= label_indexes_count)
-				continue;
-
-			int label_index = label_indexes[index_pair.x];
-			Scalar color = colors[label_index];
-
-			int pt_x_normalized = map_val(pt.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
-			int pt_y_normalized = map_val(pt.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
-			Point pt_normalized = Point(pt_x_normalized, pt_y_normalized);
-
-			if (pt_old.x != -1)
+			vector<Point> contour_processed_scaled;
+			for (Point& pt : contour_processed)
 			{
-				Point pt_middle = Point((pt.x + pt_old.x) / 2, (pt.y + pt_old.y) / 2);
-
-				int pt_middle_x_normalized = map_val(pt_middle.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
-				int pt_middle_y_normalized = map_val(pt_middle.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
-				Point pt_middle_normalized = Point(pt_middle_x_normalized, pt_middle_y_normalized);
-
-				int pt_old_x_normalized = map_val(pt_old.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
-				int pt_old_y_normalized = map_val(pt_old.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
-				Point pt_old_normalized = Point(pt_old_x_normalized, pt_old_y_normalized);
-
-				// line(image_visualization_articulation, pt_old, pt_middle, color_old, 2);
-				// line(image_visualization_articulation, pt_middle, pt, color, 2);
-
-				vector<Point> line_vec0;
-				vector<Point> line_vec1;
-				bresenham_line(pt_old_normalized.x, pt_old_normalized.y, pt_middle_normalized.x, pt_middle_normalized.y, line_vec0, 1000);
-				bresenham_line(pt_middle_normalized.x, pt_middle_normalized.y, pt_normalized.x, pt_normalized.y, line_vec1, 1000);
-
-				for (Point& pt_line : line_vec0)
-					contour_labeled.push_back(ColoredPoint(color_old[0], color_old[1], color_old[2], pt_line.x, pt_line.y));
-
-				for (Point& pt_line : line_vec1)
-					contour_labeled.push_back(ColoredPoint(color[0], color[1], color[2], pt_line.x, pt_line.y));
-
-				if (color_old == colors[1])
-					line(image_labeled, pt_old_normalized, pt_middle_normalized, color_old, 3);
-
-				if (color == colors[1])
-					line(image_labeled, pt_middle_normalized, pt_normalized, color, 3);
+				int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
+				int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
+				contour_processed_scaled.push_back(Point(x_normalized, y_normalized));
 			}
-			pt_old = pt;
-			color_old = color;
-		}
-	}
-	// imshow("image_visualization_articulation" + name, image_visualization_articulation);
 
-	//------------------------------------------------------------------------------------------------------------------------------
+			Mat cost_mat = compute_cost_mat(pose_model_points, contour_processed_scaled, false);
+			vector<Point> indexes = compute_dtw_indexes(cost_mat);
+
+			Scalar color_old;
+			Point pt_old = Point(-1, -1);
+
+			for (Point& index_pair : indexes)
+			{
+				Point pt = contour_processed_scaled[index_pair.y];
+				Point pt_model = pose_model_points[index_pair.x];
+
+				// if (abs(pt_model.y - pt.y) > 10)
+					// continue;
+
+				if (index_pair.x >= label_indexes_count)
+					continue;
+
+				int label_index = label_indexes[index_pair.x];
+				Scalar color = colors[label_index];
+
+				int pt_x_normalized = map_val(pt.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+				int pt_y_normalized = map_val(pt.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+				Point pt_normalized = Point(pt_x_normalized, pt_y_normalized);
+
+				if (pt_old.x != -1)
+				{
+					Point pt_middle = Point((pt.x + pt_old.x) / 2, (pt.y + pt_old.y) / 2);
+
+					int pt_middle_x_normalized = map_val(pt_middle.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+					int pt_middle_y_normalized = map_val(pt_middle.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+					Point pt_middle_normalized = Point(pt_middle_x_normalized, pt_middle_y_normalized);
+
+					int pt_old_x_normalized = map_val(pt_old.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+					int pt_old_y_normalized = map_val(pt_old.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+					Point pt_old_normalized = Point(pt_old_x_normalized, pt_old_y_normalized);
+
+					// line(image_visualization_articulation, pt_old, pt_middle, color_old, 2);
+					// line(image_visualization_articulation, pt_middle, pt, color, 2);
+
+					vector<Point> line_vec0;
+					vector<Point> line_vec1;
+					bresenham_line(pt_old_normalized.x, pt_old_normalized.y, pt_middle_normalized.x, pt_middle_normalized.y, line_vec0, 1000);
+					bresenham_line(pt_middle_normalized.x, pt_middle_normalized.y, pt_normalized.x, pt_normalized.y, line_vec1, 1000);
+
+					for (Point& pt_line : line_vec0)
+						contour_labeled.push_back(ColoredPoint(color_old[0], color_old[1], color_old[2], pt_line.x, pt_line.y));
+
+					for (Point& pt_line : line_vec1)
+						contour_labeled.push_back(ColoredPoint(color[0], color[1], color[2], pt_line.x, pt_line.y));
+
+					if (color_old == colors[1] || color_old == colors[0])
+						line(image_labeled, pt_old_normalized, pt_middle_normalized, color_old, 2);
+
+					if (color == colors[1] || color_old == colors[0])
+						line(image_labeled, pt_middle_normalized, pt_normalized, color, 2);
+				}
+				pt_old = pt;
+				color_old = color;
+			}
+		}
+		// imshow("image_visualization_articulation" + name, image_visualization_articulation);
+		imshow("image_labeled" + name, image_labeled);
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -868,9 +913,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, const string name
 		circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
 		circle(image_visualization, pt_palm_rotated, palm_radius, Scalar(127), 1);
 		imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
-
-		if (PoseEstimator::pose_name == "point")
-			imshow("image_labeledadlfkjhasdlkf" + name, image_labeled);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------

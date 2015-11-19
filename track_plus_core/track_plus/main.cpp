@@ -524,8 +524,8 @@ bool compute()
         waiting_for_image = true;
         waiting_for_image_set = true;
 
-        proceed0 = mono_processor0.compute(hand_splitter0, "0", false);
-        proceed1 = mono_processor1.compute(hand_splitter1, "1", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, pose_estimator, "0", false);
+        proceed1 = mono_processor1.compute(hand_splitter1, pose_estimator, "1", true);
         proceed = proceed0 && proceed1;
     }
 
@@ -533,13 +533,6 @@ bool compute()
     {
         motion_processor0.target_frame = 10;
         motion_processor1.target_frame = 10;
-        
-        point_vec_pool[point_vec_pool_count] = mono_processor1.pose_estimation_points;
-        point_vec_ptr = &point_vec_pool[point_vec_pool_count];
-        
-        ++point_vec_pool_count;
-        if (point_vec_pool_count == pool_size_max)
-           point_vec_pool_count = 0;
 
         // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
         // stereo_processor_new.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
@@ -554,27 +547,9 @@ bool compute()
     return waiting_for_image_set;
 }
 
-void pose_estimator_thread_function()
-{
-    while (true)
-    {
-        static vector<Point>* point_vec_ptr_old = NULL;
-
-        if (point_vec_ptr_old != point_vec_ptr)
-            pose_estimator.compute(*point_vec_ptr);
-
-        point_vec_ptr_old = point_vec_ptr;
-
-        // if (!record_pose)
-            // Sleep(200);
-        // else
-            Sleep(1);
-    }
-}
-
 void on_key_down(int code)
 {
-    
+
 }
 
 void on_key_up(int code)
@@ -764,7 +739,6 @@ int main()
 #endif
     thread guardian_thread(guardian_thread_function);
     thread input_thread(input_thread_function);
-    thread pose_estimator_thread(pose_estimator_thread_function);
 
     camera = new Camera(true, 1280, 480, update);
     

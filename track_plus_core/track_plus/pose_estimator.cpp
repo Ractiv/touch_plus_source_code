@@ -244,7 +244,7 @@ void compute_optimized()
 	unordered_map<float, bool> dist_min_checker;
 	unordered_map<float, int> dist_min_index_checker;
 
-	float dist_min_selected = FLT_MAX;
+	float dist_min_selected = 9999;
 	vector<Point> database_points_selected;
 
 	for (int i = 0; i < generations; ++i)
@@ -290,7 +290,7 @@ void compute_optimized()
 
 				++total_iterations;
 
-				float dist_min = division_dist_min_checker.count(a) > 0 ? division_dist_min_checker[a] : FLT_MAX;
+				float dist_min = division_dist_min_checker.count(a) > 0 ? division_dist_min_checker[a] : 9999;
 				if (dist >= dist_min)
 					continue;
 
@@ -333,7 +333,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	// compute_optimized();
 
 	string pose_name_dist_min = "";
-	float dist_min = FLT_MAX;
+	float dist_min = 9999;
 
 	int index = -1;
 	for (vector<Point>& points : points_collection)
@@ -356,8 +356,8 @@ void PoseEstimator::compute(vector<Point>& points_in)
 
 	bool boolean0 = record_pose;
 	bool boolean1 = target_pose_name != "";
-	bool boolean2 = (PoseEstimator::points_dist_min.size() * 100 / dist_min) <= 4;
-	bool boolean3 = dist_min > 500;
+	bool boolean2 = (points_current.size() * 100 / dist_min) <= 4;
+	bool boolean3 = points_current.size() > 500;
 
 	if ((boolean0 && boolean1 && boolean2 && boolean3) || force_record_pose)
 	{
@@ -366,7 +366,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 		cout << pose_name_dist_min << "->" << target_pose_name << " " << to_string(dist_min) << endl;
 	}
 
-	if (dist_min != FLT_MAX)
+	if (dist_min != 9999)
 	{
 		Mat image_dist_min = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 

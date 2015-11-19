@@ -33,7 +33,7 @@ Mat compute_cost_mat(vector<Point>& vec0, vector<Point>& vec1, bool favor_parall
 
 			float dist;
 			if (favor_parallel)
-				dist = abs(pt1.y - pt0.y) * 3 + abs(pt1.x - pt0.x);
+				dist = pow(abs(pt1.y - pt0.y), 2) + abs(pt1.x - pt0.x);
 			else
 				dist = abs(pt1.y - pt0.y) + abs(pt1.x - pt0.x);
 
