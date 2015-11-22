@@ -359,7 +359,7 @@ void PoseEstimator::compute(vector<Point>& points_in)
 	bool boolean2 = (points_current.size() * 100 / dist_min) <= 4;
 	bool boolean3 = points_current.size() > 500;
 
-	if ((boolean0 && boolean1 && boolean2 && boolean3) || force_record_pose)
+	if ((boolean0 && boolean1 && boolean2 && boolean3) || force_record_pose || boolean3)
 	{
 		force_record_pose = false;
 		save(target_pose_name);

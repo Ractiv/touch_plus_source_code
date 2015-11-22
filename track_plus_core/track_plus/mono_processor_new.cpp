@@ -23,28 +23,7 @@
 #include "thinning_computer_new.h"
 #include "permutation.h"
 #include "pose_estimator.h"
-
-struct ColoredPoint
-{
-	uchar b;
-	uchar g;
-	uchar r;
-	int x;
-	int y;
-	Point pt;
-	Scalar color;
-
-	ColoredPoint(uchar _b, uchar _g, uchar _r, int _x, int _y)
-	{
-		b = _b;
-		g = _g;
-		r = _r;
-		x = _x;
-		y = _y;
-		pt = Point(x, y);
-		color = Scalar(b, g, r);
-	}
-};
+#include "point_plus.h"
 
 struct ColorPointPair
 {
@@ -136,10 +115,76 @@ Point rotate_point_normal(Point& pt)
 	return pt_rotated;
 }
 
+void match_points_by_permutation(vector<PointPlus>* points0, vector<PointPlus>* points1)
+{
+	vector<PointPlus>* large_array = points0;
+	vector<PointPlus>* small_array = points1;
+	bool flipped = false;
+
+	if (points0->size() < points1->size())
+	{
+		large_array = points1;
+		small_array = points0;
+		flipped = true;
+	}
+
+	const int large_array_size = large_array->size();
+	const int small_array_size = small_array->size();
+
+	compute_permutations(large_array_size, small_array_size);
+
+	float dist_sigma_min = FLT_MAX;
+	vector<int> large_array_index_vec_result;
+	vector<int> small_array_index_vec_result;
+
+	for (vector<int>& rows : permutations)
+	{
+		float dist_sigma = 0;
+
+		vector<int> large_array_index_vec;
+		vector<int> small_array_index_vec;
+
+		int small_array_index = -1;
+		for (int large_array_index : rows)
+		{
+			++small_array_index;
+
+			large_array_index_vec.push_back(large_array_index);
+			small_array_index_vec.push_back(small_array_index);
+
+			PointPlus point_small_array = (*small_array)[small_array_index];
+			PointPlus point_large_array = (*large_array)[large_array_index];
+
+			float dist_tip_rotated = get_distance(point_small_array.pt_rotated, point_large_array.pt_rotated, false);
+			float dist_tip = get_distance(point_small_array.pt, point_large_array.pt, false);
+
+			dist_sigma += dist_tip_rotated + dist_tip;
+		}
+
+		if (dist_sigma < dist_sigma_min)
+		{
+			dist_sigma_min = dist_sigma;
+			large_array_index_vec_result = large_array_index_vec;
+			small_array_index_vec_result = small_array_index_vec;
+		}
+	}
+
+	for (int i = 0; i < large_array_index_vec_result.size(); ++i)
+	{
+		const int index_large = large_array_index_vec_result[i];
+		const int index_small = small_array_index_vec_result[i];
+
+		(*large_array)[index_large].matching_point = &(*small_array)[index_small];
+		(*small_array)[index_small].matching_point = &(*large_array)[index_large];
+	}
+}
+
 void draw_circle(Mat& image, Point pt, bool is_empty = false)
 {
 	circle(image, pt, 3, Scalar(127), is_empty ? 1 : -1);
 }
+
+ThinningComputer thinning_computer;
 
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
 {
@@ -373,7 +418,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 	else
 		palm_radius = palm_radius_static;
 
-	pt_palm = palm_point;
+	Point pt_palm = palm_point;
 
 	value_store.set_float("palm_radius", palm_radius);
 	value_store.set_point("palm_point", palm_point);
@@ -700,6 +745,13 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 	vector<Point> contour_processed;
 	vector<Point> contour_processed_approximated;
 
+	int x_min_pose = value_store.get_int("x_min_pose");
+	int x_max_pose = value_store.get_int("x_max_pose");
+	int y_min_pose = value_store.get_int("y_min_pose");
+	int y_max_pose = value_store.get_int("y_max_pose");
+
+	vector<Point> pose_estimation_points;
+
 	while (true)
 	{
 		Mat image_contour_processed = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -768,12 +820,7 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 		//--------------------------------------------------------------------------------------------------------------------------
 
-		int x_min_pose;
-		int x_max_pose;
-		int y_min_pose;
-		int y_max_pose;
 		get_bounds(contour_processed_approximated, x_min_pose, x_max_pose, y_min_pose, y_max_pose);
-
 		value_store.set_int("x_min_pose", x_min_pose);
 		value_store.set_int("x_max_pose", x_max_pose);
 		value_store.set_int("y_min_pose", y_min_pose);
@@ -787,133 +834,213 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 			contour_processed_approximated_scaled.push_back(Point(x_normalized, y_normalized));
 		}
 
-		pose_estimation_points = contour_processed_approximated_scaled;
 		if (name == "1")
-			pose_estimator.compute(pose_estimation_points);
+			pose_estimator.compute(contour_processed_approximated_scaled);
 
+		pose_estimation_points = contour_processed_approximated_scaled;
 		break;
 	}
 
-	if (contour_processed.size() == 0)
+	if (contour_processed.size() == 0 || pose_estimation_points.size() == 0)
 		return false;
 
-	stereo_matching_points = contour_processed;
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	vector<PointPlus> point_plus_vec;
+	for (Point& pt : tip_points)
+	{
+		Point pt_rotated = rotate_point_upright(pt);
+		point_plus_vec.push_back(PointPlus(pt, pt_rotated));
+	}	
+
+	vector<PointPlus>* point_plus_vec_old = value_store.get_point_plus_vec("point_plus_vec_old");
+	match_points_by_permutation(&point_plus_vec, point_plus_vec_old);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+	
+	int point_plus_id_max = value_store.get_int("blob_id_max", 0);
+
+	for (PointPlus& point_plus : point_plus_vec)
+	{
+		if (point_plus.matching_point == NULL)
+		{
+			point_plus.track_index = point_plus_id_max;
+			++point_plus_id_max;
+			continue;
+		}
+		Point pt0_rotated = point_plus.pt_rotated;
+		Point pt1_rotated = point_plus.matching_point->pt_rotated;
+		Point pt0 = point_plus.pt;
+		Point pt1 = point_plus.matching_point->pt;
+
+		if (!check_bounds_small(pt0_rotated) || !check_bounds_small(pt1_rotated))
+			continue;
+
+		float motion_dist = get_distance(pt0_rotated, pt1_rotated, false);
+		/*if (motion_dist > 15)
+		{
+			point_plus.matching_point = NULL;
+			point_plus.track_index = point_plus_id_max;
+			++point_plus_id_max;
+			continue;
+		}*/
+		if (point_plus.matching_point == NULL)
+		{
+			point_plus.track_index = point_plus_id_max;
+			++point_plus_id_max;
+			continue;
+		}
+		point_plus.track_index = point_plus.matching_point->track_index;
+		point_plus.color = point_plus.matching_point->color;
+
+		line(image_visualization, pt0_rotated, pt1_rotated, Scalar(254), 1);
+		line(image_visualization, pt0, pt1, Scalar(127), 1);
+	}
+	value_store.set_int("point_plus_id_max", point_plus_id_max);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	static vector<Scalar> colors;
+	if (colors.size() == 0)
+	{
+		colors.push_back(Scalar(255, 0, 0));
+		colors.push_back(Scalar(0, 153, 0));
+		colors.push_back(Scalar(0, 0, 255));
+		colors.push_back(Scalar(153, 0, 102));
+		colors.push_back(Scalar(102, 102, 102));
+	}
+
+	Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+
+	if (name == "1")
+	{
+		vector<Point> pose_model_points = PoseEstimator::points_dist_min;
+		vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
+
+		int label_indexes[1000];
+		int label_indexes_count = 0;
+
+		{
+			int label_index = -1;
+			for (Point& pt : pose_model_labels)
+			{
+				++label_index;
+				for (int i = pt.x; i <= pt.y; ++i)
+				{
+					label_indexes[i] = label_index;
+					++label_indexes_count;
+				}
+			}
+		}
+
+		//----------------------------------------------------------------------------------------------------------------------
+
+		Mat cost_mat = compute_cost_mat(pose_model_points, pose_estimation_points, false);
+		vector<Point> indexes = compute_dtw_indexes(cost_mat);
+
+		//----------------------------------------------------------------------------------------------------------------------
+
+		Scalar color_old;
+		Point pt_old = Point(-1, -1);
+		for (Point& index_pair : indexes)
+		{
+			Point pt = pose_estimation_points[index_pair.y];
+			Point pt_model = pose_model_points[index_pair.x];
+
+			if (index_pair.x >= label_indexes_count)
+				continue;
+
+			int label_index = label_indexes[index_pair.x];
+			Scalar color = colors[label_index];
+
+			int pt_x_normalized = map_val(pt.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+			int pt_y_normalized = map_val(pt.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+			Point pt_normalized = Point(pt_x_normalized, pt_y_normalized);
+
+			if (pt_old.x != -1)
+			{
+				Point pt_middle = Point((pt.x + pt_old.x) / 2, (pt.y + pt_old.y) / 2);
+
+				int pt_middle_x_normalized = map_val(pt_middle.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+				int pt_middle_y_normalized = map_val(pt_middle.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+				Point pt_middle_normalized = Point(pt_middle_x_normalized, pt_middle_y_normalized);
+
+				int pt_old_x_normalized = map_val(pt_old.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
+				int pt_old_y_normalized = map_val(pt_old.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
+				Point pt_old_normalized = Point(pt_old_x_normalized, pt_old_y_normalized);
+
+				vector<Point> line_vec0;
+				vector<Point> line_vec1;
+				bresenham_line(pt_old_normalized.x, pt_old_normalized.y, pt_middle_normalized.x, pt_middle_normalized.y, line_vec0, 1000);
+				bresenham_line(pt_middle_normalized.x, pt_middle_normalized.y, pt_normalized.x, pt_normalized.y, line_vec1, 1000);
+
+				line(image_labeled, pt_old_normalized, pt_middle_normalized, color_old, 2);
+				line(image_labeled, pt_middle_normalized, pt_normalized, color, 2);
+			}
+			pt_old = pt;
+			color_old = color;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	vector<Point> contour_processed_scaled;
+	for (Point& pt : contour_processed)
+	{
+		int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
+		int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
+		contour_processed_scaled.push_back(Point(x_normalized, y_normalized));
+	}
+
+	static vector<Point> stereo_matching_points;
+	static vector<Scalar> color_vec;
+	if (name == "1")
+	{
+		stereo_matching_points = contour_processed_scaled;
+
+		color_vec.clear();
+		for (Point& pt : contour_processed)
+		{
+			uchar b = image_labeled.ptr<uchar>(pt.y, pt.x)[0];
+			uchar g = image_labeled.ptr<uchar>(pt.y, pt.x)[1];
+			uchar r = image_labeled.ptr<uchar>(pt.y, pt.x)[2];
+			color_vec.push_back(Scalar(b, g, r));
+		}
+	}
+	else
+	{
+		Mat cost_mat = compute_cost_mat(contour_processed_scaled, stereo_matching_points, true);
+		vector<Point> indexes = compute_dtw_indexes(cost_mat);
+
+		Mat image_test = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC3);
+
+		Scalar color_current = colors[0];
+		Scalar color_old = color_current;
+		Point pt_old = Point(-1, -1);
+		for (Point& index_pair : indexes)
+		{
+			Point pt0 = contour_processed_scaled[index_pair.x];
+			Point pt1 = stereo_matching_points[index_pair.y];
+
+			Point pt = contour_processed[index_pair.x];
+			Scalar color_new = color_vec[index_pair.y];
+
+			int y_diff = abs(pt0.y - pt1.y);
+			if (!(color_new[0] == 0 && color_new[1] == 0 && color_new[2] == 0) && y_diff <= 3)
+				color_current = color_new;
+
+			if (pt_old.x != -1)
+				line(image_labeled, pt_old, pt, color_old, 2);
+
+			pt_old = pt;
+			color_old = color_current;
+		}
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	if (name == "1")
 	{
-		static vector<Scalar> colors;
-		if (colors.size() == 0)
-		{
-			colors.push_back(Scalar(255, 0, 0));
-			colors.push_back(Scalar(0, 153, 0));
-			colors.push_back(Scalar(0, 0, 255));
-			colors.push_back(Scalar(153, 0, 102));
-			colors.push_back(Scalar(102, 102, 102));
-		}
-
-		vector<ColoredPoint> contour_labeled;
-		Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
-		// Mat image_visualization_articulation = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
-
-		{
-			vector<Point> pose_model_points = PoseEstimator::points_dist_min;
-			vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
-
-			int label_indexes[1000];
-			int label_indexes_count = 0;
-
-			{
-				int label_index = -1;
-				for (Point& pt : pose_model_labels)
-				{
-					++label_index;
-					for (int i = pt.x; i <= pt.y; ++i)
-					{
-						label_indexes[i] = label_index;
-						++label_indexes_count;
-					}
-				}
-			}
-
-			int x_min_pose = value_store.get_int("x_min_pose");
-			int x_max_pose = value_store.get_int("x_max_pose");
-			int y_min_pose = value_store.get_int("y_min_pose");
-			int y_max_pose = value_store.get_int("y_max_pose");
-
-			vector<Point> contour_processed_scaled;
-			for (Point& pt : contour_processed)
-			{
-				int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
-				int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
-				contour_processed_scaled.push_back(Point(x_normalized, y_normalized));
-			}
-
-			Mat cost_mat = compute_cost_mat(pose_model_points, contour_processed_scaled, false);
-			vector<Point> indexes = compute_dtw_indexes(cost_mat);
-
-			Scalar color_old;
-			Point pt_old = Point(-1, -1);
-
-			for (Point& index_pair : indexes)
-			{
-				Point pt = contour_processed_scaled[index_pair.y];
-				Point pt_model = pose_model_points[index_pair.x];
-
-				// if (abs(pt_model.y - pt.y) > 10)
-					// continue;
-
-				if (index_pair.x >= label_indexes_count)
-					continue;
-
-				int label_index = label_indexes[index_pair.x];
-				Scalar color = colors[label_index];
-
-				int pt_x_normalized = map_val(pt.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
-				int pt_y_normalized = map_val(pt.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
-				Point pt_normalized = Point(pt_x_normalized, pt_y_normalized);
-
-				if (pt_old.x != -1)
-				{
-					Point pt_middle = Point((pt.x + pt_old.x) / 2, (pt.y + pt_old.y) / 2);
-
-					int pt_middle_x_normalized = map_val(pt_middle.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
-					int pt_middle_y_normalized = map_val(pt_middle.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
-					Point pt_middle_normalized = Point(pt_middle_x_normalized, pt_middle_y_normalized);
-
-					int pt_old_x_normalized = map_val(pt_old.x, 0, WIDTH_SMALL_MINUS, x_min_pose, x_max_pose);
-					int pt_old_y_normalized = map_val(pt_old.y, 0, HEIGHT_SMALL_MINUS, y_min_pose, y_max_pose);
-					Point pt_old_normalized = Point(pt_old_x_normalized, pt_old_y_normalized);
-
-					// line(image_visualization_articulation, pt_old, pt_middle, color_old, 2);
-					// line(image_visualization_articulation, pt_middle, pt, color, 2);
-
-					vector<Point> line_vec0;
-					vector<Point> line_vec1;
-					bresenham_line(pt_old_normalized.x, pt_old_normalized.y,
-						pt_middle_normalized.x, pt_middle_normalized.y, line_vec0, 1000);
-					bresenham_line(pt_middle_normalized.x, pt_middle_normalized.y,
-						pt_normalized.x, pt_normalized.y, line_vec1, 1000);
-
-					for (Point& pt_line : line_vec0)
-						contour_labeled.push_back(ColoredPoint(color_old[0], color_old[1], color_old[2], pt_line.x, pt_line.y));
-
-					for (Point& pt_line : line_vec1)
-						contour_labeled.push_back(ColoredPoint(color[0], color[1], color[2], pt_line.x, pt_line.y));
-
-					// if (color_old == colors[1] || color_old == colors[0])
-						line(image_labeled, pt_old_normalized, pt_middle_normalized, color_old, 2);
-
-					// if (color == colors[1] || color_old == colors[0])
-						line(image_labeled, pt_middle_normalized, pt_normalized, color, 2);
-				}
-				pt_old = pt;
-				color_old = color;
-			}
-		}
-		// imshow("image_visualization_articulation" + name, image_visualization_articulation);
-
 		const int scan_radius = 3;
 
 		vector<ColorPointPair> color_point_pair_vec;
@@ -966,8 +1093,12 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 				color_point_pair_vec.push_back(ColorPointPair(color, pt, overlap, color_index, point_index));
 			}
 		}
-
 		sort(color_point_pair_vec.begin(), color_point_pair_vec.end(), compare_color_point_pair_overlap());
+
+		//------------------------------------------------------------------------------------------------------------------------------
+
+		int tips_count = tip_points.size();
+		int tips_count_old = value_store.get_int("tips_count_old", 0);
 
 		bool color_index_checker[1000];
 		bool point_index_checker[1000];
@@ -979,12 +1110,29 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 			color_index_checker[pair.color_index] = true;
 			point_index_checker[pair.point_index] = true;
 
-			circle(image_labeled, pair.point, 5, pair.color, 1);
-			//mark
+			for (PointPlus& pt : point_plus_vec)
+				if (pt.x == pair.point.x && pt.y == pair.point.y)
+					if (tips_count != tips_count_old || pt.color == Scalar(255, 255, 255))
+					{
+						pt.color = pair.color;
+						break;
+					}
 		}
+		value_store.set_int("tips_count_old", tips_count);
 
-		imshow("image_labeled" + name, image_labeled);
+		//--------------------------------------------------------------------------------------------------------------------------
+
+		for (PointPlus& pt : point_plus_vec)
+			circle(image_labeled, pt.pt, 5, pt.color, 1);
 	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	imshow("image_labeled" + name, image_labeled);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	*point_plus_vec_old = point_plus_vec;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 

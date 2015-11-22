@@ -29,10 +29,7 @@ class MonoProcessorNew
 public:
 	string algo_name = "mono_processor";
 
-	ThinningComputer thinning_computer;
-
 	ValueStore value_store;
-	ValueStore value_store_permanent;
 
 	ValueAccumulator value_accumulator;
 
@@ -41,20 +38,9 @@ public:
 	Point pt_middle;
 	Point pt_ring;
 	Point pt_pinky;
-
-	Point pt_index_root;
-	Point pt_thumb_root;
-
 	Point pt_palm;
-	Point pt_alignment;
 
 	float palm_radius;
-
-	vector<Point> fingertip_points;
-	vector<BlobNew> fingertip_blobs;
-
-	vector<Point> pose_estimation_points;
-	vector<Point> stereo_matching_points;
 
 	bool compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize);
 };

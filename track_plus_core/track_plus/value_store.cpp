@@ -26,6 +26,7 @@ void ValueStore::reset()
 	point_vec_pool_index = 0;
 	blob_vec_pool_index = 0;
 	mat_vec_pool_index = 0;
+	point_plus_vec_pool_index = 0;
 	blob_detector_pool_index = 0;
 	histogram_builder_pool_index = 0;
 	low_pass_filter_pool_index = 0;
@@ -150,6 +151,23 @@ vector<Mat>* ValueStore::push_mat(string name, Mat value)
 	}
 
 	vector<Mat>* vec_ptr = mat_vec_map[name];
+	vec_ptr->push_back(value);
+
+	return vec_ptr;
+}
+
+vector<PointPlus>* ValueStore::push_point_plus(string name, PointPlus value)
+{
+	if (point_plus_vec_map.count(name) == 0)
+	{
+		point_plus_vec_map[name] = &point_plus_vec_pool[point_plus_vec_pool_index];
+		++point_plus_vec_pool_index;
+
+		if (point_plus_vec_pool_index == pool_size)
+			console_log("overflow point_plus_vec_pool_index");
+	}
+
+	vector<PointPlus>* vec_ptr = point_plus_vec_map[name];
 	vec_ptr->push_back(value);
 
 	return vec_ptr;
@@ -294,6 +312,20 @@ vector<Mat>* ValueStore::get_mat_vec(string name)
 	}
 
 	return mat_vec_map[name];
+}
+
+vector<PointPlus>* ValueStore::get_point_plus_vec(string name)
+{
+	if (point_plus_vec_map.count(name) == 0)
+	{
+		point_plus_vec_map[name] = &point_plus_vec_pool[point_plus_vec_pool_index];
+		++point_plus_vec_pool_index;
+
+		if (point_plus_vec_pool_index == pool_size)
+			console_log("overflow point_plus_vec_pool_index");
+	}
+
+	return point_plus_vec_map[name];
 }
 
 BlobDetectorNew* ValueStore::get_blob_detector(string name)

@@ -39,12 +39,9 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\jpeg_decompressor.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\kalman.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\overlapping_blob_pair.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\point_plus.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\point_resolver.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\rectifier.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_new.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\surface_computer.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmcurve.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\lmmin.h" />
@@ -60,7 +57,6 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\pose_estimator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\ray.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\reprojector.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\temporal_processor_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\thinning_computer_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_accumulator.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\value_store.h" />
@@ -94,10 +90,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\kalman.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\point_resolver.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\rectifier.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_dtw.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_new.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\stereo_processor_permutation.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\surface_computer.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\lmcurve.c" />
     <ClCompile Include="..\..\track_plus_core\track_plus\imu.cpp" />
@@ -114,7 +106,6 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\quadratic.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\ray.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\reprojector.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\temporal_processor_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\thinning_computer_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_accumulator.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\value_store.cpp" />

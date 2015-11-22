@@ -24,6 +24,7 @@
 #include "blob_detector_new.h"
 #include "histogram_builder.h"
 #include "low_pass_filter.h"
+#include "point_plus.h"
 
 using namespace std;
 using namespace cv;
@@ -41,6 +42,7 @@ public:
 	unordered_map<string, vector<Point>*> point_vec_map;
 	unordered_map<string, vector<BlobNew>*> blob_vec_map;
 	unordered_map<string, vector<Mat>*> mat_vec_map;
+	unordered_map<string, vector<PointPlus>*> point_plus_vec_map;
 	unordered_map<string, Mat> mat_map;
 	unordered_map<string, BlobDetectorNew*> blob_detector_map;
 	unordered_map<string, HistogramBuilder*> histogram_builder_map;
@@ -51,6 +53,7 @@ public:
 	vector<Point>* point_vec_pool = new vector<Point>[pool_size];
 	vector<BlobNew>* blob_vec_pool = new vector<BlobNew>[pool_size];
 	vector<Mat>* mat_vec_pool = new vector<Mat>[pool_size];
+	vector<PointPlus>* point_plus_vec_pool = new vector<PointPlus>[pool_size];
 	BlobDetectorNew* blob_detector_pool = new BlobDetectorNew[pool_size];
 	HistogramBuilder* histogram_builder_pool = new HistogramBuilder[pool_size];
 	LowPassFilter* low_pass_filter_pool = new LowPassFilter[pool_size];
@@ -60,6 +63,7 @@ public:
 	int point_vec_pool_index = 0;
 	int blob_vec_pool_index = 0;
 	int mat_vec_pool_index = 0;
+	int point_plus_vec_pool_index = 0;
 	int blob_detector_pool_index = 0;
 	int histogram_builder_pool_index = 0;
 	int low_pass_filter_pool_index = 0;
@@ -78,6 +82,7 @@ public:
 	vector<Point>* push_point(string name, Point value);
 	vector<BlobNew>* push_blob(string name, BlobNew value);
 	vector<Mat>* push_mat(string name, Mat value);
+	vector<PointPlus>* push_point_plus(string name, PointPlus value);
 
 	bool get_bool(string name, bool if_not_exist_result = false);
 	float get_float(string name, float if_not_exist_result = 0);
@@ -92,6 +97,7 @@ public:
 	vector<Point>* get_point_vec(string name);
 	vector<BlobNew>* get_blob_vec(string name);
 	vector<Mat>* get_mat_vec(string name);
+	vector<PointPlus>* get_point_plus_vec(string name);
 	BlobDetectorNew* get_blob_detector(string name);
 	HistogramBuilder* get_histogram_builder(string name);
 	LowPassFilter* get_low_pass_filter(string name);

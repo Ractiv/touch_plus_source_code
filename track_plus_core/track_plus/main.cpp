@@ -31,11 +31,6 @@
 #include "foreground_extractor_new.h"
 #include "hand_splitter_new.h"
 #include "mono_processor_new.h"
-#include "stereo_processor.h"
-#include "stereo_processor_new.h"
-#include "stereo_processor_permutation.h"
-#include "stereo_processor_dtw.h"
-#include "temporal_processor_new.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -90,14 +85,6 @@ HandSplitterNew hand_splitter1;
 
 MonoProcessorNew mono_processor0;
 MonoProcessorNew mono_processor1;
-
-StereoProcessor stereo_processor;
-
-StereoProcessorNew stereo_processor_new;
-
-StereoProcessorDTW stereo_processor_dtw;
-
-TemporalProcessor temporal_processor;
 
 PoseEstimator pose_estimator;
 
@@ -524,8 +511,8 @@ bool compute()
         waiting_for_image = true;
         waiting_for_image_set = true;
 
-        proceed0 = mono_processor0.compute(hand_splitter0, pose_estimator, "0", false);
         proceed1 = mono_processor1.compute(hand_splitter1, pose_estimator, "1", true);
+        proceed0 = mono_processor0.compute(hand_splitter0, pose_estimator, "0", false);
         proceed = proceed0 && proceed1;
     }
 
@@ -533,12 +520,6 @@ bool compute()
     {
         motion_processor0.target_frame = 10;
         motion_processor1.target_frame = 10;
-
-        // stereo_processor_dtw.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        // stereo_processor_new.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
-        // compute_stereo_permutation(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1);
-        // stereo_processor.compute(mono_processor0, mono_processor1, point_resolver, pointer_mapper, image0, image1, true);
-        // temporal_processor.compute(stereo_processor);
     }
 
     if (enable_imshow)
