@@ -43,4 +43,5 @@ public:
 	float palm_radius;
 
 	bool compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize);
+	static void compute_stereo();
 };

@@ -512,12 +512,13 @@ bool compute()
         waiting_for_image_set = true;
 
         proceed1 = mono_processor1.compute(hand_splitter1, pose_estimator, "1", true);
-        proceed0 = mono_processor0.compute(hand_splitter0, pose_estimator, "0", false);
+        proceed0 = mono_processor0.compute(hand_splitter0, pose_estimator, "0", true);
         proceed = proceed0 && proceed1;
     }
 
     if (proceed)
     {
+        MonoProcessorNew::compute_stereo();
         motion_processor0.target_frame = 10;
         motion_processor1.target_frame = 10;
     }

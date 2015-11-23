@@ -186,6 +186,17 @@ void draw_circle(Mat& image, Point pt, bool is_empty = false)
 
 ThinningComputer thinning_computer;
 
+vector<Point> stereo_matching_points0;
+vector<Point> stereo_matching_points1;
+
+vector<Point> contour_processed0;
+vector<Point> contour_processed1;
+
+vector<Scalar> color_vec0;
+vector<Scalar> color_vec1;
+
+vector<Scalar> colors;
+
 bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
 {
 	int frame_count = value_store.get_int("frame_count", -1);
@@ -222,6 +233,15 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 	pt_middle = Point(-1, -1);
 	pt_ring = Point(-1, -1);
 	pt_pinky = Point(-1, -1);
+
+	if (colors.size() == 0)
+	{
+		colors.push_back(Scalar(255, 0, 0));
+		colors.push_back(Scalar(0, 153, 0));
+		colors.push_back(Scalar(0, 0, 255));
+		colors.push_back(Scalar(153, 0, 102));
+		colors.push_back(Scalar(102, 102, 102));
+	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -750,8 +770,6 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 	int y_min_pose = value_store.get_int("y_min_pose");
 	int y_max_pose = value_store.get_int("y_max_pose");
 
-	vector<Point> pose_estimation_points;
-
 	while (true)
 	{
 		Mat image_contour_processed = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC1);
@@ -820,29 +838,40 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 		//--------------------------------------------------------------------------------------------------------------------------
 
-		get_bounds(contour_processed_approximated, x_min_pose, x_max_pose, y_min_pose, y_max_pose);
-		value_store.set_int("x_min_pose", x_min_pose);
-		value_store.set_int("x_max_pose", x_max_pose);
-		value_store.set_int("y_min_pose", y_min_pose);
-		value_store.set_int("y_max_pose", y_max_pose);
-
-		vector<Point> contour_processed_approximated_scaled;
-		for (Point& pt : contour_processed_approximated)
-		{
-			int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
-			int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
-			contour_processed_approximated_scaled.push_back(Point(x_normalized, y_normalized));
-		}
-
-		if (name == "1")
-			pose_estimator.compute(contour_processed_approximated_scaled);
-
-		pose_estimation_points = contour_processed_approximated_scaled;
 		break;
 	}
 
-	if (contour_processed.size() == 0 || pose_estimation_points.size() == 0)
+	if (contour_processed.size() == 0 || contour_processed_approximated.size() == 0)
 		return false;
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	get_bounds(contour_processed_approximated, x_min_pose, x_max_pose, y_min_pose, y_max_pose);
+	value_store.set_int("x_min_pose", x_min_pose);
+	value_store.set_int("x_max_pose", x_max_pose);
+	value_store.set_int("y_min_pose", y_min_pose);
+	value_store.set_int("y_max_pose", y_max_pose);
+
+	vector<Point> contour_processed_approximated_scaled;
+	for (Point& pt : contour_processed_approximated)
+	{
+		int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
+		int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
+		contour_processed_approximated_scaled.push_back(Point(x_normalized, y_normalized));
+	}
+
+	vector<Point> contour_processed_scaled;
+	for (Point& pt : contour_processed)
+	{
+		int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
+		int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
+		contour_processed_scaled.push_back(Point(x_normalized, y_normalized));
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	pose_estimator.compute(contour_processed_approximated_scaled);
+	vector<Point> pose_estimation_points = contour_processed_approximated_scaled;
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -851,7 +880,10 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 	{
 		Point pt_rotated = rotate_point_upright(pt);
 		point_plus_vec.push_back(PointPlus(pt, pt_rotated));
-	}	
+
+		if (point_plus_vec.size() >= 5)
+			break;
+	}
 
 	vector<PointPlus>* point_plus_vec_old = value_store.get_point_plus_vec("point_plus_vec_old");
 	match_points_by_permutation(&point_plus_vec, point_plus_vec_old);
@@ -900,19 +932,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	static vector<Scalar> colors;
-	if (colors.size() == 0)
-	{
-		colors.push_back(Scalar(255, 0, 0));
-		colors.push_back(Scalar(0, 153, 0));
-		colors.push_back(Scalar(0, 0, 255));
-		colors.push_back(Scalar(153, 0, 102));
-		colors.push_back(Scalar(102, 102, 102));
-	}
-
 	Mat image_labeled = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
-	if (name == "1")
 	{
 		vector<Point> pose_model_points = PoseEstimator::points_dist_min;
 		vector<Point> pose_model_labels = PoseEstimator::labels_dist_min;
@@ -984,62 +1005,38 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	vector<Point> contour_processed_scaled;
-	for (Point& pt : contour_processed)
-	{
-		int x_normalized = map_val(pt.x, x_min_pose, x_max_pose, 0, WIDTH_SMALL_MINUS);
-		int y_normalized = map_val(pt.y, y_min_pose, y_max_pose, 0, HEIGHT_SMALL_MINUS);
-		contour_processed_scaled.push_back(Point(x_normalized, y_normalized));
-	}
-
-	static vector<Point> stereo_matching_points;
-	static vector<Scalar> color_vec;
 	if (name == "1")
 	{
-		stereo_matching_points = contour_processed_scaled;
+		stereo_matching_points1 = contour_processed_scaled;
+		contour_processed1 = contour_processed;
 
-		color_vec.clear();
+		color_vec1.clear();
 		for (Point& pt : contour_processed)
 		{
 			uchar b = image_labeled.ptr<uchar>(pt.y, pt.x)[0];
 			uchar g = image_labeled.ptr<uchar>(pt.y, pt.x)[1];
 			uchar r = image_labeled.ptr<uchar>(pt.y, pt.x)[2];
-			color_vec.push_back(Scalar(b, g, r));
+			color_vec1.push_back(Scalar(b, g, r));
 		}
 	}
 	else
 	{
-		Mat cost_mat = compute_cost_mat(contour_processed_scaled, stereo_matching_points, true);
-		vector<Point> indexes = compute_dtw_indexes(cost_mat);
+		stereo_matching_points0 = contour_processed_scaled;
+		contour_processed0 = contour_processed;
 
-		Mat image_test = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC3);
-
-		Scalar color_current = colors[0];
-		Scalar color_old = color_current;
-		Point pt_old = Point(-1, -1);
-		for (Point& index_pair : indexes)
+		color_vec0.clear();
+		for (Point& pt : contour_processed)
 		{
-			Point pt0 = contour_processed_scaled[index_pair.x];
-			Point pt1 = stereo_matching_points[index_pair.y];
-
-			Point pt = contour_processed[index_pair.x];
-			Scalar color_new = color_vec[index_pair.y];
-
-			int y_diff = abs(pt0.y - pt1.y);
-			if (!(color_new[0] == 0 && color_new[1] == 0 && color_new[2] == 0) && y_diff <= 3)
-				color_current = color_new;
-
-			if (pt_old.x != -1)
-				line(image_labeled, pt_old, pt, color_old, 2);
-
-			pt_old = pt;
-			color_old = color_current;
+			uchar b = image_labeled.ptr<uchar>(pt.y, pt.x)[0];
+			uchar g = image_labeled.ptr<uchar>(pt.y, pt.x)[1];
+			uchar r = image_labeled.ptr<uchar>(pt.y, pt.x)[2];
+			color_vec0.push_back(Scalar(b, g, r));
 		}
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	if (name == "1")
+	/*if (name == "1")
 	{
 		const int scan_radius = 3;
 
@@ -1123,12 +1120,19 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 		//--------------------------------------------------------------------------------------------------------------------------
 
 		for (PointPlus& pt : point_plus_vec)
-			circle(image_labeled, pt.pt, 5, pt.color, 1);
-	}
+		{
+			int index = -1;
+			for (Scalar& color : colors)
+			{
+				++index;
+				if (pt.color == color)
+					break;
+			}
 
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	imshow("image_labeled" + name, image_labeled);
+			if (index == 1)
+				circle(image_labeled, pt.pt, 5, pt.color, 1);
+		}
+	}*/
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1141,10 +1145,35 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 		circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
 		circle(image_visualization, pt_palm_rotated, palm_radius, Scalar(127), 1);
 		imshow("image_visualizationadlfkjhasdlkf" + name, image_visualization);
+		imshow("image_labeled" + name, image_labeled);
 	}
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	algo_name_vec.push_back(algo_name);
 	return true;
+}
+
+void MonoProcessorNew::compute_stereo()
+{
+	Mat cost_mat = compute_cost_mat(stereo_matching_points0, stereo_matching_points1, true);
+	vector<Point> indexes = compute_dtw_indexes(cost_mat);
+
+	Mat image_test = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC3);
+
+	for (Point& index_pair : indexes)
+	{
+		Point pt0 = contour_processed0[index_pair.x];
+		Point pt1 = contour_processed1[index_pair.y];
+
+		Scalar color0 = color_vec0[index_pair.x];
+		Scalar color1 = color_vec1[index_pair.y];
+
+		if (color0 == color1)
+		{
+			circle(image_test, pt0, 1, color0, -1);
+		}
+	}
+
+	imshow("image_test", image_test);
 }
