@@ -98,6 +98,7 @@ int y_diff_rotation;
 float hand_angle;
 Point palm_point;
 Point palm_point_rotated;
+float palm_radius;
 
 Point rotate_point_upright(Point& pt, float hand_angle_overwrite = 9999)
 {
@@ -197,7 +198,7 @@ vector<Scalar> color_vec1;
 
 vector<Scalar> colors;
 
-bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
+bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
 {
 	int frame_count = value_store.get_int("frame_count", -1);
 	++frame_count;
@@ -1036,106 +1037,8 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	/*if (name == "1")
-	{
-		const int scan_radius = 3;
-
-		vector<ColorPointPair> color_point_pair_vec;
-
-		int point_index = -1;
-		for (Point& pt : tip_points)
-		{
-			++point_index;
-
-			const int scan_x_min = pt.x - scan_radius < 0 ? 0 : pt.x - scan_radius;
-			const int scan_x_max = pt.x + scan_radius > WIDTH_SMALL_MINUS ? WIDTH_SMALL_MINUS : pt.x + scan_radius;
-			const int scan_y_min = pt.y - scan_radius < 0 ? 0 : pt.y - scan_radius;
-			const int scan_y_max = pt.y + scan_radius > HEIGHT_SMALL_MINUS ? HEIGHT_SMALL_MINUS : pt.y + scan_radius;
-
-			unordered_map<string, int> color_count_checker;
-			for (Scalar& color : colors)
-			{
-				const uchar b = color[0];
-				const uchar g = color[1];
-				const uchar r = color[2];
-				string key = to_string(b) + "," + to_string(g) + "," + to_string(r);
-				color_count_checker[key] = 0;
-			}
-
-			for (int i = scan_x_min; i <= scan_x_max; ++i)
-				for (int j = scan_y_min; j <= scan_y_max; ++j)
-				{
-					const uchar b = image_labeled.ptr<uchar>(j, i)[0];
-					const uchar g = image_labeled.ptr<uchar>(j, i)[1];
-					const uchar r = image_labeled.ptr<uchar>(j, i)[2];
-
-					if (b == 0 && g == 0 && r == 0)
-						continue;
-
-					string key = to_string(b) + "," + to_string(g) + "," + to_string(r);
-					++color_count_checker[key];
-				}
-
-			int color_index = -1;
-			for (Scalar& color : colors)
-			{
-				++color_index;
-
-				const uchar b = color[0];
-				const uchar g = color[1];
-				const uchar r = color[2];
-				string key = to_string(b) + "," + to_string(g) + "," + to_string(r);
-				int overlap = color_count_checker[key];
-
-				color_point_pair_vec.push_back(ColorPointPair(color, pt, overlap, color_index, point_index));
-			}
-		}
-		sort(color_point_pair_vec.begin(), color_point_pair_vec.end(), compare_color_point_pair_overlap());
-
-		//------------------------------------------------------------------------------------------------------------------------------
-
-		int tips_count = tip_points.size();
-		int tips_count_old = value_store.get_int("tips_count_old", 0);
-
-		bool color_index_checker[1000];
-		bool point_index_checker[1000];
-		for (ColorPointPair& pair : color_point_pair_vec)
-		{
-			if (color_index_checker[pair.color_index] == true || point_index_checker[pair.point_index] == true)
-				continue;
-
-			color_index_checker[pair.color_index] = true;
-			point_index_checker[pair.point_index] = true;
-
-			for (PointPlus& pt : point_plus_vec)
-				if (pt.x == pair.point.x && pt.y == pair.point.y)
-					if (tips_count != tips_count_old || pt.color == Scalar(255, 255, 255))
-					{
-						pt.color = pair.color;
-						break;
-					}
-		}
-		value_store.set_int("tips_count_old", tips_count);
-
-		//--------------------------------------------------------------------------------------------------------------------------
-
-		for (PointPlus& pt : point_plus_vec)
-		{
-			int index = -1;
-			for (Scalar& color : colors)
-			{
-				++index;
-				if (pt.color == color)
-					break;
-			}
-
-			if (index == 1)
-				circle(image_labeled, pt.pt, 5, pt.color, 1);
-		}
-	}*/
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
+	vector<PointPlus>* point_plus_vec_ptr = value_store.get_point_plus_vec("point_plus_vec");
+	*point_plus_vec_ptr = point_plus_vec;
 	*point_plus_vec_old = point_plus_vec;
 
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -1154,12 +1057,16 @@ bool MonoProcessorNew::compute(HandSplitterNew& hand_splitter, PoseEstimator& po
 	return true;
 }
 
+Mat image_labeled0;
+Mat image_labeled1;
+
 void MonoProcessorNew::compute_stereo()
 {
 	Mat cost_mat = compute_cost_mat(stereo_matching_points0, stereo_matching_points1, true);
 	vector<Point> indexes = compute_dtw_indexes(cost_mat);
 
-	Mat image_test = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC3);
+	image_labeled0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+	image_labeled1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 
 	for (Point& index_pair : indexes)
 	{
@@ -1171,9 +1078,47 @@ void MonoProcessorNew::compute_stereo()
 
 		if (color0 == color1)
 		{
-			circle(image_test, pt0, 1, color0, -1);
+			circle(image_labeled0, pt0, 3, color0, -1);
+			circle(image_labeled1, pt1, 3, color1, -1);
 		}
 	}
+}
 
-	imshow("image_test", image_test);
+void MonoProcessorNew::compute_mono1(string name)
+{
+	Mat image_labeled;
+	if (name == "1")
+		image_labeled = image_labeled1;
+	else
+		image_labeled = image_labeled0;
+
+	vector<PointPlus>* point_plus_vec = value_store.get_point_plus_vec("point_plus_vec");
+
+	const int scan_radius = 3;
+	for (PointPlus& pt : *point_plus_vec)
+	{
+		int x_min = pt.x - scan_radius;
+		if (x_min < 0)
+			x_min = 0;
+
+		int x_max = pt.x + scan_radius;
+		if (x_max >= WIDTH_SMALL)
+			x_max = WIDTH_SMALL_MINUS;
+
+		int y_min = pt.y - scan_radius;
+		if (y_min < 0)
+			y_min = 0;
+
+		int y_max = pt.y + scan_radius;
+		if (y_max >= HEIGHT_SMALL)
+			y_max = HEIGHT_SMALL_MINUS;
+
+		for (int i = x_min; i <= x_max; ++i)
+			for (int j = y_min; j <= y_max; ++j)
+			{
+				
+			}
+	}
+
+	imshow("image_labeled", image_labeled);
 }

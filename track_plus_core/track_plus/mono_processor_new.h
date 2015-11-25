@@ -40,8 +40,7 @@ public:
 	Point pt_pinky;
 	Point pt_palm;
 
-	float palm_radius;
-
-	bool compute(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize);
+	bool compute_mono0(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize);
 	static void compute_stereo();
+	void compute_mono1(string name);
 };
