@@ -25,15 +25,15 @@
 #include "pose_estimator.h"
 #include "point_plus.h"
 
-struct ColorPointPair
+struct ColorPointPlusPair
 {
 	Scalar color;
-	Point point;
+	PointPlus point;
 	int overlap;
 	int color_index;
 	int point_index;
 
-	ColorPointPair(Scalar& _color, Point& _point, int _overlap, int _color_index, int _point_index)
+	ColorPointPlusPair(Scalar& _color, PointPlus& _point, int _overlap, int _color_index, int _point_index)
 	{
 		color = _color;
 		point = _point;
@@ -43,9 +43,9 @@ struct ColorPointPair
 	}
 };
 
-struct compare_color_point_pair_overlap
+struct compare_color_point_plus_pair_overlap
 {
-	bool operator() (const ColorPointPair& pair0, const ColorPointPair& pair1)
+	bool operator() (const ColorPointPlusPair& pair0, const ColorPointPlusPair& pair1)
 	{
 		return (pair0.overlap > pair1.overlap);
 	}
@@ -882,8 +882,8 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 		Point pt_rotated = rotate_point_upright(pt);
 		point_plus_vec.push_back(PointPlus(pt, pt_rotated));
 
-		if (point_plus_vec.size() >= 5)
-			break;
+		// if (point_plus_vec.size() >= 5)
+			// break;
 	}
 
 	vector<PointPlus>* point_plus_vec_old = value_store.get_point_plus_vec("point_plus_vec_old");
@@ -1095,8 +1095,13 @@ void MonoProcessorNew::compute_mono1(string name)
 	vector<PointPlus>* point_plus_vec = value_store.get_point_plus_vec("point_plus_vec");
 
 	const int scan_radius = 3;
+	vector<ColorPointPlusPair> color_point_pair_vec;
+
+	int point_index = -1;
 	for (PointPlus& pt : *point_plus_vec)
 	{
+		++point_index;
+
 		int x_min = pt.x - scan_radius;
 		if (x_min < 0)
 			x_min = 0;
@@ -1113,12 +1118,40 @@ void MonoProcessorNew::compute_mono1(string name)
 		if (y_max >= HEIGHT_SMALL)
 			y_max = HEIGHT_SMALL_MINUS;
 
-		for (int i = x_min; i <= x_max; ++i)
-			for (int j = y_min; j <= y_max; ++j)
-			{
-				
-			}
+		int color_index = -1;
+		for (Scalar& color : colors)
+		{
+			++color_index;
+
+			int overlap = 0;
+			for (int i = x_min; i <= x_max; ++i)
+				for (int j = y_min; j <= y_max; ++j)
+					if (image_labeled.ptr<uchar>(j, i)[0] == color[0] &&
+						image_labeled.ptr<uchar>(j, i)[1] == color[1] &&
+						image_labeled.ptr<uchar>(j, i)[2] == color[2])
+					{
+						++overlap;
+					}
+			color_point_pair_vec.push_back(ColorPointPlusPair(color, pt, overlap, color_index, point_index));
+		}
+	}
+	sort(color_point_pair_vec.begin(), color_point_pair_vec.end(), compare_color_point_plus_pair_overlap());
+
+	bool color_index_checker[1000] { 0 };
+	bool point_index_checker[1000] { 0 };
+	for (ColorPointPlusPair& pair : color_point_pair_vec)
+	{
+		if (color_index_checker[pair.color_index] == true || point_index_checker[pair.point_index] == true)
+			continue;
+
+		color_index_checker[pair.color_index] = true;
+		point_index_checker[pair.point_index] = true;
+
+		if (pair.point.matching_point != NULL)
+			line(image_labeled, pair.point.pt, pair.point.matching_point->pt, Scalar(255, 255, 255), 1);
+
+		circle(image_labeled, pair.point.pt, 5, pair.color, 2);
 	}
 
-	imshow("image_labeled", image_labeled);
+	// imshow("image_labeled", image_labeled);
 }

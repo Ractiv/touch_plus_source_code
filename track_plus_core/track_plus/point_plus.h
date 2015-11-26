@@ -42,4 +42,9 @@ struct PointPlus
 		x_rotated = pt_rotated.x;
 		y_rotated = pt_rotated.y;
 	}
+
+	PointPlus()
+	{
+		
+	}
 };

@@ -75,8 +75,8 @@ bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_p
 		}
 
 	threshold(image_foreground, image_foreground, diff_threshold, 254, THRESH_BINARY);
-	GaussianBlur(image_foreground, image_foreground, Size(5, 5), 0, 0);
-	threshold(image_foreground, image_foreground, 150, 254, THRESH_BINARY);
+	// GaussianBlur(image_foreground, image_foreground, Size(5, 5), 0, 0);
+	// threshold(image_foreground, image_foreground, 150, 254, THRESH_BINARY);
 
 	//------------------------------------------------------------------------------------------------------------------------
 

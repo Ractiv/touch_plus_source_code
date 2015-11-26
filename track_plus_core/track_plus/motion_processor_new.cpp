@@ -446,8 +446,8 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 
 					x_separator_left_median = x_separator_left;
 					x_separator_right_median = x_separator_right;
-					value_accumulator.compute(x_separator_left_median, "x_separator_left_median", 1000, 0, 0.9, true);
-					value_accumulator.compute(x_separator_right_median, "x_separator_right_median", 1000, WIDTH_SMALL, 0.1, true);
+					value_accumulator.compute(x_separator_left_median, "x_separator_left_median", 1000, 0, 0.99, true);
+					value_accumulator.compute(x_separator_right_median, "x_separator_right_median", 1000, WIDTH_SMALL, 0.01, true);
 				}
 				else if (left_moving)
 					x_separator_left = blob_detector_image_subtraction->x_min_result;
@@ -496,7 +496,7 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 				value_store.set_int("y_separator_down", y_separator_down);
 
 				y_separator_down_median = y_separator_down;
-				value_accumulator.compute(y_separator_down_median, "y_separator_down_median", 1000, HEIGHT_SMALL_MINUS, 0.1, true);
+				value_accumulator.compute(y_separator_down_median, "y_separator_down_median", 1000, HEIGHT_SMALL_MINUS, 0.01, true);
 			}
 			else if (left_moving || right_moving)
 			{
@@ -520,9 +520,9 @@ bool MotionProcessorNew::compute(Mat& image_in,             Mat& image_raw,  con
 					y_separator_up = blobs_y_min + 10;
 
 					y_separator_up_median = y_separator_up;
-					value_accumulator.compute(y_separator_up_median, "y_separator_up_median", 1000, 0, 0.9, true);
+					value_accumulator.compute(y_separator_up_median, "y_separator_up_median", 1000, 0, 0.99, true);
 
-					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.9, true);
+					value_accumulator.compute(y_separator_up, "y_separator_up", 1000, 0, 0.99, true);
 				}
 
 				//------------------------------------------------------------------------------------------------------------------------
