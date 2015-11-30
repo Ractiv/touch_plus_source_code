@@ -93,6 +93,14 @@ struct compare_point_angle
 	}
 };
 
+struct compare_point_y
+{
+	inline bool operator() (const Point pt0_in, const Point pt1_in)
+	{
+		return pt0_in.y > pt1_in.y;
+	}
+};
+
 int x_diff_rotation;
 int y_diff_rotation;
 float hand_angle;
@@ -197,6 +205,19 @@ vector<Scalar> color_vec0;
 vector<Scalar> color_vec1;
 
 vector<Scalar> colors;
+
+vector<Point> vertex_points0;
+vector<Point> vertex_points1;
+
+int x_min_pose0;
+int x_max_pose0;
+int y_min_pose0;
+int y_max_pose0;
+
+int x_min_pose1;
+int x_max_pose1;
+int y_min_pose1;
+int y_max_pose1;
 
 bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
 {
@@ -457,8 +478,8 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	vector<vector<Point>> extension_lines;
-	vector<Point> tip_points;
 	vector<BlobNew> skeleton_blobs;
+	tip_points.clear();
 
 	if (true)
 	// if (name == "1")
@@ -551,7 +572,7 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 			if ((a + b + c + d) >= 3 || (e + f + g + h) >= 3 || b0 || b1 || b2 || b3 || b4 || b5 || b6 || b7)
 				circle(image_skeleton_segmented, pt, 3, Scalar(127), -1);
 		}
-		circle(image_skeleton_segmented, pt_palm, palm_radius, Scalar(127), -1);
+		// circle(image_skeleton_segmented, pt_palm, palm_radius, Scalar(127), -1);
 
 		//------------------------------------------------------------------------------------------------------------------------------
 
@@ -853,6 +874,23 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 	value_store.set_int("y_min_pose", y_min_pose);
 	value_store.set_int("y_max_pose", y_max_pose);
 
+	if (name == "1")
+	{
+		x_min_pose1 = x_min_pose;
+		x_max_pose1 = x_max_pose;
+		y_min_pose1 = y_min_pose;
+		y_max_pose1 = y_max_pose;
+	}
+	else
+	{
+		x_min_pose0 = x_min_pose;
+		x_max_pose0 = x_max_pose;
+		y_min_pose0 = y_min_pose;
+		y_max_pose0 = y_max_pose;
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
 	vector<Point> contour_processed_approximated_scaled;
 	for (Point& pt : contour_processed_approximated)
 	{
@@ -871,65 +909,10 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	pose_estimator.compute(contour_processed_approximated_scaled);
+	vector<Point> vertex_points = name == "1" ? vertex_points1 : vertex_points0;
+
+	pose_estimator.compute(contour_processed_approximated_scaled, vertex_points, name);
 	vector<Point> pose_estimation_points = contour_processed_approximated_scaled;
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	vector<PointPlus> point_plus_vec;
-	for (Point& pt : tip_points)
-	{
-		Point pt_rotated = rotate_point_upright(pt);
-		point_plus_vec.push_back(PointPlus(pt, pt_rotated));
-
-		// if (point_plus_vec.size() >= 5)
-			// break;
-	}
-
-	vector<PointPlus>* point_plus_vec_old = value_store.get_point_plus_vec("point_plus_vec_old");
-	match_points_by_permutation(&point_plus_vec, point_plus_vec_old);
-
-	//------------------------------------------------------------------------------------------------------------------------------
-	
-	int point_plus_id_max = value_store.get_int("blob_id_max", 0);
-
-	for (PointPlus& point_plus : point_plus_vec)
-	{
-		if (point_plus.matching_point == NULL)
-		{
-			point_plus.track_index = point_plus_id_max;
-			++point_plus_id_max;
-			continue;
-		}
-		Point pt0_rotated = point_plus.pt_rotated;
-		Point pt1_rotated = point_plus.matching_point->pt_rotated;
-		Point pt0 = point_plus.pt;
-		Point pt1 = point_plus.matching_point->pt;
-
-		if (!check_bounds_small(pt0_rotated) || !check_bounds_small(pt1_rotated))
-			continue;
-
-		float motion_dist = get_distance(pt0_rotated, pt1_rotated, false);
-		/*if (motion_dist > 15)
-		{
-			point_plus.matching_point = NULL;
-			point_plus.track_index = point_plus_id_max;
-			++point_plus_id_max;
-			continue;
-		}*/
-		if (point_plus.matching_point == NULL)
-		{
-			point_plus.track_index = point_plus_id_max;
-			++point_plus_id_max;
-			continue;
-		}
-		point_plus.track_index = point_plus.matching_point->track_index;
-		point_plus.color = point_plus.matching_point->color;
-
-		line(image_visualization, pt0_rotated, pt1_rotated, Scalar(254), 1);
-		line(image_visualization, pt0, pt1, Scalar(127), 1);
-	}
-	value_store.set_int("point_plus_id_max", point_plus_id_max);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
@@ -1037,12 +1020,6 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 
 	//------------------------------------------------------------------------------------------------------------------------------
 
-	vector<PointPlus>* point_plus_vec_ptr = value_store.get_point_plus_vec("point_plus_vec");
-	*point_plus_vec_ptr = point_plus_vec;
-	*point_plus_vec_old = point_plus_vec;
-
-	//------------------------------------------------------------------------------------------------------------------------------
-
 	if (visualize)
 	{
 		circle(image_visualization, pt_palm, palm_radius, Scalar(127), 1);
@@ -1060,6 +1037,9 @@ bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimat
 Mat image_labeled0;
 Mat image_labeled1;
 
+unordered_map<string, vector<Point>> color_point_map0;
+unordered_map<string, vector<Point>> color_point_map1;
+
 void MonoProcessorNew::compute_stereo()
 {
 	Mat cost_mat = compute_cost_mat(stereo_matching_points0, stereo_matching_points1, true);
@@ -1067,6 +1047,15 @@ void MonoProcessorNew::compute_stereo()
 
 	image_labeled0 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
 	image_labeled1 = Mat::zeros(HEIGHT_SMALL, WIDTH_SMALL, CV_8UC3);
+
+	color_point_map0.clear();
+	color_point_map1.clear();
+	for (Scalar& color : colors)
+	{
+		string key = to_string(color[0]) + "," + to_string(color[1]) + "," + to_string(color[2]);
+		color_point_map0[key] = vector<Point>();
+		color_point_map1[key] = vector<Point>();
+	}
 
 	for (Point& index_pair : indexes)
 	{
@@ -1080,8 +1069,46 @@ void MonoProcessorNew::compute_stereo()
 		{
 			circle(image_labeled0, pt0, 3, color0, -1);
 			circle(image_labeled1, pt1, 3, color1, -1);
+
+			string key = to_string(color0[0]) + "," + to_string(color0[1]) + "," + to_string(color0[2]);
+			color_point_map0[key].push_back(pt0);
+			color_point_map1[key].push_back(pt1);
 		}
 	}
+
+	vector<Point> vertex_points0_temp;
+	vector<Point> vertex_points1_temp;
+
+	for (Scalar& color : colors)
+	{
+		string key = to_string(color[0]) + "," + to_string(color[1]) + "," + to_string(color[2]);
+		
+		vector<Point>* point_vec0 = &color_point_map0[key];
+		sort(point_vec0->begin(), point_vec0->end(), compare_point_y());
+
+		vector<Point>* point_vec1 = &color_point_map1[key];
+		sort(point_vec1->begin(), point_vec1->end(), compare_point_y());
+
+		if (point_vec0->size() == 0)
+			vertex_points0_temp.push_back(Point(9999, 9999));
+		else
+		{
+			int x_normalized = map_val((*point_vec0)[0].x, x_min_pose0, x_max_pose0, 0, WIDTH_SMALL_MINUS);
+			int y_normalized = map_val((*point_vec0)[0].y, y_min_pose0, y_max_pose0, 0, HEIGHT_SMALL_MINUS);
+			vertex_points0_temp.push_back(Point(x_normalized, y_normalized));
+		}
+
+		if (point_vec1->size() == 0)
+			vertex_points1_temp.push_back(Point(9999, 9999));
+		else
+		{
+			int x_normalized = map_val((*point_vec1)[0].x, x_min_pose1, x_max_pose1, 0, WIDTH_SMALL_MINUS);
+			int y_normalized = map_val((*point_vec1)[0].y, y_min_pose1, y_max_pose1, 0, HEIGHT_SMALL_MINUS);
+			vertex_points1_temp.push_back(Point(x_normalized, y_normalized));
+		}
+	}
+	vertex_points0 = vertex_points0_temp;
+	vertex_points1 = vertex_points1_temp;
 }
 
 void MonoProcessorNew::compute_mono1(string name)
@@ -1092,13 +1119,72 @@ void MonoProcessorNew::compute_mono1(string name)
 	else
 		image_labeled = image_labeled0;
 
-	vector<PointPlus>* point_plus_vec = value_store.get_point_plus_vec("point_plus_vec");
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	vector<PointPlus> point_plus_vec;
+	for (Point& pt : tip_points)
+	{
+		Point pt_rotated = rotate_point_upright(pt);
+		point_plus_vec.push_back(PointPlus(pt, pt_rotated));
+
+		if (point_plus_vec.size() >= 6)
+			break;
+	}
+
+	vector<PointPlus>* point_plus_vec_old = value_store.get_point_plus_vec("point_plus_vec_old");
+	match_points_by_permutation(&point_plus_vec, point_plus_vec_old);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+	
+	int point_plus_id_max = value_store.get_int("blob_id_max", 0);
+
+	for (PointPlus& point_plus : point_plus_vec)
+	{
+		if (point_plus.matching_point == NULL)
+		{
+			point_plus.track_index = point_plus_id_max;
+			++point_plus_id_max;
+			continue;
+		}
+		Point pt0_rotated = point_plus.pt_rotated;
+		Point pt1_rotated = point_plus.matching_point->pt_rotated;
+		Point pt0 = point_plus.pt;
+		Point pt1 = point_plus.matching_point->pt;
+
+		if (!check_bounds_small(pt0_rotated) || !check_bounds_small(pt1_rotated))
+			continue;
+
+		float motion_dist = get_distance(pt0_rotated, pt1_rotated, false);
+		if (motion_dist > palm_radius)
+		{
+			point_plus.matching_point = NULL;
+			point_plus.track_index = point_plus_id_max;
+			++point_plus_id_max;
+			continue;
+		}
+		if (point_plus.matching_point == NULL)
+		{
+			point_plus.track_index = point_plus_id_max;
+			++point_plus_id_max;
+			continue;
+		}
+		point_plus.track_index = point_plus.matching_point->track_index;
+		point_plus.color = point_plus.matching_point->color;
+	}
+	value_store.set_int("point_plus_id_max", point_plus_id_max);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	const int tip_points_size = tip_points.size();
+	const int tip_points_size_old = value_store.get_int("tip_points_size_old", tip_points_size);
+
+	//------------------------------------------------------------------------------------------------------------------------------
 
 	const int scan_radius = 3;
 	vector<ColorPointPlusPair> color_point_pair_vec;
 
 	int point_index = -1;
-	for (PointPlus& pt : *point_plus_vec)
+	for (PointPlus& pt : point_plus_vec)
 	{
 		++point_index;
 
@@ -1147,11 +1233,23 @@ void MonoProcessorNew::compute_mono1(string name)
 		color_index_checker[pair.color_index] = true;
 		point_index_checker[pair.point_index] = true;
 
-		if (pair.point.matching_point != NULL)
-			line(image_labeled, pair.point.pt, pair.point.matching_point->pt, Scalar(255, 255, 255), 1);
+		for (PointPlus& pt : point_plus_vec)
+			if (pt.pt == pair.point.pt)
+			{
+				// if (tip_points_size != tip_points_size_old || (pt.color[0] == 255 && pt.color[1] == 255 && pt.color[2] == 255))
+					pt.color = pair.color;
 
-		circle(image_labeled, pair.point.pt, 5, pair.color, 2);
+				break;
+			}
 	}
 
-	// imshow("image_labeled", image_labeled);
+	for (PointPlus& pt : point_plus_vec)
+		circle(image_labeled, pt.pt, 5, pt.color, 2);
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	*point_plus_vec_old = point_plus_vec;
+	value_store.set_int("tip_points_size_old", tip_points_size);
+
+	imshow("image_labeled_asdlkfjh" + name, image_labeled);
 }

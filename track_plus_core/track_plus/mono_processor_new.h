@@ -40,6 +40,8 @@ public:
 	Point pt_pinky;
 	Point pt_palm;
 
+	vector<Point> tip_points;
+
 	bool compute_mono0(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize);
 	static void compute_stereo();
 	void compute_mono1(string name);

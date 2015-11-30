@@ -19,14 +19,6 @@
 #include "foreground_extractor_new.h"
 #include "mat_functions.h"
 
-struct compare_point_x
-{
-	inline bool operator() (const Point pt0_in, const Point pt1_in)
-	{
-		return pt0_in.x < pt1_in.x;
-	}
-};
-
 bool ForegroundExtractorNew::compute(Mat& image_in, MotionProcessorNew& motion_processor, const string name, const bool visualize)
 {
 	if (value_store.get_bool("first_pass", false) == false)

@@ -38,10 +38,11 @@ public:
 
 	static vector<Point> points_dist_min;
 	static vector<Point> labels_dist_min;
+	static vector<Point> vertex_points_dist_min;
 
 	static string pose_name;
 	static string target_pose_name;
 
 	void init();
-	void compute(vector<Point>& points_in);
+	void compute(vector<Point>& points_in, vector<Point>& vertex_points_in, string name);
 };
