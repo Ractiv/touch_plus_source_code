@@ -242,7 +242,37 @@ void PoseEstimator::compute(vector<Point>& points_in, vector<Point>& vertex_poin
 
 		Mat cost_mat = compute_cost_mat(points_current, points, false);
 		float dist = compute_dtw(cost_mat);
-		//mark
+
+		int skipped_count = 0;
+		vector<float> dist_vertex_vec;
+		if (vertex_points_in.size() > 0)
+		{
+			int index_vertex = -1;
+			for (Point& pt_vertex_in : vertex_points_in)
+			{
+				++index_vertex;
+				Point pt_vertex_matching = vertex_points_collection[index][index_vertex];
+
+				if (pt_vertex_matching.x == 9999 || pt_vertex_in.x == 9999)
+				{
+					++skipped_count;
+					continue;
+				}
+
+				dist_vertex_vec.push_back(get_distance(pt_vertex_in, pt_vertex_matching, false));
+			}
+		}
+		if (dist_vertex_vec.size() > 0)
+		{
+			sort(dist_vertex_vec.begin(), dist_vertex_vec.end());
+			float dist_vertex = dist_vertex_vec[dist_vertex_vec.size() - 1];
+			float dist_vertex_median = dist_vertex_vec[dist_vertex_vec.size() / 2];
+
+			for (int i = 0; i < skipped_count; ++i)
+				dist_vertex += dist_vertex_median;
+
+			dist += dist_vertex;
+		}
 
 		if (dist < dist_min)
 		{
@@ -257,7 +287,6 @@ void PoseEstimator::compute(vector<Point>& points_in, vector<Point>& vertex_poin
 			}
 		}
 	}
-
 	bool boolean0 = record_pose;
 	bool boolean1 = target_pose_name != "";
 	bool boolean2 = points_current.size() > 500;
