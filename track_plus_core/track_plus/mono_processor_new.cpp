@@ -1236,7 +1236,7 @@ void MonoProcessorNew::compute_mono1(string name)
 		for (PointPlus& pt : point_plus_vec)
 			if (pt.pt == pair.point.pt)
 			{
-				// if (tip_points_size != tip_points_size_old || (pt.color[0] == 255 && pt.color[1] == 255 && pt.color[2] == 255))
+				if (tip_points_size != tip_points_size_old || (pt.color[0] == 255 && pt.color[1] == 255 && pt.color[2] == 255))
 					pt.color = pair.color;
 
 				break;
