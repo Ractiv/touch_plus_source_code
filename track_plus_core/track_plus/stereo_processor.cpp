@@ -41,25 +41,25 @@ struct compare_blob_pair_overlap
 	}
 };
 
-void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
+void StereoProcessor::compute(SCOPA& scopa0, SCOPA& scopa1,
 							  PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1, bool visualize)
 {
 	LowPassFilter* low_pass_filter = value_store.get_low_pass_filter("low_pass_filter");
 
-	Point pt_y_max0 = get_y_max_point(mono_processor0.fingertip_points);
-	Point pt_y_max1 = get_y_max_point(mono_processor1.fingertip_points);
+	Point pt_y_max0 = get_y_max_point(scopa0.fingertip_points);
+	Point pt_y_max1 = get_y_max_point(scopa1.fingertip_points);
 	int alignment_y_diff = pt_y_max0.y - pt_y_max1.y;
-	int alignment_x_diff = mono_processor0.pt_alignment.x - mono_processor1.pt_alignment.x;
+	int alignment_x_diff = scopa0.pt_alignment.x - scopa1.pt_alignment.x;
 
 	//------------------------------------------------------------------------------------------------------------------------
 
 	vector<BlobPairOverlap> blob_pair_vec;
 
 	int index0 = 0;
-	for (BlobNew& blob0 : mono_processor0.fingertip_blobs)
+	for (BlobNew& blob0 : scopa0.fingertip_blobs)
 	{
 		int index1 = 0;
-		for (BlobNew& blob1 : mono_processor1.fingertip_blobs)
+		for (BlobNew& blob1 : scopa1.fingertip_blobs)
 		{
 			float y_diff = blob0.y_max - blob1.y_max;
 			float y_diff_diff = abs(y_diff - alignment_y_diff) + 1;
@@ -96,8 +96,8 @@ void StereoProcessor::compute(MonoProcessorNew& mono_processor0, MonoProcessorNe
 
 	//------------------------------------------------------------------------------------------------------------------------
 
-	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_processor0.pt_palm, 0, 4);
-	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_processor1.pt_palm, 1, 4);
+	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(scopa0.pt_palm, 0, 4);
+	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(scopa1.pt_palm, 1, 4);
 
 	Point3f pt3d_pivot = point_resolver.reprojector->reproject_to_3d(pt_resolved_pivot0.x, pt_resolved_pivot0.y,
 															         pt_resolved_pivot1.x, pt_resolved_pivot1.y);

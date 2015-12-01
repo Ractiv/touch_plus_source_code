@@ -24,10 +24,10 @@
 #include "thinning_computer_new.h"
 #include "pose_estimator.h"
 
-class MonoProcessorNew
+class SCOPA
 {
 public:
-	string algo_name = "mono_processor";
+	string algo_name = "scopa";
 
 	ValueStore value_store;
 

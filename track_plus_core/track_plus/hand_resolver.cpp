@@ -18,7 +18,7 @@
 
 #include "hand_resolver.h"
 
-void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorNew& mono_processor1,
+void HandResolver::compute(SCOPA& scopa0,     SCOPA& scopa1,
 						   MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1,
 						   Mat& image0, 					      Mat& image1,
 						   Reprojector& reprojector,              bool visualize)
@@ -33,32 +33,32 @@ void HandResolver::compute(MonoProcessorNew& mono_processor0,     MonoProcessorN
 	}
 
 	pt_precise_index0 = Point2f(-1, -1);
-	if (mono_processor0.pt_index.x != -1)
-		pt_precise_index0 = increase_resolution(mono_processor0.pt_index,                  image0,
+	if (scopa0.pt_index.x != -1)
+		pt_precise_index0 = increase_resolution(scopa0.pt_index,                  image0,
 											    motion_processor0.image_background_static, motion_processor0.diff_threshold,
 											    motion_processor0.gray_threshold_left,     motion_processor0.gray_threshold_right,
 											    reprojector,                               0,
 											    										   motion_processor0.x_separator_middle);
 
 	pt_precise_index1 = Point2f(-1, -1);
-	if (mono_processor1.pt_index.x != -1)
-		pt_precise_index1 = increase_resolution(mono_processor1.pt_index,                  image1,
+	if (scopa1.pt_index.x != -1)
+		pt_precise_index1 = increase_resolution(scopa1.pt_index,                  image1,
 											    motion_processor1.image_background_static, motion_processor1.diff_threshold,
 											    motion_processor1.gray_threshold_left,     motion_processor1.gray_threshold_right,
 											    reprojector,                               1,
 											    										   motion_processor1.x_separator_middle);
 
 	pt_precise_thumb0 = Point2f(-1, -1);
-	if (mono_processor0.pt_thumb.x != -1)
-		pt_precise_thumb0 = increase_resolution(mono_processor0.pt_thumb,                  image0,
+	if (scopa0.pt_thumb.x != -1)
+		pt_precise_thumb0 = increase_resolution(scopa0.pt_thumb,                  image0,
 												motion_processor0.image_background_static, motion_processor0.diff_threshold,
 												motion_processor0.gray_threshold_left,     motion_processor0.gray_threshold_right,
 												reprojector,                               0,
 												                                           motion_processor1.x_separator_middle);
 
 	pt_precise_thumb1 = Point2f(-1, -1);
-	if (mono_processor1.pt_thumb.x != -1)
-		pt_precise_thumb1 = increase_resolution(mono_processor1.pt_thumb,                  image1,
+	if (scopa1.pt_thumb.x != -1)
+		pt_precise_thumb1 = increase_resolution(scopa1.pt_thumb,                  image1,
 											    motion_processor1.image_background_static, motion_processor1.diff_threshold,
 											    motion_processor1.gray_threshold_left,     motion_processor1.gray_threshold_right,
 											    reprojector,                               1,

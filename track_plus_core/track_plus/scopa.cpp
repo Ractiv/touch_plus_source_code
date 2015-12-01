@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://ghostscript.com/doc/8.54/Public.htm>.
  */
 
-#include "mono_processor_new.h"
+#include "scopa.h"
 #include "mat_functions.h"
 #include "contour_functions.h"
 #include "dtw.h"
@@ -219,7 +219,7 @@ int x_max_pose1;
 int y_min_pose1;
 int y_max_pose1;
 
-bool MonoProcessorNew::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
+bool SCOPA::compute_mono0(HandSplitterNew& hand_splitter, PoseEstimator& pose_estimator, const string name, bool visualize)
 {
 	int frame_count = value_store.get_int("frame_count", -1);
 	++frame_count;
@@ -1040,7 +1040,7 @@ Mat image_labeled1;
 unordered_map<string, vector<Point>> color_point_map0;
 unordered_map<string, vector<Point>> color_point_map1;
 
-void MonoProcessorNew::compute_stereo()
+void SCOPA::compute_stereo()
 {
 	Mat cost_mat = compute_cost_mat(stereo_matching_points0, stereo_matching_points1, true);
 	vector<Point> indexes = compute_dtw_indexes(cost_mat);
@@ -1111,7 +1111,7 @@ void MonoProcessorNew::compute_stereo()
 	vertex_points1 = vertex_points1_temp;
 }
 
-void MonoProcessorNew::compute_mono1(string name)
+void SCOPA::compute_mono1(string name)
 {
 	Mat image_labeled;
 	if (name == "1")

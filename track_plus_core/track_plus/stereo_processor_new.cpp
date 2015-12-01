@@ -1,6 +1,6 @@
 #include "stereo_processor_new.h"
 
-void StereoProcessorNew::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
+void StereoProcessorNew::compute(SCOPA& scopa0, SCOPA& scopa1,
 									PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1, bool visualize)
 {
 	static const int blob_vec_cache_num = 3;
@@ -15,8 +15,8 @@ void StereoProcessorNew::compute(MonoProcessorNew& mono_processor0, MonoProcesso
 	}
 
 	vector<vector<BlobNew>> blob_vec_pair_new(2);
-	blob_vec_pair_new[0] = mono_processor0.fingertip_blobs;
-	blob_vec_pair_new[1] = mono_processor1.fingertip_blobs;
+	blob_vec_pair_new[0] = scopa0.fingertip_blobs;
+	blob_vec_pair_new[1] = scopa1.fingertip_blobs;
 
 	static vector<vector<BlobNew>> blob_vec_cache[blob_vec_cache_num];
 	blob_vec_cache[blob_vec_cached_count] = blob_vec_pair_new;

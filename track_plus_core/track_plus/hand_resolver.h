@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "mono_processor_new.h"
+#include "scopa.h"
 #include "motion_processor_new.h"
 #include "mat_functions.h"
 #include "reprojector.h"
@@ -38,7 +38,7 @@ public:
 	Point2f pt_precise_thumb1 = Point(-1, -1);
 
 
-	void compute(MonoProcessorNew& mono_processor0,     MonoProcessorNew& mono_processor1,
+	void compute(SCOPA& scopa0,     SCOPA& scopa1,
 				 MotionProcessorNew& motion_processor0, MotionProcessorNew& motion_processor1,
 				 Mat& image0,                           Mat& image1,
 				 Reprojector& reprojector,              bool visualize);

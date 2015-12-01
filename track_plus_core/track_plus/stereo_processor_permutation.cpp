@@ -5,16 +5,16 @@
 struct MonoData
 {
 	vector<Point>* array;
-	MonoProcessorNew* mono_processor;
+	SCOPA* scopa;
 	Mat image;
 	uchar side;
 
 	MonoData() { }
 
-	MonoData(vector<Point>* _array, MonoProcessorNew* _mono_processor, Mat _image, uchar _side)
+	MonoData(vector<Point>* _array, SCOPA* _scopa, Mat _image, uchar _side)
 	{
 		array = _array;
-		mono_processor = _mono_processor;
+		scopa = _scopa;
 		image = _image;
 		side = _side;
 	}
@@ -70,7 +70,7 @@ struct StereoPair
 	};
 };
 
-void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1,
+void compute_stereo_permutation(SCOPA& scopa0, SCOPA& scopa1,
 								PointResolver& point_resolver, PointerMapper& pointer_mapper, Mat& image0, Mat& image1)
 {
 	MonoData mono_data_large;
@@ -78,18 +78,18 @@ void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessor
 	MonoData mono_data0;
 	MonoData mono_data1;
 	bool side_flipped;
-	if (mono_processor0.fingertip_points.size() > mono_processor1.fingertip_points.size())
+	if (scopa0.fingertip_points.size() > scopa1.fingertip_points.size())
 	{
-		mono_data_large = MonoData(&mono_processor0.fingertip_points, &mono_processor0, image0, 0);
-		mono_data_small = MonoData(&mono_processor1.fingertip_points, &mono_processor1, image1, 1);
+		mono_data_large = MonoData(&scopa0.fingertip_points, &scopa0, image0, 0);
+		mono_data_small = MonoData(&scopa1.fingertip_points, &scopa1, image1, 1);
 		mono_data0 = mono_data_large;
 		mono_data1 = mono_data_small;
 		side_flipped = false;
 	}
 	else
 	{
-		mono_data_small = MonoData(&mono_processor0.fingertip_points, &mono_processor0, image0, 0);
-		mono_data_large = MonoData(&mono_processor1.fingertip_points, &mono_processor1, image1, 1);
+		mono_data_small = MonoData(&scopa0.fingertip_points, &scopa0, image0, 0);
+		mono_data_large = MonoData(&scopa1.fingertip_points, &scopa1, image1, 1);
 		mono_data1 = mono_data_large;
 		mono_data0 = mono_data_small;
 		side_flipped = true;
@@ -106,7 +106,7 @@ void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessor
 	Point pt_y_max_large = get_y_max_point(*mono_data_large.array);
 	Point pt_y_max_small = get_y_max_point(*mono_data_small.array);
 	int alignment_y_diff = pt_y_max_large.y - pt_y_max_small.y;
-	int alignment_x_diff = mono_data_large.mono_processor->pt_alignment.x - mono_data_small.mono_processor->pt_alignment.x;
+	int alignment_x_diff = mono_data_large.scopa->pt_alignment.x - mono_data_small.scopa->pt_alignment.x;
 
 	for (vector<int>& rows : permutations)
 	{
@@ -138,14 +138,14 @@ void compute_stereo_permutation(MonoProcessorNew& mono_processor0, MonoProcessor
 	}
 
 	stereo_pair_dist_sigma_min.compute(mono_data_large.array,                           mono_data_small.array,
-									   mono_data_large.mono_processor->fingertip_blobs, mono_data_small.mono_processor->fingertip_blobs,
+									   mono_data_large.scopa->fingertip_blobs, mono_data_small.scopa->fingertip_blobs,
 									   mono_data0,                                      mono_data1,
 									   side_flipped);
 
 	Mat image_visualization = Mat::zeros(HEIGHT_LARGE, WIDTH_LARGE, CV_8UC1);
 
-	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_data0.mono_processor->pt_palm, mono_data0.side, 4);
-	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_data1.mono_processor->pt_palm, mono_data1.side, 4);
+	Point pt_resolved_pivot0 = point_resolver.reprojector->remap_point(mono_data0.scopa->pt_palm, mono_data0.side, 4);
+	Point pt_resolved_pivot1 = point_resolver.reprojector->remap_point(mono_data1.scopa->pt_palm, mono_data1.side, 4);
 
 	static const int frame_cache_num = 3;
 	static int cached_count = -1;

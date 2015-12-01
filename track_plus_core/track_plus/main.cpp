@@ -30,7 +30,7 @@
 #include "motion_processor_new.h"
 #include "foreground_extractor_new.h"
 #include "hand_splitter_new.h"
-#include "mono_processor_new.h"
+#include "scopa.h"
 #include "pose_estimator.h"
 #include "reprojector.h"
 #include "hand_resolver.h"
@@ -83,8 +83,8 @@ ForegroundExtractorNew foreground_extractor1;
 HandSplitterNew hand_splitter0;
 HandSplitterNew hand_splitter1;
 
-MonoProcessorNew mono_processor0;
-MonoProcessorNew mono_processor1;
+SCOPA scopa0;
+SCOPA scopa1;
 
 PoseEstimator pose_estimator;
 
@@ -511,8 +511,8 @@ bool compute()
         waiting_for_image = true;
         waiting_for_image_set = true;
 
-        proceed1 = mono_processor1.compute_mono0(hand_splitter1, pose_estimator, "1", false);
-        proceed0 = mono_processor0.compute_mono0(hand_splitter0, pose_estimator, "0", false);
+        proceed1 = scopa1.compute_mono0(hand_splitter1, pose_estimator, "1", false);
+        proceed0 = scopa0.compute_mono0(hand_splitter0, pose_estimator, "0", false);
         proceed = proceed0 && proceed1;
     }
 
@@ -521,9 +521,9 @@ bool compute()
         motion_processor0.target_frame = 10;
         motion_processor1.target_frame = 10;
 
-        MonoProcessorNew::compute_stereo();
-        mono_processor1.compute_mono1("1");
-        mono_processor0.compute_mono1("0");
+        SCOPA::compute_stereo();
+        scopa1.compute_mono1("1");
+        scopa0.compute_mono1("0");
     }
 
     if (enable_imshow)

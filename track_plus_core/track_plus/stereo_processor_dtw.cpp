@@ -46,20 +46,20 @@ void center_pt_vec(vector<Point>& contour_processed, vector<Point>& stereo_match
 	}
 }
 
-bool StereoProcessorDTW::compute(MonoProcessorNew& mono_processor0, MonoProcessorNew& mono_processor1, PointResolver& point_resolver,
+bool StereoProcessorDTW::compute(SCOPA& scopa0, SCOPA& scopa1, PointResolver& point_resolver,
 							     PointerMapper& pointer_mapper,     Mat& image0,                       Mat& image1)
 {
-	vector<Point> vec0_raw = mono_processor0.stereo_matching_points;
-	vector<Point> vec1_raw = mono_processor1.stereo_matching_points;
+	vector<Point> vec0_raw = scopa0.stereo_matching_points;
+	vector<Point> vec1_raw = scopa1.stereo_matching_points;
 
 	Point y_max_point0 = get_y_max_point(vec0_raw);
 	Point y_max_point1 = get_y_max_point(vec1_raw);
 
 	vector<Point> vec0;
-	center_pt_vec(vec0_raw, vec0, y_max_point0, mono_processor0.pt_palm, mono_processor0.palm_radius);
+	center_pt_vec(vec0_raw, vec0, y_max_point0, scopa0.pt_palm, scopa0.palm_radius);
 
 	vector<Point> vec1;
-	center_pt_vec(vec1_raw, vec1, y_max_point1, mono_processor1.pt_palm, mono_processor1.palm_radius);
+	center_pt_vec(vec1_raw, vec1, y_max_point1, scopa1.pt_palm, scopa1.palm_radius);
 
 	Mat cost_mat = compute_cost_mat(vec0, vec1, true);
 	vector<Point> indexes = compute_dtw_indexes(cost_mat);

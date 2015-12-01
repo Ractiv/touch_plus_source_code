@@ -49,7 +49,7 @@
     <ClInclude Include="..\..\track_plus_core\track_plus\low_pass_filter.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\math_plus.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\mat_functions.h" />
-    <ClInclude Include="..\..\track_plus_core\track_plus\mono_processor_new.h" />
+    <ClInclude Include="..\..\track_plus_core\track_plus\scopa.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\motion_processor_new.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\permutation.h" />
     <ClInclude Include="..\..\track_plus_core\track_plus\plane.h" />
@@ -97,7 +97,7 @@
     <ClCompile Include="..\..\track_plus_core\track_plus\main.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\math_plus.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\mat_functions.cpp" />
-    <ClCompile Include="..\..\track_plus_core\track_plus\mono_processor_new.cpp" />
+    <ClCompile Include="..\..\track_plus_core\track_plus\scopa.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\motion_processor_new.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\permutation.cpp" />
     <ClCompile Include="..\..\track_plus_core\track_plus\plane.cpp" />
